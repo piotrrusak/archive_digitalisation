@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Sign-In Demo</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    // spoiler, doesn't work
+    function handleCredentialResponse(response) {
+      const idToken = response.credential;
+      console.log("Google ID Token:", idToken);
+
+      
+      // Send token to your backend
+      fetch("http://localhost:8080/protected-endpoint", {
+        method: "GET",
+        headers: {
+          "Authorization": "Bearer " + idToken
+        }
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Unauthorized");
+        return response.text();
+      })
+      .then(data => alert("Backend response: " + data))
+      .catch(err => console.error("Error:", err));
+    }
+
+    window.onload = function () {
+      google.accounts.id.initialize({
+        client_id: "538781233750-91r420igse5otl3rn9dl31lcj89kljmv.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById("buttonDiv"),
+        { theme: "outline", size: "large" }
+      );
+    };
+  </script>
+</head>
+<body>
+  <h2>Sign in with Google</h2>
+  <div id="buttonDiv"></div>
+</body>
+</html>
