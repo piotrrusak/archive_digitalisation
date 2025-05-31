@@ -10,11 +10,11 @@ model = VisionEncoderDecoderModel.from_pretrained("naver-clova-ix/donut-base")
 model.eval()
 
 # Your dataset folder
-data_dir = '../dataset'  # e.g., './dataset'
+data_dir = '../dataset2'  # e.g., './dataset'
 output_texts = []
 
 # Sort files numerically
-image_files = sorted([f for f in os.listdir(data_dir) if f.endswith('.jpg')])
+image_files = sorted([f for f in os.listdir(data_dir) if f.endswith('.png')])
 
 for filename in image_files:
     path = os.path.join(data_dir, filename)
