@@ -8,22 +8,27 @@ In the input directory, you need to create a JSON file containing the test data 
 [
   {
     "filepath": "dataset/0001.png",
-    "text": "0001"
+    "name": "0001",
+    "text": "anything1"
   },
   {
     "filepath": "dataset/0002.png",
-    "text": "0002"
+    "name": "0002",
+    "text": "anything1"
   },
   {
     "filepath": "dataset/0003.png",
+    "name": "0003",
     "text": ""
   },
   {
     "filepath": "dataset/0004.png",
+    "name": "0004",
     "text": ""
   },
   {
     "filepath": "dataset/0005.png",
+    "name": "0005",
     "text": ""
   }
 ]

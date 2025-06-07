@@ -3,7 +3,7 @@ import json
 
 def create_train_data():
 
-    with open("input/dataset.json") as f:
+    with open("../input/dataset.json") as f:
         dataset = json.load(f)
 
     for element in dataset:

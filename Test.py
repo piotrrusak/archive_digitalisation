@@ -4,7 +4,8 @@ from kraken import binarization, pageseg, rpred
 from kraken.lib.models import load_any
 import pytesseract
 
-from preprocessing import standard_preprocessing
+import ModelDecorator
+from utils.preprocessing import standard_preprocessing
 
 def run(filepath):
     image = cv2.imread(filepath)
@@ -18,13 +19,8 @@ def run(filepath):
     tesseract_result = pytesseract.image_to_string(computer_text)
 
     processed_img = standard_preprocessing(handwritten_text)
-    pil_img = Image.fromarray(processed_img)
-    pil_img_bw = binarization.nlbin(pil_img)
-    lines = pageseg.segment(pil_img_bw)
-    model = load_any("models/trained_model_best.mlmodel")
-    predictions = rpred.rpred(model, pil_img_bw, lines)
 
-    model_result = "\n".join([line.prediction for line in predictions])
+    model_result = ModelDecorator.run(processed_img)
 
     print(model_result)
 
