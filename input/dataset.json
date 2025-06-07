@@ -1,22 +1,27 @@
 [
   {
     "filepath": "dataset/0001.png",
-    "text": "0001"
+    "name": "0001",
+    "text": "A MOVE to stop Mr. Gaitskell from\nnominating any more Labour life Peers\nis to be made at a meeting of Labour\nMPs tomorrow. Mr. Michael Foot has\nput down a resolution on the subject\nand he is to be backed by Mr. Will\nGriffiths, M P for Manchester Exchange."
   },
   {
     "filepath": "dataset/0002.png",
-    "text": "0002"
+    "name": "0002",
+    "text": "Though they may gather some Left-wing\nsupport, a large majority of Labour\nM Ps are likely to turn down the Foot-\nGriffiths resolution. Mr. Foot's line will\nbe that as Labour M Ps opposed the\nGovernment Bill which brought life peers\ninto existence, they should not now put\nforward nominees. He belives that the\nHouse of Lords should be abolished and\nthat Labour should not take any steps\nwhich would appear to \"prop up\" an out."
   },
   {
     "filepath": "dataset/0003.png",
+    "name": "0003",
     "text": ""
   },
   {
     "filepath": "dataset/0004.png",
+    "name": "0004",
     "text": ""
   },
   {
     "filepath": "dataset/0005.png",
+    "name": "0005",
     "text": ""
   }
 ]
