@@ -1,4 +1,7 @@
 .idea
 __pycache__
+models/*
+seg/*
+training_data/*
 
 archive
