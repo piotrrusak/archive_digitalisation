@@ -6,7 +6,7 @@ def run(processed_img):
     pil_img = Image.fromarray(processed_img)
     pil_img_bw = binarization.nlbin(pil_img)
     lines = pageseg.segment(pil_img_bw)
-    model = load_any("models/trained_model_best.mlmodel")
+    model = load_any("models/_best.mlmodel")
     predictions = rpred.rpred(model, pil_img_bw, lines)
     model_result = "\n".join([line.prediction for line in predictions])
     return model_result
