@@ -26,4 +26,4 @@ class AutomatedTester:
                 logger.log(logging.INFO, f"While processing \"{file['filepath']}\", lavenshtein distance between model and tesseract scanning computer text is {Levenshtein.distance(model_result, tesseract_result)}.")
 
 if __name__ == '__main__':
-    automated_tester = AutomatedTester("input/dataset.json")
+    automated_tester = AutomatedTester("../input/dataset.json")

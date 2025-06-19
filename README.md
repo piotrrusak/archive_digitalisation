@@ -44,7 +44,6 @@ If text is an empty string (""), the model's output will be compared with Tesser
 
 The results are displayed in the standard output (logs). The log will indicate:
 
-
 When the model is compared to the expected text from the JSON.
 
 When the model is compared to Tesseract (if no expected text is provided).
@@ -53,12 +52,13 @@ When the model is compared to Tesseract (if no expected text is provided).
 
 Cropped images containing printed or handwritten text are saved in the cropped directory.
 
-
 To use your own model in the AutomatedTester, implement a function in the ModelDecorator.py file that wraps your model's inference logic.
+
+---
 
 ## Train
 
-### Data preparation
+### Data inputing
 
 #### Manual way
 
@@ -74,27 +74,53 @@ This command unpacks informations to "dane_treningowe" directory.
     ketos extract -o training_data output.html
 ```
 
+#### Imo better way
+
+Copy new-line sensitive text to input/dataset.json.
+
+### Training data preparation
+
+#### Semi-automatic way
+
+Firstly, we need to crop and preprocess data so we have to execute:
+
+```bash
+    "input/dataset.json" > temp.txt
+    python3 utils/cropp_dataset_images.py < temp.txt
+    rm temp.txt
+```
+
+Then we have to segment data into lines, by executing:
+
+```bash
+    ./scripts/create_seg_files.sh
+```
+
+This command segments all of data cropped by previous command.
+
+Then we have to prepere data in format of pair of files: line.png and line.txt:
+
+```bash
+    "input/dataset.json" > temp.txt
+    python3 utils/create_train_data.py < temp.txt
+    rm temp.txt
+```
+
 #### Automatic way
 
-Firstly, you have to copy new-line sensitive text to input/dataset.json.
-
-This creates .seg file that contains the localizations of bboxes with text. Its later used in create_train_data to label lines for training.
-
+```bash
+    ./scripts/create_train_data.sh
 ```
-    kraken -i cropped/handwritten/0001.png seg/0001.seg segment
-```
-
-And then run python file create_train_data.py. It will use text from input/dataset.json and .seg file to prepere data.
 
 ### Training
 
 This command train model with data
 
-```
-    ketos train -i ~/.config/kraken/ManuMcFondue.mlmodel --output models/ --partition 0.5 --lag 30 --dropout 0.25 training_data/*.png
+```bash
+    ketos train -i models/ManuMcFondue.mlmodel --output models/ --partition 0.5 --lag 30 training_data/*.png
 ```
 
-"-i ~/.config/kraken/ManuMcFondue.mlmodel" - ustawienie modelu który będziemy fine-tunować a raczej ścieżki do niego
+"-i models/ManuMcFondue.mlmodel" - ustawienie modelu który będziemy fine-tunować a raczej ścieżki do niego
 "--partition 0.5" - ustawienie proporcji test/train data
 "--lag 30" - ustawienie ilości stage bez poprawy w mechaniźmie early stopping
 
@@ -102,9 +128,11 @@ This command train model with data
 
 Clear out obsolete data
 
-```
-    rm models/model_[0-9]*.mlmodel
+```bash
+    ./scripts/clear_obsolete_data.sh
 ``` 
+
+---
 
 ## Localisation detection
 
@@ -123,6 +151,14 @@ Clear out obsolete data
 ```
 
 As you can see, every line has its bbox. Its boundaries are listed in .seg file if format: [LX, UY, RX, LY]. It doesn't detect bigger blocks of text, so if we want to combine lines, additional algorithm is needed.
+
+## Useful commands
+
+This creates .seg file that contains the localizations of bboxes with text. Its later used in create_train_data to label lines for training.
+
+```
+    kraken -i cropped/handwritten/0001.png seg/0001.seg segment
+```
 
 ## Conclusion
 
