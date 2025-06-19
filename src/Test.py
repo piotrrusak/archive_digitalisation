@@ -18,9 +18,7 @@ def run(filepath):
 
     tesseract_result = pytesseract.image_to_string(computer_text)
 
-    processed_img = standard_preprocessing(handwritten_text)
-
-    model_result = ModelDecorator.run(processed_img)
+    model_result = ModelDecorator.run(standard_preprocessing(handwritten_text))
 
     print(model_result)
 
