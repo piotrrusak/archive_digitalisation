@@ -1,0 +1,134 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      directory:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    env:
+      ELIXIR_VERSION: "1.18.3"
+      OTP_VERSION: "27.3.1"
+      MIX_ENV: "test"
+    
+    services:
+      auth_postgres:
+        image: postgis/postgis:13-3.3
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: auth_test
+        ports:
+          - "5432:5432"
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+      
+
+      - name: Restore cached deps
+        id: cache-deps-restore
+        uses: actions/cache/restore@v4
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: ./${{ inputs.directory }}/deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{inputs.directory}}-${{ hashFiles(format('{0}/**/mix.lock',  inputs.directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-${{inputs.directory}}-
+
+      - name: Restore cached build
+        if: github.ref != 'refs/heads/main'
+        id: cache-build-restore
+        uses: actions/cache/restore@v4
+        env:
+          cache-name: cache-compiled-build
+        with:
+          path: ./${{ inputs.directory }}/_build
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ inputs.directory }}-${{ hashFiles(format('{0}/**/mix.lock',  inputs.directory)) }}-${{ github.ref_name }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-${{ inputs.directory }}-${{ hashFiles(format('{0}/**/mix.lock',  inputs.directory)) }}
+            ${{ runner.os }}-mix-${{ env.cache-name }}-${{ inputs.directory }}-
+
+      - name: Fetch origin main
+        run: git fetch origin main
+
+      - name: Set environment variables
+        run: |
+          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            echo "AFFECTED_ARGS=--affected --base origin/main" >> $GITHUB_ENV
+          else
+            echo "AFFECTED_ARGS=" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        working-directory: ${{ inputs.directory }}
+        run: mix deps.get
+
+      - name: Compile dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        working-directory: ${{ inputs.directory }}
+        run: mix deps.compile
+
+      - name: Check for valid formatting
+        working-directory: ${{ inputs.directory }}
+        run: mix format ${{env.AFFECTED_ARGS}} -- --check-formatted
+
+      - name: Run Credo static code analysis
+        working-directory: ${{ inputs.directory }} 
+        run: mix credo ${{env.AFFECTED_ARGS}}
+
+      - name: Compile the project
+        working-directory: ${{ inputs.directory }}
+        run: mix compile ${{env.AFFECTED_ARGS}}
+
+      - name: Run Database migrations
+        if: ${{ contains(fromJson('["auth"]'), inputs.directory ) }}
+        working-directory: ${{ inputs.directory }}
+        run: mix migrate
+
+      - name: Run Sobelow static security analysis
+        working-directory: ${{ inputs.directory }}
+        run: mix sobelow ${{env.AFFECTED_ARGS}} -- --verbose --exit high --private
+
+      - name: Run tests
+        working-directory: ${{ inputs.directory }}
+        run: mix test --color
+
+      - name: Save cached deps
+        if: ${{ !cancelled() }}
+        id: cache-deps-save
+        uses: actions/cache/save@v4
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: ./${{ inputs.directory }}/deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ inputs.directory }}-${{ hashFiles(format('{0}/**/mix.lock',  inputs.directory)) }}
+
+      - name: Save cached build
+        if: ${{ !cancelled() }} && github.ref != 'refs/heads/main'
+        id: cache-build-save
+        uses: actions/cache/save@v4
+        env:
+          cache-name: cache-compiled-build
+        with:
+          path: ./${{ inputs.directory }}/_build
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ inputs.directory }}-${{ hashFiles(format('{0}/**/mix.lock',  inputs.directory)) }}-${{ github.ref_name }}

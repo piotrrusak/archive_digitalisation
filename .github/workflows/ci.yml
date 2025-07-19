@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  assign_author:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: toshimaru/auto-author-assign@v2.1.1
+
+  build-elixir:
+    if: '! github.event.pull_request.draft'
+    name: Build
+    strategy:
+      matrix:
+        directory: [auth]
+    uses: ./.github/workflows/build_elixir.yml
+    with:
+      directory: ${{ matrix.directory }}
+    secrets: inherit
+  
+  build-ts:
+    if: '! github.event.pull_request.draft'
+    name: Build
+    strategy:
+      matrix:
+        directory: [frontend]
+    uses: ./.github/workflows/build_ts.yml
+    with:
+      directory: ${{ matrix.directory }}
+    secrets: inherit
+  
+  build-python:
+    if: '! github.event.pull_request.draft'
+    name: Build
+    strategy:
+      matrix:
+        directory: [ocr]
+    uses: ./.github/workflows/build_python.yml
+    with:
+      directory: ${{ matrix.directory }}
+    secrets: inherit
+  
+  build-java:
+    if: '! github.event.pull_request.draft'
+    name: Build
+    strategy:
+      matrix:
+        directory: [auth]
+    uses: ./github/workflows/build_java.yml
+    with:
+      directory: ${{ matrix.directory }}
+    secrets: inherit
