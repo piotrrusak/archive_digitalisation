@@ -1,0 +1,69 @@
+name: Build Java
+
+on:
+  workflow_call:
+    inputs:
+      directory:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: backend_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/app_test
+        SPRING_DATASOURCE_USERNAME: postgres
+        SPRING_DATASOURCE_PASSWORD: password
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles(format('{0}/pom.xml', inputs.directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.directory }}
+        run: mvn dependency:resolve
+
+      - name: Lint with Checkstyle
+        working-directory: ${{ inputs.directory }}
+        run: mvn checkstyle:check || true
+
+      - name: Run tests
+        working-directory: ${{ inputs.directory }}
+        run: mvn test
+
+      - name: Package application
+        working-directory: ${{ inputs.directory }}
+        run: mvn package -DskipTests

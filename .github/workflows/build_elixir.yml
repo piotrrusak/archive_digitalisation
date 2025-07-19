@@ -1,4 +1,4 @@
-name: Build
+name: Build Elixir
 
 on:
   workflow_call:
