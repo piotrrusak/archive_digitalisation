@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         directory: [frontend]
-    uses: ./.github/workflows/build_ts.yml
+    uses: ./.github/workflows/build_frontend.yml
     with:
       directory: ${{ matrix.directory }}
     secrets: inherit
