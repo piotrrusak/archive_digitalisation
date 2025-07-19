@@ -53,7 +53,7 @@ jobs:
     strategy:
       matrix:
         directory: [backend]
-    uses: ./github/workflows/build_java.yml
+    uses: ./.github/workflows/build_java.yml
     with:
       directory: ${{ matrix.directory }}
     secrets: inherit
