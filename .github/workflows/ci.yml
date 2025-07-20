@@ -10,9 +10,11 @@ concurrency:
 
 jobs:
   assign_author:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: toshimaru/auto-author-assign@v2.1.1
+
 
   build-elixir:
     if: '! github.event.pull_request.draft'
