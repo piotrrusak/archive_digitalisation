@@ -8,14 +8,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  pull-requests: write
+
 jobs:
   assign_author:
     runs-on: ubuntu-latest
     steps:
       - uses: toshimaru/auto-author-assign@v2.1.1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
 
 
   build-elixir:
