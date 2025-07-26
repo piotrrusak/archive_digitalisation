@@ -103,7 +103,7 @@ jobs:
       - name: Run Database migrations
         if: ${{ contains(fromJson('["auth"]'), inputs.directory ) }}
         working-directory: ${{ inputs.directory }}
-        run: mix migrate
+        run: mix ecto.migrate
 
       - name: Run Sobelow static security analysis
         working-directory: ${{ inputs.directory }}
