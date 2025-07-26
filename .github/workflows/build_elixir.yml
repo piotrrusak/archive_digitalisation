@@ -90,15 +90,15 @@ jobs:
 
       - name: Check for valid formatting
         working-directory: ${{ inputs.directory }}
-        run: mix format ${{env.AFFECTED_ARGS}} -- --check-formatted
+        run: mix format --check-formatted
 
       - name: Run Credo static code analysis
         working-directory: ${{ inputs.directory }} 
-        run: mix credo ${{env.AFFECTED_ARGS}}
+        run: mix credo
 
       - name: Compile the project
         working-directory: ${{ inputs.directory }}
-        run: mix compile ${{env.AFFECTED_ARGS}}
+        run: mix compile
 
       - name: Run Database migrations
         if: ${{ contains(fromJson('["auth"]'), inputs.directory ) }}
@@ -107,7 +107,7 @@ jobs:
 
       - name: Run Sobelow static security analysis
         working-directory: ${{ inputs.directory }}
-        run: mix sobelow ${{env.AFFECTED_ARGS}} -- --verbose --exit high --private
+        run: mix sobelow --verbose --exit high --private
 
       - name: Run tests
         working-directory: ${{ inputs.directory }}
