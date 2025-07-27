@@ -37,7 +37,7 @@ jobs:
 
       - name: Run tests
         working-directory: ${{ inputs.directory }}
-        run: npm test -- --ci --coverage
+        run: npm test -- --coverage
 
       - name: Build project
         working-directory: ${{ inputs.directory }}
