@@ -9,7 +9,6 @@
     "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "preview": "vite preview"
   },
