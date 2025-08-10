@@ -2,7 +2,7 @@ defmodule AuthWeb.UserRegistrationController do
   use AuthWeb, :controller
 
   alias Auth.Accounts
-  alias AuthWeb.UserAuth
+  alias Auth.User.Auth
 
   def create(conn, user_params) do
     case Accounts.register_user(user_params) do
@@ -13,7 +13,7 @@ defmodule AuthWeb.UserRegistrationController do
             &url(~p"/users/confirm/#{&1}")
           )
 
-        token = UserAuth.generate_jwt(user)
+        token = Auth.generate_jwt(user)
 
         conn
         |> put_status(:created)

@@ -2,7 +2,7 @@ defmodule AuthWeb.UserSessionController do
   use AuthWeb, :controller
 
   alias Auth.Accounts
-  alias AuthWeb.UserAuth
+  alias Auth.User.Auth
 
   def create(conn, %{"email" => email, "password" => password}) do
     case Accounts.get_user_by_email_and_password(email, password) do
@@ -12,7 +12,7 @@ defmodule AuthWeb.UserSessionController do
         |> json(%{error: "Invalid email or password"})
 
       user ->
-        token = UserAuth.generate_jwt(user)
+        token = Auth.generate_jwt(user)
 
         conn
         |> put_status(:ok)

@@ -2,7 +2,7 @@ defmodule AuthWeb.UserSettingsController do
   use AuthWeb, :controller
 
   alias Auth.Accounts
-  alias AuthWeb.UserAuth
+  alias Auth.User.Auth
 
   plug(:assign_email_and_password_changesets)
 
@@ -43,7 +43,7 @@ defmodule AuthWeb.UserSettingsController do
         conn
         |> put_flash(:info, "Password updated successfully.")
         |> put_session(:user_return_to, ~p"/users/settings")
-        |> UserAuth.log_in_user(user)
+        |> Auth.log_in_user(user)
 
       {:error, changeset} ->
         render(conn, :edit, password_changeset: changeset)

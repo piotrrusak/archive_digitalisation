@@ -2,7 +2,7 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
   use AuthWeb.ConnCase, async: true
 
   alias Auth.Acounts
-  alias AuthWeb.UserAuth
+  alias Auth.User.Auth
 
   setup do
     unique = System.unique_integer([:positive]) |> Integer.to_string()
@@ -16,7 +16,7 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
         "password_confirmation" => pwd
       })
 
-    token = UserAuth.generate_jwt(user)
+    token = Auth.generate_jwt(user)
     %{user: user, token: token}
   end
 
