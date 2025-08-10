@@ -7,7 +7,7 @@ defmodule AuthWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_auth_key",
-    signing_salt: "wpSN/VD8",
+    signing_salt: "qDAAjfHY",
     same_site: "Lax"
   ]
 
@@ -28,6 +28,8 @@ defmodule AuthWeb.Endpoint do
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
+    socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
+    plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :auth
   end

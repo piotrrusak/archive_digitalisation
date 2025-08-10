@@ -2,27 +2,25 @@ defmodule AuthWeb.Router do
   use AuthWeb, :router
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug(:accepts, ["json"])
   end
 
-  scope "/api", AuthWeb do
-    pipe_through :api
+  pipeline :auth_api do
+    plug(:accepts, ["json"])
+    plug(AuthWeb.UserAuth, :fetch_api_user)
   end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
-  if Application.compile_env(:auth, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
-    import Phoenix.LiveDashboard.Router
+  scope "/api/v1", AuthWeb do
+    pipe_through(:api)
 
-    scope "/dev" do
-      pipe_through [:fetch_session, :protect_from_forgery]
+    post("/users/register", UserRegistrationController, :create)
+    post("/users/login", UserSessionController, :create)
+    delete("/users/logout", UserSessionController, :delete)
+  end
 
-      live_dashboard "/dashboard", metrics: AuthWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
+  scope "/api/v1", AuthWeb do
+    pipe_through(:auth_api)
+
+    get("/me", UserController, :me)
   end
 end

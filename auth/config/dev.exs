@@ -5,7 +5,6 @@ config :auth, Auth.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  port: 5432,
   database: "auth_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
@@ -24,8 +23,13 @@ config :auth, AuthWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "Yejqu1ygxJ6Z23z92IFDigzqX73vevQLN+uoIOD5gUSYx2bolOukbBC8X2NfzJX/",
-  watchers: []
+  secret_key_base: "t18+aW2jNVWEs6qA3wGQRr2nfuQvtIrGocpvSrmhwx4KD8oI/3+wXwWpYfHVeyBT",
+  watchers: [
+    esbuild: {Esbuild, :install_and_run, [:auth, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:auth, ~w(--watch)]}
+  ]
+
+config :auth, :jwt_secret, System.fetch_env!("JWT_SECRET")
 
 # ## SSL Support
 #
@@ -50,6 +54,16 @@ config :auth, AuthWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
+# Watch static and templates for browser reloading.
+config :auth, AuthWeb.Endpoint,
+  live_reload: [
+    patterns: [
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/gettext/.*(po)$",
+      ~r"lib/auth_web/(controllers|live|components)/.*(ex|heex)$"
+    ]
+  ]
+
 # Enable dev routes for dashboard and mailbox
 config :auth, dev_routes: true
 
@@ -63,7 +77,11 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
+config :phoenix_live_view,
+  # Include HEEx debug annotations as HTML comments in rendered markup
+  debug_heex_annotations: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true
+
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
-
-import_config "env.exs"
