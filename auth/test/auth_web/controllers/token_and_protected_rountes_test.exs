@@ -54,11 +54,9 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
 
     conn =
       conn
-        |> put_req_header("authorization", "Bearer #{expired_token}")
-        |> get("/api/v1/token/verify")
+      |> put_req_header("authorization", "Bearer #{expired_token}")
+      |> get("/api/v1/token/verify")
 
     assert response(conn, 401)
-
   end
-
 end

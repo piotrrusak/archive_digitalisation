@@ -7,8 +7,6 @@ defmodule Auth.User.Auth do
   alias Auth.Token
   alias Auth.Accounts
 
-
-  @secret_key "test"
   # 7 days in seconds
   @token_ttl 60 * 60 * 24 * 7
 
@@ -31,7 +29,6 @@ defmodule Auth.User.Auth do
 
   ## Create a JWT for the given user
   def generate_jwt(%Accounts.User{id: id}, ttl \\ @token_ttl) do
-
     claims = %{
       "sub" => to_string(id),
       "exp" => DateTime.utc_now() |> DateTime.add(ttl, :second) |> DateTime.to_unix()

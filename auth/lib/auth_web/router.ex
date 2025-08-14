@@ -23,7 +23,6 @@ defmodule AuthWeb.Router do
   scope "/api/v1", AuthWeb do
     pipe_through(:auth_api)
 
-    get("/me", TokenController, :me)
     get("/token/verify", TokenController, :verify)
   end
 end

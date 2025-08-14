@@ -1,4 +1,9 @@
 defmodule Auth.Accounts.UserNotifier do
+  @moduledoc """
+  Someday I will do mail verification, but currently SFTP
+  is not even close to being properly set up
+  """
+
   import Swoosh.Email
 
   alias Auth.Mailer
