@@ -20,6 +20,9 @@ if System.get_env("PHX_SERVER") do
   config :auth, AuthWeb.Endpoint, server: true
 end
 
+# during deployment do it properly
+config :auth, :jwt_secret, "test"
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

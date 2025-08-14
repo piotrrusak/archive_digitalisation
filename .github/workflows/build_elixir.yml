@@ -18,20 +18,20 @@ jobs:
       MIX_ENV: "test"
     
     services:
-      auth_postgres:
+      db_auth:
         image: postgis/postgis:13-3.3
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres_auth
+          POSTGRES_PASSWORD: password
           POSTGRES_DB: auth_test
         ports:
-          - "5432:5432"
-        # Set health checks to wait until postgres has started
+          - "5433:5432"
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
           --health-retries 5
-  
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
