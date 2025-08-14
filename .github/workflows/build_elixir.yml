@@ -19,7 +19,7 @@ jobs:
     
     services:
       db_auth:
-        image: postgres:latest
+        image: postgis/postgis:13-3.3
         env:
           POSTGRES_USER: postgres_auth
           POSTGRES_PASSWORD: password
