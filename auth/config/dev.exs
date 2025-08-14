@@ -3,12 +3,13 @@ import Config
 # Configure your database
 config :auth, Auth.Repo,
   username: "postgres",
-  password: "postgres",
+  password: "postgr",
   hostname: "localhost",
   database: "auth_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  port: 5433
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -28,8 +29,6 @@ config :auth, AuthWeb.Endpoint,
     esbuild: {Esbuild, :install_and_run, [:auth, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:auth, ~w(--watch)]}
   ]
-
-config :auth, :jwt_secret, System.fetch_env!("JWT_SECRET")
 
 # ## SSL Support
 #

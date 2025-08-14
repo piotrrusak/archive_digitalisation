@@ -1,5 +1,5 @@
 defmodule AuthWeb.Router do
-  alias Auth.User.Auth
+  alias Auth.User
 
   use AuthWeb, :router
 
@@ -9,7 +9,7 @@ defmodule AuthWeb.Router do
 
   pipeline :auth_api do
     plug(:accepts, ["json"])
-    plug(User, :fetch_api_user)
+    plug(User.Auth, :fetch_api_user)
   end
 
   scope "/api/v1", AuthWeb do
@@ -23,6 +23,7 @@ defmodule AuthWeb.Router do
   scope "/api/v1", AuthWeb do
     pipe_through(:auth_api)
 
-    get("/me", UserController, :me)
+    get("/me", TokenController, :me)
+    get("/token/verify", TokenController, :verify)
   end
 end

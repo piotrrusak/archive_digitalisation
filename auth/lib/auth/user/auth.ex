@@ -8,7 +8,7 @@ defmodule Auth.User.Auth do
   alias Auth.Accounts
 
 
-  @secret_key Application.compile_env!(:auth, :jwt_secret)
+  @secret_key "test"
   # 7 days in seconds
   @token_ttl 60 * 60 * 24 * 7
 
@@ -17,8 +17,8 @@ defmodule Auth.User.Auth do
     with ["Bearer " <> token] <- get_req_header(conn, "authorization"),
          {:ok, claims} <- verify_jwt(token),
          %{"sub" => user_id, "exp" => exp} <- claims,
+         true <- DateTime.utc_now() |> DateTime.to_unix() < exp,
          user when not is_nil(user) <- Accounts.get_user!(user_id) do
-      #add datetime comparation
       assign(conn, :current_user, user)
     else
       _ ->
@@ -30,20 +30,14 @@ defmodule Auth.User.Auth do
   end
 
   ## Create a JWT for the given user
-  def generate_jwt(%Accounts.User{id: id}) do
-    IO.inspect(id)
-
-    signer = Signer.create("HS256", @secret_key)
-
-    IO.inspect(signer)
+  def generate_jwt(%Accounts.User{id: id}, ttl \\ @token_ttl) do
 
     claims = %{
       "sub" => to_string(id),
-      "exp" => DateTime.utc_now() |> DateTime.add(@token_ttl, :second) |> DateTime.to_unix()
+      "exp" => DateTime.utc_now() |> DateTime.add(ttl, :second) |> DateTime.to_unix()
     }
 
-    Token.generate_and_sign!(claims, signer)
-    |> IO.inspect()
+    Token.generate_and_sign!(claims)
   end
 
   ## Verify a JWT and return claims

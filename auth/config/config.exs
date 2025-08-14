@@ -16,7 +16,7 @@ config :auth, AuthWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: AuthWeb.ErrorHTML, json: AuthWeb.ErrorJSON],
+    formats: [json: AuthWeb.ErrorJSON],
     layout: false
   ],
   pubsub_server: Auth.PubSub,

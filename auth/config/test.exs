@@ -3,7 +3,7 @@ import Config
 # Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1
 
-config :auth, :jwt_secret, System.fetch_env!("JWT_SECRET")
+config :auth, :jwt_secret, "test_secret"
 
 # Configure your database
 #
@@ -11,12 +11,13 @@ config :auth, :jwt_secret, System.fetch_env!("JWT_SECRET")
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :auth, Auth.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "postgres_auth",
+  password: "password",
   hostname: "localhost",
   database: "auth_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+  pool_size: System.schedulers_online() * 2,
+  port: 5433
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

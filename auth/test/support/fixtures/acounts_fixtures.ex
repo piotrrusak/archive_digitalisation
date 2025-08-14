@@ -1,4 +1,4 @@
-defmodule Auth.AcountsFixtures do
+defmodule Auth.AccountsFixtures do
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Auth.Accounts` context.

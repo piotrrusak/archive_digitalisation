@@ -1,7 +1,7 @@
 defmodule AuthWeb.UserSessionControllerTest do
   use AuthWeb.ConnCase, async: true
 
-  alias Auth.Acounts
+  alias Auth.Accounts
 
   setup do
     # create a user fixture using register_user/1
@@ -14,7 +14,7 @@ defmodule AuthWeb.UserSessionControllerTest do
       "password_confirmation" => "reallylongpassword123"
     }
 
-    {:ok, user} = Acounts.register_user(params)
+    {:ok, user} = Accounts.register_user(params)
     %{user: user, email: email, password: params["password"]}
   end
 

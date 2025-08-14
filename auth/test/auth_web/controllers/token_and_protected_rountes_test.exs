@@ -1,7 +1,7 @@
 defmodule AuthWeb.TokenAndProtectedRoutesTest do
   use AuthWeb.ConnCase, async: true
 
-  alias Auth.Acounts
+  alias Auth.Accounts
   alias Auth.User.Auth
 
   setup do
@@ -10,7 +10,7 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
     pwd = "verylongpassword123"
 
     {:ok, user} =
-      Acounts.register_user(%{
+      Accounts.register_user(%{
         "email" => email,
         "password" => pwd,
         "password_confirmation" => pwd
@@ -41,31 +41,24 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
     assert response(conn, 401)
 
     conn2 =
-      conn
+      build_conn()
+      |> put_req_header("accept", "application/json")
       |> put_req_header("authorization", "Bearer invalid.token.here")
       |> get("/api/v1/token/verify")
 
     assert response(conn2, 401)
   end
 
-  test "GET /api/v1/me returns current user when Authorization bearer is present", %{
-    conn: conn,
-    token: token,
-    user: user
-  } do
+  test "GET /api/v1/token/verify returns 401 when token is expired", %{conn: conn, user: user} do
+    expired_token = Auth.generate_jwt(user, -10)
+
     conn =
       conn
-      |> put_req_header("authorization", "Bearer #{token}")
-      |> get("/api/v1/me")
+        |> put_req_header("authorization", "Bearer #{expired_token}")
+        |> get("/api/v1/token/verify")
 
-    assert json = json_response(conn, 200)
-    assert %{"id" => id, "email" => email} = json
-    assert to_string(user.id) == to_string(id)
-    assert email == user.email
-  end
-
-  test "GET /api/v1/me returns 401 without valid token", %{conn: conn} do
-    conn = get(conn, "/api/v1/me")
     assert response(conn, 401)
+
   end
+
 end

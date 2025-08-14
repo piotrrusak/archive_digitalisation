@@ -45,7 +45,7 @@ defmodule AuthWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn}) do
-    user = Auth.AcountsFixtures.user_fixture()
+    user = Auth.AccountsFixtures.user_fixture()
     %{conn: log_in_user(conn, user), user: user}
   end
 

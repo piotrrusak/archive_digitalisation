@@ -1,8 +1,6 @@
 defmodule AuthWeb.UserRegistrationControllerTest do
   use AuthWeb.ConnCase, async: true
 
-  alias Auth.Acounts
-
   @valid_attrs %{
     "email" => "user@example.com",
     "password" => "supersecurepassword",
