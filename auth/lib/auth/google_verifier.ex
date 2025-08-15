@@ -1,8 +1,12 @@
 defmodule Auth.GoogleVerifier do
+  @moduledoc """
+    Abstraction for google verifier
+  """
   @callback verify(String.t()) :: {:ok, map()} | {:error, String.t()}
 end
 
 defmodule Auth.GoogleVerifier.Real do
+  @moduledoc false
   @behaviour Auth.GoogleVerifier
 
   @aud Application.compile_env(:auth, :google_oauth)[:client_id]

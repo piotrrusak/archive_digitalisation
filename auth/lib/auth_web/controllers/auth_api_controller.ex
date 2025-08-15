@@ -6,6 +6,7 @@ defmodule AuthWeb.AuthApiController do
 
   def google_auth(conn, %{"id_token" => id_token}) do
     verifier = Application.get_env(:my_app, :google_verifier)
+
     case verifier.verify(id_token) do
       {:ok, google_data} ->
         # google_data contains "email", "sub" (Google user ID), etc.
@@ -41,7 +42,8 @@ defmodule AuthWeb.AuthApiController do
 
         user
 
-      user -> user
+      user ->
+        user
     end
   end
 end

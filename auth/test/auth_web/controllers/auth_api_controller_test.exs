@@ -3,7 +3,7 @@ defmodule AuthWeb.AuthApiControllerTest do
 
   import Mox
 
-  alias  AuthWeb.AuthApiController
+  alias AuthWeb.AuthApiController
 
   describe "#{AuthApiController}" do
     test "returns JWT on valid token", %{conn: conn} do

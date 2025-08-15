@@ -7,7 +7,6 @@ import Config
 # before starting your production server.
 config :auth, AuthWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 
-
 config :auth, :google_oauth,
   client_id: System.fetch_env!("GOOGLE_CLIENT_ID"),
   client_secret: System.fetch_env!("GOOGLE_CLIENT_SECRET")

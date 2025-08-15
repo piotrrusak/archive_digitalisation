@@ -68,5 +68,4 @@ defmodule Auth.Accounts do
     |> User.oauth_changeset(attrs)
     |> Repo.insert()
   end
-
 end

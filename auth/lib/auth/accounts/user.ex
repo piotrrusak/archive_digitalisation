@@ -10,7 +10,8 @@ defmodule Auth.Accounts.User do
     field(:current_password, :string, virtual: true, redact: true)
     field(:confirmed_at, :utc_datetime)
     field :provider, :string
-    field :uid, :string  # The provider user ID
+    # The provider user ID
+    field :uid, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -171,5 +172,4 @@ defmodule Auth.Accounts.User do
     |> validate_email(validate_email: true)
     |> change(%{confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second)})
   end
-
 end
