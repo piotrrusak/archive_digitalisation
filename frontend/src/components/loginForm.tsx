@@ -1,10 +1,22 @@
 import { useState } from "react";
-import {AUTH_API_BASE_URL} from "../../config"
+import { AUTH_API_BASE_URL } from "../../config";
 import type { FormEvent } from "react";
 
 interface Errors {
   email?: string;
   password?: string;
+}
+
+interface LoginResponse {
+  message: string;
+  user: {
+    id: number;
+    email: string;
+  };
+  token: string;
+}
+interface LoginErrorResponse {
+  message?: string;
 }
 
 const LoginForm: React.FC = () => {
@@ -19,7 +31,7 @@ const LoginForm: React.FC = () => {
     if (!email.trim()) {
       newErrors.email = "Email is required";
     } else if (!emailRegex.test(email)) {
-        newErrors.email = "Invalid email format";
+      newErrors.email = "Invalid email format";
     }
     if (!password) {
       newErrors.password = "Password is required";
@@ -29,48 +41,65 @@ const LoginForm: React.FC = () => {
     return newErrors;
   };
 
-    const attemptToLogIn = async (email: string, password: string) => {
-    try {
-        const response = await fetch(`${AUTH_API_BASE_URL}/users/login`, {
+    const attemptToLogIn = async (
+    email: string,
+    password: string
+    ): Promise<LoginResponse> => {
+    const response = await fetch(`${AUTH_API_BASE_URL}/users/login`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+        "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-        });
+    });
 
-        const data = await response.json();
-        console.log("Server response:", data);
-        return data;
-    } catch (error) {
-        console.error("Login failed:", error);
+    const data = (await response.json()) as LoginResponse | LoginErrorResponse;
+
+    if (!response.ok) {
+        throw new Error(data.message ?? "Login request failed");
     }
+
+    console.log("Server response:", data);
+    return data as LoginResponse;
     };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+
+    const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     const validationErrors = validate();
+
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+        setErrors(validationErrors);
     } else {
-      setErrors({});
-      console.log("Logging in:", { email, password });
-      attemptToLogIn(email, password)
-      alert("Login submitted! (Check console)");
+        setErrors({});
+
+        void attemptToLogIn(email, password)
+        .then((data) => {
+            sessionStorage.setItem("authToken", data.token);
+            alert(data.message);
+        })
+        .catch((err: unknown) => {
+            // Handle wrong credentials
+            const message =
+            err instanceof Error ? err.message : "Login failed";
+            setErrors({ email: message }); // You can also add a separate field
+        });
     }
-  };
+    };
 
   return (
     <div style={{ maxWidth: "400px", margin: "0 auto", padding: "2rem" }}>
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "1rem" }}>
-          <label htmlFor="email">email:</label>
+          <label htmlFor="email">Email:</label>
           <input
             id="email"
-            type="text"
+            type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
             style={{ width: "100%", padding: ".5rem" }}
           />
           {errors.email && (
@@ -86,7 +115,9 @@ const LoginForm: React.FC = () => {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
             style={{ width: "100%", padding: ".5rem" }}
           />
           {errors.password && (
