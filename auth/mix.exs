@@ -63,7 +63,8 @@ defmodule Auth.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:joken, "~> 2.6"},
       {:httpoison, "~> 2.1"},
-      {:mox, "~> 0.5.2", only: :test}
+      {:mox, "~> 0.5.2", only: :test},
+      {:cors_plug, "~> 3.0"}
     ]
   end
 
