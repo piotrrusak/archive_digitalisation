@@ -63,6 +63,11 @@ config :auth, AuthWeb.Endpoint,
     ]
   ]
 
+config :cors_plug,
+  origin: ["http://localhost:5173"],
+  methods: ["GET", "POST"],
+  headers: ["Content-Type", "authorization"]
+
 # Enable dev routes for dashboard and mailbox
 config :auth, dev_routes: true
 
