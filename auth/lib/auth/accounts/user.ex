@@ -9,6 +9,9 @@ defmodule Auth.Accounts.User do
     field(:hashed_password, :string, redact: true)
     field(:current_password, :string, virtual: true, redact: true)
     field(:confirmed_at, :utc_datetime)
+    field :provider, :string
+    # The provider user ID
+    field :uid, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -158,5 +161,15 @@ defmodule Auth.Accounts.User do
     else
       add_error(changeset, :current_password, "is not valid")
     end
+  end
+
+  def oauth_changeset(user, attrs) do
+    dummy_password = Bcrypt.hash_pwd_salt(Ecto.UUID.generate())
+
+    user
+    |> cast(attrs, [:email, :provider, :uid])
+    |> put_change(:hashed_password, dummy_password)
+    |> validate_email(validate_email: true)
+    |> change(%{confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second)})
   end
 end

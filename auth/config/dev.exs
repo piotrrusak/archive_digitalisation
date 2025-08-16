@@ -2,10 +2,10 @@ import Config
 
 # Configure your database
 config :auth, Auth.Repo,
-  username: "postgres",
-  password: "postgr",
+  username: "postgres_auth",
+  password: "password",
   hostname: "localhost",
-  database: "auth_dev",
+  database: "postgres_auth",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10,
@@ -84,3 +84,9 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+# try read config from env.exs file
+try do
+  import_config "env.exs"
+rescue
+  _ -> nil
+end
