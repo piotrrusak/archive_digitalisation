@@ -1,18 +1,132 @@
 # Auth
 
-To start your Phoenix server:
+Microservice for storing user's login information along with giving out and verifying user's JSON Web Tokens
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Running
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+while being inside `auth` directory just type
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+`mix phx.server`
 
-## Learn more
+or if you want to use interactive elixir console
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+`iex -S mix phx.server`
+
+## Interactive Console
+
+Elixir's interactive console can help you with manualy invoking ecto database related changes
+
+For example:
+- Adding a test account:
+```elixir
+Auth.Accounts.register_user(%{email: "test.email@dev.com", password: "test_password_123"})
+```
+
+## API
+
+In dev mode the service is exposed @ `http://localhost:4000/` (tls soon).
+
+### POST /api/v1/auth/google
+Given
+<!-- Fill in OAuth params received from Google -->
+Returns
+<!-- Fill in response -->
+
+
+### POST /api/v1/users/register
+#### Given
+```json
+{
+  "email": "...",
+  "password": "..."
+}
+```
+
+#### Returns
+
+##### On success:
+```json
+{
+  "message": "User created successfully",
+  "token": "<jwt_token>",
+  "user": {
+    "id": "...",
+    "email": "..."
+  }
+}
+```
+
+##### On validation error:
+```json
+{
+  "errors": {
+    // Database validations errors
+  }
+}
+```
+
+### POST /api/v1/users/login
+#### Given
+```json
+{
+  "email": "...",
+  "password": "..."
+}
+```
+
+#### Returns
+
+##### On success:
+```json
+{
+  "message": "Login successful",
+  "token": "<jwt_token>",
+  "user": {
+    "id": "...",
+    "email": "..."
+  }
+}
+```
+
+##### On failure:
+```json
+{
+  "error": "Invalid email or password"
+}
+```
+
+### DELETE /api/v1/users/logout
+This is a dummy endpoint
+
+#### Given
+
+(no body required)
+
+#### Returns
+```json
+{
+  "message": "Logged out successfully. Discard your token client-side."
+}
+```
+
+### GET /api/v1/token/verify
+#### Given
+
+Requires Authorization header with Bearer token
+(No params)
+
+#### Returns
+
+##### If not authenticated:
+```json
+{ "valid": false }
+```
+
+##### If authenticated:
+```json
+{
+  "valid": true,
+  "user_id": "...",
+  "email": "..."
+}
+```
