@@ -1,4 +1,5 @@
 import { useState } from "react";
+import {AUTH_API_BASE_URL} from "../../config"
 import type { FormEvent } from "react";
 
 interface Errors {
@@ -28,6 +29,24 @@ const LoginForm: React.FC = () => {
     return newErrors;
   };
 
+    const attemptToLogIn = async (email: string, password: string) => {
+    try {
+        const response = await fetch(`${AUTH_API_BASE_URL}/users/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+        console.log("Server response:", data);
+        return data;
+    } catch (error) {
+        console.error("Login failed:", error);
+    }
+    };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -36,6 +55,7 @@ const LoginForm: React.FC = () => {
     } else {
       setErrors({});
       console.log("Logging in:", { email, password });
+      attemptToLogIn(email, password)
       alert("Login submitted! (Check console)");
     }
   };
