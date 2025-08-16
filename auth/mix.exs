@@ -61,7 +61,9 @@ defmodule Auth.MixProject do
       {:bandit, "~> 1.5"},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:joken, "~> 2.6"}
+      {:joken, "~> 2.6"},
+      {:httpoison, "~> 2.1"},
+      {:mox, "~> 0.5.2", only: :test}
     ]
   end
 
