@@ -1,8 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(
+    <GoogleOAuthProvider clientId="test-client-id">
+      {ui}
+    </GoogleOAuthProvider>
+  );
+};
 
 test('renders login form', () => {
-  render(<App />);
+  renderWithProvider(<App />);
 
   // Check for the email input
   expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
@@ -15,7 +24,7 @@ test('renders login form', () => {
 });
 
 test('shows validation errors when submitting empty form', () => {
-  render(<App />);
+  renderWithProvider(<App />);
 
   const loginButton = screen.getByRole('button', { name: /login/i });
   fireEvent.click(loginButton);
@@ -25,7 +34,7 @@ test('shows validation errors when submitting empty form', () => {
 });
 
 test('accepts input in email and password fields', () => {
-  render(<App />);
+  renderWithProvider(<App />);
 
   const emailInput = screen.getByLabelText(/email/i);
   const passwordInput = screen.getByLabelText(/password/i);
