@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AUTH_API_BASE_URL } from "../../config";
+import { useNavigate } from 'react-router-dom';
 import type { FormEvent } from "react";
 
 interface Errors {
@@ -23,6 +24,7 @@ const LoginForm: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [errors, setErrors] = useState<Errors>({});
+  const navigate = useNavigate()
 
   const validate = (): Errors => {
     const newErrors: Errors = {};
@@ -77,6 +79,7 @@ const LoginForm: React.FC = () => {
         .then((data) => {
             sessionStorage.setItem("authToken", data.token);
             alert(data.message);
+            navigate("/")
         })
         .catch((err: unknown) => {
             // Handle wrong credentials
