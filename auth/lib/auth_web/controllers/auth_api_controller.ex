@@ -4,20 +4,23 @@ defmodule AuthWeb.AuthApiController do
   alias Auth.Accounts
   alias Auth.User.Auth
 
-  def google_auth(conn, %{"id_token" => id_token}) do
-    verifier = Application.get_env(:my_app, :google_verifier)
+  def google_auth(conn, %{"id_token" => id_token, "client_id" => client_id_param}) do
+    with true <- client_id_param == Application.get_env(:auth, :google_oauth)[:client_id],
+         verifier <- Application.get_env(:auth, :google_verifier),
+         {:ok, google_data} <- verifier.verify(id_token) do
+      user = find_or_create_user(google_data)
+      token = Auth.generate_jwt(user)
 
-    case verifier.verify(id_token) do
-      {:ok, google_data} ->
-        # google_data contains "email", "sub" (Google user ID), etc.
-        user = find_or_create_user(google_data)
-        token = Auth.generate_jwt(user)
-
-        json(conn, %{
-          message: "Authenticated",
-          token: token,
-          user: %{id: user.id, email: user.email}
-        })
+      json(conn, %{
+        message: "Authenticated",
+        token: token,
+        user: %{id: user.id, email: user.email}
+      })
+    else
+      false ->
+        conn
+        |> put_status(401)
+        |> json(%{error: "Invalid client_id"})
 
       {:error, reason} ->
         conn
