@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import type { FormEvent } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 interface Errors {
   email?: string;
@@ -33,7 +34,8 @@ const LoginForm: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [errors, setErrors] = useState<Errors>({});
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const validate = (): Errors => {
     const newErrors: Errors = {};
@@ -92,8 +94,9 @@ const LoginForm: React.FC = () => {
         const data = (await response.json()) as GoogleLoginResponse;
         console.log("Google Login Backend data:", data);
 
-        sessionStorage.setItem("authToken", data.token);
+        login(data.token);
         alert("Logged in with Google!");
+        void navigate("/")
     } catch (err) {
         const message =
         err instanceof Error ? err.message : "Google auth failed";
@@ -114,9 +117,9 @@ const LoginForm: React.FC = () => {
 
         void attemptToLogIn(email, password)
         .then((data) => {
-            sessionStorage.setItem("authToken", data.token);
+            login(data.token);
             alert(data.message);
-            navigate("/")
+            void navigate("/")
         })
         .catch((err: unknown) => {
             // Handle wrong credentials

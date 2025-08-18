@@ -1,11 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { AuthProvider } from './providers/AuthProvider';
 
 const renderWithProvider = (ui: React.ReactElement) => {
   return render(
     <GoogleOAuthProvider clientId="test-client-id">
-      {ui}
+      <AuthProvider>
+        {ui}
+      </AuthProvider>
     </GoogleOAuthProvider>
   );
 };

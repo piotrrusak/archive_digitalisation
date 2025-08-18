@@ -1,9 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginForm from './components/loginForm'
 import Home from './components/Home'
+import { useAuth } from './hooks/useAuth'
 
 function App() {
-  const isLoggedIn = sessionStorage.getItem("authToken") // rewrite to context
+  const isLoggedIn = useAuth().isLoggedIn
+
+  console.log(isLoggedIn)
 
   return (
     <BrowserRouter>
