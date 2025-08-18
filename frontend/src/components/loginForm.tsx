@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { AUTH_API_BASE_URL } from "../../config";
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from "@react-oauth/google";
 import type { FormEvent } from "react";
 
 interface Errors {
@@ -18,6 +18,15 @@ interface LoginResponse {
 }
 interface LoginErrorResponse {
   message?: string;
+}
+
+interface GoogleLoginResponse {
+  message: string;
+  user: {
+    id: number;
+    email: string;
+  };
+  token: string;
 }
 
 const LoginForm: React.FC = () => {
@@ -47,22 +56,50 @@ const LoginForm: React.FC = () => {
     email: string,
     password: string
     ): Promise<LoginResponse> => {
-    const response = await fetch(`${AUTH_API_BASE_URL}/users/login`, {
+        const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/users/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
+        
+        const data = (await response.json()) as LoginResponse | LoginErrorResponse;
+        
+        if (!response.ok) {
+            throw new Error(data.message ?? "Login request failed");
+        }
+        
+        console.log("Server response:", data);
+        return data as LoginResponse;
+    };
+    
+    const sendGoogleTokenToBackend = async (tokenId: string, clientId: string): Promise<void> => {
+        try {
+        const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/auth/google`, {
         method: "POST",
         headers: {
-        "Content-Type": "application/json",
+            "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
-    });
+        body: JSON.stringify({id_token : tokenId, client_id : clientId }),
+        });
 
-    const data = (await response.json()) as LoginResponse | LoginErrorResponse;
+        if (!response.ok) {
+        const data = (await response.json()) as { error: string };
+        throw new Error(data.error);
+        }
 
-    if (!response.ok) {
-        throw new Error(data.message ?? "Login request failed");
+        const data = (await response.json()) as GoogleLoginResponse;
+        console.log("Google Login Backend data:", data);
+
+        sessionStorage.setItem("authToken", data.token);
+        alert("Logged in with Google!");
+    } catch (err) {
+        const message =
+        err instanceof Error ? err.message : "Google auth failed";
+        console.error("Google auth error:", message);
+        alert(message);
     }
-
-    console.log("Server response:", data);
-    return data as LoginResponse;
     };
 
 
@@ -134,6 +171,23 @@ const LoginForm: React.FC = () => {
           Login
         </button>
       </form>
+    <div style={{ marginTop: "1rem" }}>
+        <GoogleLogin
+            onSuccess={(credentialResponse) => {
+            console.log(credentialResponse)
+            const tokenId = credentialResponse.credential;
+            const clientId = credentialResponse.clientId;
+            if (tokenId && clientId) {
+                void sendGoogleTokenToBackend(tokenId, clientId);
+            }
+            }}
+            onError={() => {
+            console.error("Google Login Failed");
+            }}
+            width="100%"
+            useOneTap
+        />
+    </div>
     </div>
   );
 };

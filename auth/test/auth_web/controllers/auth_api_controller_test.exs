@@ -12,7 +12,11 @@ defmodule AuthWeb.AuthApiControllerTest do
         {:ok, %{"email" => "test@example.com", "sub" => "uid123"}}
       end)
 
-      conn = post(conn, "/api/v1/auth/google", %{"id_token" => "valid"})
+      conn =
+        post(conn, "/api/v1/auth/google", %{
+          "id_token" => "valid",
+          "client_id" => "testtest.apps.googleusercontent.com"
+        })
 
       response = json_response(conn, 200)
       assert response["token"]
@@ -24,8 +28,26 @@ defmodule AuthWeb.AuthApiControllerTest do
       Auth.GoogleVerifierMock
       |> expect(:verify, fn _ -> {:error, "invalid"} end)
 
-      conn = post(conn, "/api/v1/auth/google", %{"id_token" => "whatever"})
-      assert json_response(conn, 401)
+      conn =
+        post(conn, "/api/v1/auth/google", %{
+          "id_token" => "whatever",
+          "client_id" => "testtest.apps.googleusercontent.com"
+        })
+
+      response = json_response(conn, 401)
+
+      assert response["error"] =~ "Invalid Google token:"
+    end
+
+    test "fails on invalid client_id", %{conn: conn} do
+      conn =
+        post(conn, "/api/v1/auth/google", %{
+          "id_token" => "irrelevant",
+          "client_id" => "clearlywrongclientid.apps.googleurescontent.com"
+        })
+
+      response = json_response(conn, 401)
+      assert response["error"] == "Invalid client_id"
     end
   end
 end
