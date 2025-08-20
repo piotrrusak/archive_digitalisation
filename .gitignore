@@ -1,2 +1,6 @@
+# Elixir
 **/env.exs
 **/_build
+
+# Python
+**/__pycache__/
