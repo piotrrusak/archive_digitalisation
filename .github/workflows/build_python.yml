@@ -10,6 +10,7 @@ on:
     inputs:
       directory:
         required: true
+        type: string
         default: 'ocr'
 
 jobs:
@@ -19,6 +20,7 @@ jobs:
 
     env:
       PYTHON_VERSION: "3.11"
+      PYTHONPATH: ${{ inputs.directory }}
 
     steps:
       - name: Checkout code
@@ -28,6 +30,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Show Python & pip
+        run: |
+          python --version
+          pip --version
 
       - name: Set up cache for pip
         uses: actions/cache@v4
@@ -46,13 +53,11 @@ jobs:
 
       - name: Lint with Ruff
         working-directory: ${{ inputs.directory }}
-        run: |
-          ruff check .
+        run: ruff check .
 
       - name: Run tests
         working-directory: ${{ inputs.directory }}
-        run: |
-          pytest --maxfail=3 --disable-warnings --tb=short
+        run: pytest --maxfail=3 --disable-warnings --tb=short
 
       - name: Save pip cache
         if: ${{ !cancelled() }}
