@@ -13,6 +13,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  # FOR FUTURE USE
+  # ocr:
+  #   build: ../ocr
+  #   ports:
+  #     - "8000:8000"
 
 volumes:
   db_auth:
