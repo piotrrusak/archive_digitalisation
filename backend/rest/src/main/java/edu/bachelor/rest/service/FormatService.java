@@ -22,7 +22,7 @@ public class FormatService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Format> findFormatById(Long id) {
+    public Optional<Format> getFormatById(Long id) {
         return this.formatRepository.findById(id);
     }
 

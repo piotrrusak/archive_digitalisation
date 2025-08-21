@@ -27,9 +27,13 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-db:5432/swiftdb"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/swiftdb"
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      # docker-compose.yml -> services.app.environment
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"                   # podgląd SQL (opcjonalnie)
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
       # (opcjonalnie) jawny dialekt hibernata; Spring Boot 3 zwykle wykryje sam
       # SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.PostgreSQLDialect"
       # Autogenerowanie schematu (tylko dev!):

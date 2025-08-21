@@ -17,5 +17,4 @@ public class Format {
 
     @Column(nullable = false, unique = true)
     private String format;
-
 }
