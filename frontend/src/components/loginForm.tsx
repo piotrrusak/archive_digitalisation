@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from "@react-oauth/google";
 import type { FormEvent } from "react";
 import { useAuth } from "../hooks/useAuth";
@@ -174,6 +174,15 @@ const LoginForm: React.FC = () => {
           Login
         </button>
       </form>
+      <p style={{ marginTop: "1rem", fontSize: ".9rem" }}>
+        Don’t have an account?{" "}
+        <Link
+          to="/register"
+          style={{ color: "blue", textDecoration: "underline" }}
+        >
+          Register
+        </Link>
+      </p>
     <div style={{ marginTop: "1rem" }}>
         <GoogleLogin
             onSuccess={(credentialResponse) => {
