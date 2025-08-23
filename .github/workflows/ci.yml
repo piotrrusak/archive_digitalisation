@@ -56,7 +56,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        directory: [backend/rest]
+        directory: [backend]
     uses: ./.github/workflows/build_java.yml
     with:
       directory: ${{ matrix.directory }}

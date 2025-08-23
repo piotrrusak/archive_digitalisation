@@ -44,23 +44,15 @@ jobs:
           java-version: 21
           cache: maven
 
-      # Proste, niezawodne czekanie aż port 5432 będzie otwarty
-      - name: Wait for Postgres (TCP)
-        shell: bash
+      - name: Wait for Postgres (pg_isready)
         run: |
-          for i in {1..60}; do
-            (echo >/dev/tcp/127.0.0.1/5432) >/dev/null 2>&1 && echo "Postgres is up" && exit 0
-            echo "Waiting for Postgres... ($i)"; sleep 2
+          for i in {1..30}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U root -d swiftdb && echo "Postgres is up" && exit 0
+            echo "Waiting for Postgres... ($i)"
+            sleep 2
           done
           echo "Postgres did not become ready in time" >&2
           exit 1
-
-      # (Opcjonalnie) szybki sanity-check SQL — doinstalujemy klienta psql
-      - name: Sanity check DB (psql)
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y postgresql-client
-          PGPASSWORD=root psql "host=127.0.0.1 port=5432 dbname=swiftdb user=root" -c "SELECT 1;"
 
       - name: Prefetch dependencies (go offline)
         run: mvn -B -U -f "${{ inputs.directory }}/pom.xml" dependency:go-offline
