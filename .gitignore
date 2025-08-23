@@ -3,4 +3,8 @@
 **/_build
 
 # Python
-**/__pycache__/
+**/__pycache__
+
+# Java
+
+**/target
