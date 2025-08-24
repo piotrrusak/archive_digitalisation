@@ -37,9 +37,7 @@ const Modal: FC<ModalProps> = ({
         <div className="mb-4">{children}</div>
 
         <div className="flex justify-end space-x-3">
-          {footer ? (
-            footer
-          ) : (
+          {footer ?? (
             <>
               <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-100">
                 {cancelLabel}

@@ -22,7 +22,7 @@ export default function Accounts() {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: token || '',
+        Authorization: token ?? '',
       },
     })
 
@@ -59,7 +59,9 @@ export default function Accounts() {
 
         <div className="space-y-4 pt-4">
           <button
-            onClick={() => setShowPasswordModal(true)}
+            onClick={() => {
+              setShowPasswordModal(true)
+            }}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <Lock className="w-4 h-4 mr-2" />
@@ -67,7 +69,9 @@ export default function Accounts() {
           </button>
 
           <button
-            onClick={() => setShowDeleteModal(true)}
+            onClick={() => {
+              setShowDeleteModal(true)
+            }}
             className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
             <Trash2 className="w-4 h-4 mr-2" />
@@ -77,7 +81,13 @@ export default function Accounts() {
       </div>
 
       {showPasswordModal && (
-        <Modal title="Change Password" onClose={() => setShowPasswordModal(false)} footer={null}>
+        <Modal
+          title="Change Password"
+          onClose={() => {
+            setShowPasswordModal(false)
+          }}
+          footer={null}
+        >
           <form onSubmit={handleChangePassword} className="space-y-4">
             <input
               type="password"
@@ -107,8 +117,10 @@ export default function Accounts() {
       {showDeleteModal && (
         <Modal
           title="Delete Account"
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={handleDeleteAccount}
+          onClose={() => {
+            setShowDeleteModal(false)
+          }}
+          onConfirm={void handleDeleteAccount}
           confirmLabel="Delete"
           cancelLabel="Cancel"
         >
