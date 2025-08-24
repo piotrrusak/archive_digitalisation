@@ -35,6 +35,10 @@ jobs:
         working-directory: ${{ inputs.directory }}
         run: npm run typecheck
 
+      - name: Check formatting
+        working-directory: ${{ inputs.directory }}
+        run: npm run format:check
+
       - name: Run tests
         working-directory: ${{ inputs.directory }}
         run: npm test -- --coverage

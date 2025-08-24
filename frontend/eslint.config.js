@@ -26,7 +26,7 @@ export default tseslint.config([
     },
   },
   {
-		// Note: there should be no other properties in this object
-		ignores: ["**/temp.js", "config/*", "**/coverage"],
-	},
+    // Note: there should be no other properties in this object
+    ignores: ['**/temp.js', 'config/*', '**/coverage', 'tailwind.config.ts'],
+  },
 ])
