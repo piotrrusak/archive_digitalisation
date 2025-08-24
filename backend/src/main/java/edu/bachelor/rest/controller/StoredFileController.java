@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/stored_file")
+@RequestMapping("/api/v1/stored_files")
 public class StoredFileController {
 
     private final StoredFileService storedFileService;
@@ -24,7 +24,7 @@ public class StoredFileController {
         return this.storedFileService.getFileById(id).orElseThrow(() -> new Exception(""));
     }
 
-    @GetMapping("/owner_id")
+    @GetMapping("/owner/{owner_id}")
     public List<StoredFile> getStoredFileByOwnerId(@PathVariable Long owner_id) {
         return this.storedFileService.getStoredFilesByOwnerId(owner_id);
     }
