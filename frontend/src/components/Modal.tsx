@@ -25,7 +25,6 @@ const Modal: FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
-        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">{title}</h2>
           {showCloseButton && (
@@ -35,10 +34,8 @@ const Modal: FC<ModalProps> = ({
           )}
         </div>
 
-        {/* Body */}
         <div className="mb-4">{children}</div>
 
-        {/* Footer */}
         <div className="flex justify-end space-x-3">
           {footer ? (
             footer
