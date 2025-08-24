@@ -16,14 +16,15 @@ defmodule AuthWeb.Router do
     pipe_through(:api)
 
     post "/auth/google", AuthApiController, :google_auth
-    post("/users/register", UserRegistrationController, :create)
-    post("/users/login", UserSessionController, :create)
-    delete("/users/logout", UserSessionController, :delete)
+    post "/users/register", UserRegistrationController, :create
+    post "/users/login", UserSessionController, :create
+    delete "/users/logout", UserSessionController, :delete
   end
 
   scope "/api/v1", AuthWeb do
     pipe_through(:auth_api)
 
-    get("/token/verify", TokenController, :verify)
+    get "/token/verify", TokenController, :verify
+    delete "/users/delete_account", DeleteAccountController, :delete_account
   end
 end

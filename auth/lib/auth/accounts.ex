@@ -22,7 +22,10 @@ defmodule Auth.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    from(u in User, where: u.id == ^id and u.deleted == false)
+    |> Repo.one!()
+  end
 
   ## User registration
 
@@ -50,22 +53,28 @@ defmodule Auth.Accounts do
   Returns the user if the email exists and the password is correct.
   Returns nil otherwise.
   """
+  def get_user_by_email(email) when is_binary(email) do
+    Repo.get_by(User, email: email, deleted: false)
+  end
+
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    user = Repo.get_by(User, email: email)
+    user = Repo.get_by(User, email: email, deleted: false)
 
     if user && User.valid_password?(user, password) do
       user
     end
   end
 
-  def get_user_by_email(email) when is_binary(email) do
-    Repo.get_by(User, email: email)
-  end
-
   def register_user_oauth(attrs) do
     %User{}
     |> User.oauth_changeset(attrs)
     |> Repo.insert()
+  end
+
+  def delete_account(user) do
+    user
+    |> User.delete_account_changeset()
+    |> Repo.update()
   end
 end

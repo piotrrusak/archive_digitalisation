@@ -42,6 +42,24 @@ defmodule AuthWeb.UserSessionControllerTest do
     assert Map.has_key?(json, "error")
   end
 
+  test "POST /api/v1/users/login returns 401 on deleted user", %{
+    conn: conn,
+    user: user,
+    email: email,
+    password: password
+  } do
+    Accounts.delete_account(user)
+
+    conn =
+      post(conn, "/api/v1/users/login", %{
+        "email" => email,
+        "password" => password
+      })
+
+    assert json = json_response(conn, 401)
+    assert Map.has_key?(json, "error")
+  end
+
   test "DELETE /api/v1/users/logout returns a friendly message", %{
     conn: conn,
     email: _email,
