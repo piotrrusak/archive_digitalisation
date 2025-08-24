@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
+import Account from './pages/Accounts'
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
@@ -10,6 +11,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
+        <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
