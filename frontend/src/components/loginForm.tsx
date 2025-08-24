@@ -165,7 +165,7 @@ const LoginForm: React.FC = () => {
         </button>
       </form>
       <p style={{ marginTop: '1rem', fontSize: '.9rem' }}>
-        Don’t have an account?{' '}
+        Don't have an account?{' '}
         <Link to="/register" style={{ color: 'blue', textDecoration: 'underline' }}>
           Register
         </Link>
