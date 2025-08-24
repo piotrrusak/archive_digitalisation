@@ -4,6 +4,8 @@ Microservice for storing user's login information along with giving out and veri
 
 ## Running
 
+first create auth database `mix setup`
+
 while being inside `auth` directory just type
 
 `mix phx.server`
