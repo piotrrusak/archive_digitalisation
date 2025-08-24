@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/format")
+@RequestMapping("/api/v1/formats")
 public class FormatController {
 
     private final FormatService formatService;
