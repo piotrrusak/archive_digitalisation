@@ -1,24 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import LoginForm from './components/loginForm'
-import Home from './components/Home'
+import Home from './pages/Home'
 import { useAuth } from './hooks/useAuth'
 import RegisterForm from './components/RegisterForm'
+import Login from './pages/Login'
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
 
-  console.log(isLoggedIn)
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            isLoggedIn ? <Home /> : <Navigate to="/login" />
-          }
-        />
-        <Route path="/login" element={<LoginForm />} />
+        <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<RegisterForm />} />
       </Routes>
     </BrowserRouter>
