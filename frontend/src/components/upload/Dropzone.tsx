@@ -1,10 +1,10 @@
 import { useRef, useState, useCallback } from 'react';
 import { UploadCloud, X } from 'lucide-react';
 
-export type DropzoneProps = {
-  acceptExtensions: string[];        // list without dots: ['pdf', 'png', ...]
+export interface DropzoneProps {
+  acceptExtensions: string[];
   maxFileSizeMB: number;
-  multiple?: boolean;                // default false
+  multiple?: boolean;
   onFileSelected: (file: File) => void;
 };
 
@@ -30,7 +30,7 @@ export default function Dropzone({
       }
       const maxBytes = maxFileSizeMB * 1024 * 1024;
       if (file.size > maxBytes) {
-        return `File is too large. Max size is ${maxFileSizeMB} MB.`;
+        return `File is too large. Max size is ${String(maxFileSizeMB)} MB.`;
       }
       if (!multiple && selectedFile) {
         return 'Only one file can be uploaded at a time.';
@@ -122,7 +122,9 @@ export default function Dropzone({
           accept={acceptAttr}
           multiple={multiple}
           className="hidden"
-          onChange={(e) => handleFiles(e.target.files)}
+          onChange={(e) => {
+            handleFiles(e.target.files);
+          }}
         />
       </div>
 

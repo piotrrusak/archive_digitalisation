@@ -18,7 +18,9 @@ export default function Scan() {
             acceptExtensions={cfg.acceptedExtensions}
             maxFileSizeMB={cfg.maxFileSizeMB}
             multiple={cfg.multiple}
-            onFileSelected={(f) => setFile(f)}
+            onFileSelected={(f) => {
+              setFile(f);
+            }}
           />
         </div>
 

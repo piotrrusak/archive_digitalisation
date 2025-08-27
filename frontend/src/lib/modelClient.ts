@@ -1,15 +1,15 @@
 // Skeleton for future integration (no real requests yet)
 
-export type ModelInput = {
+export interface ModelInput {
   file: File;
   metadata?: Record<string, string>;
-};
+}
 
-export type ModelJob = {
+export interface ModelJob {
   id: string;
   status: 'queued' | 'processing' | 'done' | 'error';
   errorMessage?: string;
-};
+}
 
 export async function createJob(_input: ModelInput): Promise<ModelJob> {
   // TODO: replace with real API call

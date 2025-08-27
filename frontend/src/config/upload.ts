@@ -1,7 +1,7 @@
-export type UploadConfig = {
-  acceptedExtensions: string[]; // e.g. ['pdf','png','jpg']
-  maxFileSizeMB: number;        // e.g. 50
-  multiple: boolean;            // for future; keep false now
+export interface UploadConfig {
+  acceptedExtensions: string[];
+  maxFileSizeMB: number;
+  multiple: boolean;
 };
 
 const DEFAULTS: UploadConfig = {
