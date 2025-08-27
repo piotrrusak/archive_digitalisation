@@ -32,4 +32,3 @@ export function getUploadConfig(): UploadConfig {
 export function extensionsToAcceptAttr(exts: string[]): string {
     return exts.map((e) => `.${e}`).join(',');
 }
-

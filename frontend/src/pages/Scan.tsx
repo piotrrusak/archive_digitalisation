@@ -1,4 +1,3 @@
-
 import MainLayout from '../components/MainLayout';
 import Dropzone from '../components/upload/Dropzone';
 import { getUploadConfig } from '../config/upload';
