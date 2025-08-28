@@ -1,38 +1,57 @@
-import MainLayout from '../components/MainLayout';
-import Dropzone from '../components/upload/Dropzone';
-import { getUploadConfig } from '../config/upload';
-import { useState } from 'react';
+import { useState } from "react";
+import Dropzone from "../components/upload/Dropzone";
+import { uploadStoredFile } from "../lib/modelClient";
 
 export default function Scan() {
-      const cfg = getUploadConfig();
-      const [file, setFile] = useState<File | null>(null);
-    
-      return (
-            <MainLayout>
-                  <div className="mx-auto max-w-3xl py-10">
-                        <h1 className="text-2xl font-semibold">Scan & Upload</h1>
-                        <p className="mt-1 opacity-80">Upload your document to start processing.</p>
-                
-                        <div className="mt-6">
-                              <Dropzone
-                                    acceptExtensions={cfg.acceptedExtensions}
-                                    maxFileSizeMB={cfg.maxFileSizeMB}
-                                    multiple={cfg.multiple}
-                                    onFileSelected={(f) => setFile(f)}
-                              />
-                        </div>
-                
-                        {file && (
-                              <div className="mt-6 rounded-xl bg-gray-700 p-4">
-                                    <h2 className="mb-2 text-lg font-medium">Ready to send</h2>
-                                    <ul className="list-inside list-disc text-sm opacity-90">
-                                          <li>File: <span className="font-mono">{file.name}</span></li>
-                                          <li>Size: {(file.size / (1024 * 1024)).toFixed(2)} MB</li>
-                                          <li>Type: {file.type || 'unknown'}</li>
-                                    </ul>
-                              </div>
-                        )}
-                  </div>
-            </MainLayout>
-      );
+    const [file, setFile] = useState<File | null>(null);
+    const [isSending, setIsSending] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [result, setResult] = useState<any>(null);
+
+    const handleFileSelected = (f: File) => {
+        setFile(f);
+        setError(null);
+        setResult(null);
+    };
+
+    const handleSend = async () => {
+        if (!file) return;
+        setIsSending(true);
+        setError(null);
+        try {
+            const res = await uploadStoredFile(file);
+            setResult(res);
+        } catch (e: any) {
+            setError(e.message ?? "Upload failed");
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    return (
+        <div className="p-4">
+            <h1 className="text-xl font-bold mb-4">Send Scan</h1>
+            <Dropzone onFileSelected={handleFileSelected} />
+            {file && (
+                <div className="mt-4">
+                    <p>Selected file: <strong>{file.name}</strong></p>
+                    <button
+                        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+                        disabled={isSending}
+                        onClick={handleSend}
+                    >
+                        {isSending ? "Sending..." : "Send"}
+                    </button>
+                </div>
+            )}
+            {error && (
+                <p className="mt-2 text-red-600">Error: {error}</p>
+            )}
+            {result && (
+                <pre className="mt-4 p-2 bg-gray-100 rounded text-sm">
+                    {JSON.stringify(result, null, 2)}
+                </pre>
+            )}
+        </div>
+    );
 }

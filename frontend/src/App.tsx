@@ -5,7 +5,6 @@ import Login from './pages/Login'
 import Account from './pages/Accounts'
 import Scan from './pages/Scan'
 
-
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
 

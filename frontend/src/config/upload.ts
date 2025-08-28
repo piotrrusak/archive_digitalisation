@@ -1,34 +1,25 @@
-export type UploadConfig = {
-    acceptedExtensions: string[];
-    maxFileSizeMB: number;
-    multiple: boolean;
-};
+export const ACCEPTED_MIME_TYPES: string[] = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "image/tiff",
+    "application/pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".gif",
+    ".tif",
+    ".tiff",
+    ".pdf",
+];
 
-const DEFAULTS: UploadConfig = {
-    acceptedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'tif'],
-    maxFileSizeMB: 50,
-    multiple: false,
-};
-
-function parseExtList(input?: string): string[] | undefined {
-    if (!input) return undefined;
-    const arr = input
-        .split(',')
-        .map((e) => e.trim().toLowerCase().replace(/^\./, ''))
-        .filter(Boolean);
-    return arr.length ? Array.from(new Set(arr)) : undefined;
+function getMaxUploadBytes(): number {
+    const fromEnv = (import.meta as any)?.env?.VITE_MAX_UPLOAD_MB;
+    const mb = Number.parseFloat(fromEnv ?? "25");
+    const safeMb = Number.isFinite(mb) && mb > 0 ? mb : 25;
+    return Math.floor(safeMb * 1024 * 1024);
 }
 
-export function getUploadConfig(): UploadConfig {
-    const envExt = parseExtList(import.meta.env.VITE_ALLOWED_EXTENSIONS as string | undefined);
-    const maxFromEnv = Number(import.meta.env.VITE_MAX_UPLOAD_MB);
-    return {
-        acceptedExtensions: envExt ?? DEFAULTS.acceptedExtensions,
-        maxFileSizeMB: Number.isFinite(maxFromEnv) && maxFromEnv > 0 ? maxFromEnv : DEFAULTS.maxFileSizeMB,
-        multiple: DEFAULTS.multiple,
-    };
-}
-
-export function extensionsToAcceptAttr(exts: string[]): string {
-    return exts.map((e) => `.${e}`).join(',');
-}
+export const MAX_FILE_SIZE_BYTES: number = getMaxUploadBytes();
