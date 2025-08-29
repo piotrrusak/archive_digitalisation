@@ -91,7 +91,7 @@ const LoginForm: React.FC = () => {
       const data = (await response.json()) as GoogleLoginResponse
       console.log('Google Login Backend data:', data)
 
-      login(data.token)
+      login(data.token, data.user.id, data.user.email)
       alert('Logged in with Google!')
       void navigate('/')
     } catch (err) {
@@ -112,7 +112,7 @@ const LoginForm: React.FC = () => {
 
       void attemptToLogIn(email, password)
         .then((data) => {
-          login(data.token)
+          login(data.token, data.user.id, data.user.email)
           alert(data.message)
           void navigate('/')
         })
