@@ -45,3 +45,5 @@ config :phoenix_live_view,
 config :auth, :google_oauth,
   client_id: "testtest.apps.googleusercontent.com",
   client_secret: "TEST-SECRET"
+
+config :auth, :backend_url, "http://localhost:8080"
