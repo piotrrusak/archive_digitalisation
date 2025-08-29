@@ -1,12 +1,12 @@
 type Dict = Record<string, unknown>;
 
-export type StoredFileRequest = {
+export interface StoredFileRequest {
     filename: string;
     content_type: string;
     byte_size: number;
     file_base64: string;
     metadata?: Record<string, string | number | boolean | null>;
-};
+}
 
 export type StoredFileResponse = Dict;
 
@@ -29,7 +29,7 @@ export function getApiBaseUrl(): string {
 function inferContentType(file: File): string {
     if (file.type) return file.type;
 
-    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    const ext = (file.name.split(".").pop() ?? "").toLowerCase();
     switch (ext) {
         case "png":
             return "image/png";
@@ -57,12 +57,13 @@ function inferContentType(file: File): string {
 function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.onerror = () => { reject(new Error("Failed to read file")); };
         reader.onload = () => {
             const result = reader.result as string;
             const comma = result.indexOf(",");
             if (comma === -1) {
-                return reject(new Error("Invalid base64 data format"));
+                reject(new Error("Invalid base64 data format"));
+                return;
             }
             resolve(result.slice(comma + 1));
         };
@@ -72,14 +73,14 @@ function fileToBase64(file: File): Promise<string> {
 
 function withTimeout<T>(promise: Promise<T>, ms = 30000): Promise<T> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), ms);
+    const timeout = setTimeout(() => { controller.abort(); }, ms);
 
     return Promise.race([
         promise,
         new Promise<T>((_, reject) => {
-            setTimeout(() => reject(new Error("Request timed out")), ms);
+            setTimeout(() => { reject(new Error("Request timed out")); }, ms);
         }),
-    ]).finally(() => clearTimeout(timeout));
+    ]).finally(() => { clearTimeout(timeout); });
 }
 
 async function postJson<T>(
@@ -87,11 +88,11 @@ async function postJson<T>(
     body: unknown,
     { timeoutMs = 30000 }: { timeoutMs?: number } = {}
 ): Promise<T> {
-    const headers: HeadersInit = {
+    const headers = new Headers({
         "Content-Type": "application/json",
-    };
+    });
     if (AUTH_TOKEN) {
-        headers["Authorization"] = `Bearer ${AUTH_TOKEN}`;
+        headers.set("Authorization", `Bearer ${AUTH_TOKEN}`);
     }
 
     const fetchPromise = fetch(url, {
@@ -100,9 +101,9 @@ async function postJson<T>(
         body: JSON.stringify(body),
     });
 
-    const res = await withTimeout(fetchPromise, timeoutMs) as Response;
+    const res = await withTimeout(fetchPromise, timeoutMs);
 
-    let payload: any = null;
+    let payload: unknown = null;
     const text = await res.text().catch(() => "");
     try {
         payload = text ? JSON.parse(text) : null;
@@ -111,10 +112,15 @@ async function postJson<T>(
     }
 
     if (!res.ok) {
-        const message =
-            (payload && (payload.message || payload.error || payload.detail)) ||
-            `HTTP Error ${res.status}`;
-        const err = new Error(String(message)) as Error & { status?: number; data?: unknown };
+        let message: string | null = null;
+        if (payload && typeof payload === "object") {
+            const p = payload as Record<string, unknown>;
+            if (typeof p.message === "string") message = p.message;
+            else if (typeof p.error === "string") message = p.error;
+            else if (typeof p.detail === "string") message = p.detail;
+        }
+        const finalMessage = message ?? `HTTP Error ${String(res.status)}`;
+        const err = new Error(finalMessage) as Error & { status?: number; data?: unknown };
         err.status = res.status;
         err.data = payload;
         throw err;
@@ -127,10 +133,6 @@ export async function uploadStoredFile(
     file: File,
     metadata?: Record<string, string | number | boolean | null>
 ): Promise<StoredFileResponse> {
-    if (!file) {
-        throw new Error("No file to upload");
-    }
-
     const [apiBase, file_base64] = await Promise.all([
         Promise.resolve(getApiBaseUrl()),
         fileToBase64(file),

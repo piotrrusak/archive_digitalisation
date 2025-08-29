@@ -1,14 +1,14 @@
 import React, { useCallback, useRef, useState } from "react";
 import { ACCEPTED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from "../../config/upload";
 
-type DropzoneProps = {
+interface DropzoneProps {
     onFileSelected: (file: File) => void;
     disabled?: boolean;
     accept?: string[];
     maxSizeBytes?: number;
     multiple?: boolean;
     className?: string;
-};
+}
 
 function normalizeAcceptList(list: string[] | undefined): string[] {
     if (!list || list.length === 0) return [];
@@ -23,7 +23,7 @@ function getExt(name: string): string {
 function isAccepted(file: File, acceptList: string[]): boolean {
     if (acceptList.length === 0) return true;
     const ext = getExt(file.name);
-    const mime = file.type?.toLowerCase() || "";
+    const mime = file.type.toLowerCase();
     for (const rule of acceptList) {
         const r = rule.toLowerCase();
         if (r.startsWith(".")) {
@@ -63,7 +63,7 @@ const Dropzone: React.FC<DropzoneProps> = ({
 
             setError(null);
 
-            if (effectiveMaxSize && file.size > effectiveMaxSize) {
+            if (file.size > effectiveMaxSize) {
                 const mb = (effectiveMaxSize / (1024 * 1024)).toFixed(1);
                 setError(`File is too large. Maximum size is ${mb} MB.`);
                 return;
@@ -98,7 +98,7 @@ const Dropzone: React.FC<DropzoneProps> = ({
             setIsOver(false);
 
             const fileList = e.dataTransfer.files;
-            const f = fileList && fileList.length > 0 ? fileList[0] : null;
+            const f = fileList.length > 0 ? fileList[0] : null;
             validateAndEmit(f);
         },
         [disabled, validateAndEmit]

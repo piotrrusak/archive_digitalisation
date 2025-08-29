@@ -1,12 +1,13 @@
 import { useState } from "react";
 import Dropzone from "../components/upload/Dropzone";
 import { uploadStoredFile } from "../lib/modelClient";
+import type { StoredFileResponse } from "../lib/modelClient";
 
 export default function Scan() {
     const [file, setFile] = useState<File | null>(null);
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<StoredFileResponse | null>(null);
 
     const handleFileSelected = (f: File) => {
         setFile(f);
@@ -14,15 +15,19 @@ export default function Scan() {
         setResult(null);
     };
 
-    const handleSend = async () => {
+    const handleSend = async (): Promise<void> => {
         if (!file) return;
         setIsSending(true);
         setError(null);
         try {
             const res = await uploadStoredFile(file);
             setResult(res);
-        } catch (e: any) {
-            setError(e.message ?? "Upload failed");
+        } catch (e: unknown) {
+            const message =
+                e instanceof Error
+                    ? e.message
+                    : (typeof e === "string" ? e : null);
+            setError(message ?? "Upload failed");
         } finally {
             setIsSending(false);
         }
@@ -38,7 +43,7 @@ export default function Scan() {
                     <button
                         className="mt-2 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
                         disabled={isSending}
-                        onClick={handleSend}
+                        onClick={() => { void handleSend(); }}
                     >
                         {isSending ? "Sending..." : "Send"}
                     </button>
