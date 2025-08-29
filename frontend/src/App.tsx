@@ -3,6 +3,7 @@ import Home from './pages/Home'
 import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Documents from './pages/Documents'
+import Account from './pages/Accounts'
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
         <Route path="/documents" element={<Documents />} />
+        <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
