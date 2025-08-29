@@ -1,5 +1,6 @@
 package edu.bachelor.rest.controller;
 
+import edu.bachelor.dto.StoredFileDTO;
 import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.service.StoredFileService;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,8 @@ public class StoredFileController {
     }
 
     @PostMapping
-    public StoredFile saveStoredFile(@RequestBody StoredFile storedFile) {
-        return this.storedFileService.saveStoredFile(storedFile);
+    public StoredFile saveStoredFile(@RequestBody StoredFileDTO storedFileDTO) {
+        return this.storedFileService.saveStoredFile(storedFileDTO);
     }
 
     @DeleteMapping("/{id}")
