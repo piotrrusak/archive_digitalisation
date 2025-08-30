@@ -1,5 +1,6 @@
+// Dropzone.tsx
 import React, { useCallback, useRef, useState } from 'react'
-import { ACCEPTED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from '../../config/upload'
+import { ACCEPTED_MIME_TYPES_AND_EXTENSIONS, MAX_FILE_SIZE_BYTES } from '../../config/upload'
 
 interface DropzoneProps {
   onFileSelected: (file: File) => void
@@ -15,28 +16,30 @@ function normalizeAcceptList(list: string[] | undefined): string[] {
   return Array.from(new Set(list.map((s) => s.trim()).filter(Boolean)))
 }
 
-function getExt(name: string): string {
-  const dot = name.lastIndexOf('.')
-  return dot >= 0 ? name.slice(dot).toLowerCase() : ''
+function getExtension(name: string): string {
+  const dotIndex = name.lastIndexOf('.')
+  return dotIndex >= 0 ? name.slice(dotIndex).toLowerCase() : ''
 }
 
 function isAccepted(file: File, acceptList: string[]): boolean {
   if (acceptList.length === 0) return true
-  const ext = getExt(file.name)
+
+  const ext = getExtension(file.name)
   const mime = file.type.toLowerCase()
+
   for (const rule of acceptList) {
-    const r = rule.toLowerCase()
-    if (r.startsWith('.')) {
-      if (ext === r) return true
-    } else {
-      if (r.endsWith('/*')) {
-        const prefix = r.replace('/*', '')
-        if (mime.startsWith(prefix)) return true
-      } else if (mime === r) {
-        return true
-      }
+    const ruleLowercase = rule.toLowerCase()
+
+    if (ruleLowercase.startsWith('.')) {
+      if (ext === ruleLowercase) return true
+    } else if (ruleLowercase.endsWith('/*')) {
+      const prefix = ruleLowercase.replace('/*', '')
+      if (mime.startsWith(prefix)) return true
+    } else if (mime === ruleLowercase) {
+      return true
     }
   }
+
   return false
 }
 
@@ -52,7 +55,7 @@ const Dropzone: React.FC<DropzoneProps> = ({
   const [isOver, setIsOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const effectiveAccept = normalizeAcceptList(accept ?? ACCEPTED_MIME_TYPES)
+  const effectiveAccept = normalizeAcceptList(accept ?? ACCEPTED_MIME_TYPES_AND_EXTENSIONS)
   const effectiveMaxSize = maxSizeBytes ?? MAX_FILE_SIZE_BYTES
 
   const describeAcceptAttr = effectiveAccept.join(',')
@@ -81,8 +84,8 @@ const Dropzone: React.FC<DropzoneProps> = ({
 
   const onInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0] ?? null
-      validateAndEmit(f)
+      const file = e.target.files?.[0] ?? null
+      validateAndEmit(file)
       if (inputRef.current) inputRef.current.value = ''
     },
     [validateAndEmit],
@@ -96,8 +99,8 @@ const Dropzone: React.FC<DropzoneProps> = ({
       setIsOver(false)
 
       const fileList = e.dataTransfer.files
-      const f = fileList.length > 0 ? fileList[0] : null
-      validateAndEmit(f)
+      const file = fileList.length > 0 ? fileList[0] : null
+      validateAndEmit(file)
     },
     [disabled, validateAndEmit],
   )

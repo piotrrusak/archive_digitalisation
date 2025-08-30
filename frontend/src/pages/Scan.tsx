@@ -20,10 +20,10 @@ export default function Scan() {
     setIsSending(true)
     setError(null)
     try {
-      const res = await uploadStoredFile(file)
-      setResult(res)
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : typeof e === 'string' ? e : null
+      const response = await uploadStoredFile(file)
+      setResult(response)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : typeof err === 'string' ? err : null
       setError(message ?? 'Upload failed')
     } finally {
       setIsSending(false)
