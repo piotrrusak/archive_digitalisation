@@ -59,7 +59,10 @@ function inferContentType(file: File): string {
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Failed to read file'))
+    // ✅ blok zamiast shorthand, żeby nie „zwracać” void
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'))
+    }
     reader.onload = () => {
       const result = reader.result as string
       const commaIndex = result.indexOf(',')
@@ -82,7 +85,10 @@ async function postJson<T>(
   if (AUTH_TOKEN) headers.set('Authorization', `Bearer ${AUTH_TOKEN}`)
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+  // ✅ użyj window.setTimeout + blok
+  const timeoutId = window.setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
 
   try {
     const response = await fetch(url, {
@@ -117,7 +123,7 @@ async function postJson<T>(
 
     return payload as T
   } finally {
-    clearTimeout(timeoutId)
+    window.clearTimeout(timeoutId)
   }
 }
 
