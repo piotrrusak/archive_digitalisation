@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import { useAuth } from './hooks/useAuth'
+import Register from './pages/Register'
 import Login from './pages/Login'
 import Account from './pages/Accounts'
 
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>
   )
