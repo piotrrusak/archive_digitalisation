@@ -8,7 +8,7 @@ import type { FormEvent } from 'react'
 export default function Accounts() {
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false)
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
-  const { token } = useAuth()
+  const { token, userId, userEmail } = useAuth()
 
   const handleChangePassword = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -39,6 +39,7 @@ export default function Accounts() {
   return (
     <MainLayout>
       <div className="max-w-lg mx-auto p-6 space-y-6">
+        <h1> ID: {userId}</h1>
         <div className="flex items-center space-x-3">
           <User className="w-5 h-5 text-gray-600" />
           <div>
@@ -53,7 +54,7 @@ export default function Accounts() {
           <div>
             <p className="text-sm text-gray-500">Email</p>
             {/* Placeholder */}
-            <p className="text-lg font-medium text-gray-800">john.doe@example.com</p>
+            <p className="text-lg font-medium text-gray-800">{userEmail}</p>
           </div>
         </div>
 

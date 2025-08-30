@@ -12,12 +12,19 @@ import lombok.Setter;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, unique = true)
     private Long id;
 
     @Column(nullable = false, unique = true)
+    private String mail;
+
+    @Column(nullable = true, unique = true)
     private String username;
 
-    @Column(nullable = false, unique = true)
-    private String mail;
+    @Column(nullable = true)
+    private String firstName;
+
+    @Column(nullable = true)
+    private String lastName;
+
 }
