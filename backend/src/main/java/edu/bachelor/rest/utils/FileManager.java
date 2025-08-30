@@ -5,15 +5,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class FileManager {
 
+    private final PathGenerator pathGenerator;
+
+    private static final Path BASE_DIR = Path.of("/app/files");
+
     public FileManager() {
-        
+        this.pathGenerator = new PathGenerator();
     }
 
     public String save_file(byte[] data) throws IOException {
-        Path path = Path.of("output.txt");
+        
+        if (!Files.exists(BASE_DIR)) {
+            Files.createDirectories(BASE_DIR);
+        }
+
+        Path path = BASE_DIR.resolve(this.pathGenerator.generateRandomPath());
         Files.write(path, data);
+
         return path.toAbsolutePath().toString();
     }
 
@@ -21,5 +34,4 @@ public class FileManager {
         Path path = Paths.get(local_path);
         return Files.readAllBytes(path);
     }
-
 }

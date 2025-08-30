@@ -51,3 +51,17 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 | GET         | /api/v1/formats/{id} | findById              |
 | POST        | /api/v1/formats      | save                  |
 | DELETE      | /api/v1/formats/{id} | deleteById            |
+
+---
+
+- /api/v1/stored_files:
+
+Send files in format:
+
+{
+  "ownerId": 1,
+  "formatId": 5,
+  "generation": 1,
+  "primaryFileId": null,
+  "content": "SGVsbG8gd29ybGQh"
+}
