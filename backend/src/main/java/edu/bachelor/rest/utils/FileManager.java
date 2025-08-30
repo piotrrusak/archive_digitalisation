@@ -19,7 +19,7 @@ public class FileManager {
     }
 
     public String save_file(byte[] data) throws IOException {
-        // upewnij się, że katalog istnieje
+        
         if (!Files.exists(BASE_DIR)) {
             Files.createDirectories(BASE_DIR);
         }
