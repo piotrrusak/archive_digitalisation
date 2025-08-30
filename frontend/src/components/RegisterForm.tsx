@@ -23,6 +23,8 @@ interface RegisterErrorResponse {
 }
 
 const RegisterForm: React.FC = () => {
+  const [firstName, setFirstName] = useState<string>('')
+  const [lastName, setLastName] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [confirmPassword, setConfirmPassword] = useState<string>('')
@@ -61,7 +63,12 @@ const RegisterForm: React.FC = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      }),
     })
 
     const data = (await response.json()) as RegisterResponse | RegisterErrorResponse
@@ -85,7 +92,7 @@ const RegisterForm: React.FC = () => {
 
       void attemptToRegister(email, password)
         .then((data) => {
-          login(data.token)
+          login(data.token, data.user.id, data.user.email)
           alert(data.message)
           void navigate('/')
         })
@@ -100,6 +107,30 @@ const RegisterForm: React.FC = () => {
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '2rem' }}>
       <h2>Register</h2>
       <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="email">First name:</label>
+          <input
+            id="firstName"
+            type="text"
+            value={firstName}
+            onChange={(e) => {
+              setFirstName(e.target.value)
+            }}
+            style={{ width: '100%', padding: '.5rem' }}
+          />
+        </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="email">Email:</label>
+          <input
+            id="lastName"
+            type="text"
+            value={lastName}
+            onChange={(e) => {
+              setLastName(e.target.value)
+            }}
+            style={{ width: '100%', padding: '.5rem' }}
+          />
+        </div>
         {/* Email */}
         <div style={{ marginBottom: '1rem' }}>
           <label htmlFor="email">Email:</label>
