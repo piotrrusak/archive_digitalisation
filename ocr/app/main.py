@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, field_validator
 import base64
 import logging
+from app.ocr import ocr_png_bytes  # dopisz import
 
 app = FastAPI(title="OCR Service", version="0.0.1")
 
@@ -41,10 +42,15 @@ def receive_file(payload: IncomingFile):
         len(payload.content),
     )
 
+    png_bytes = base64.b64decode(payload.content, validate=True)
+
+    text = ocr_png_bytes(png_bytes)
+
     return {
         "status": "received",
         "ownerId": payload.ownerId,
         "formatId": payload.formatId,
         "generation": payload.generation,
         "primaryFileId": payload.primaryFileId,
+        "text": text,
     }
