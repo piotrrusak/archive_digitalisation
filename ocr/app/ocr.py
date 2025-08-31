@@ -10,7 +10,7 @@ _MODEL = None
 
 def _get_model() :
     global _MODEL
-    if _MODEL is None:
+    if _MODEL is None :
         model_path = Path(__file__).resolve().parents[1] / "models" / "kraken.mlmodel"
         _MODEL = load_any(str(model_path), device="cpu")
     return _MODEL
