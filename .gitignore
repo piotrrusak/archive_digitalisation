@@ -28,3 +28,7 @@ replay_pid*
 **/*.iws
 **/*.ipr
 **/out/
+
+# Essentials
+
+*.log
