@@ -19,7 +19,6 @@ public class FileManager {
     }
 
     public String save_file(byte[] data) throws IOException {
-        // upewnij się, że katalog istnieje
         if (!Files.exists(BASE_DIR)) {
             Files.createDirectories(BASE_DIR);
         }
@@ -30,8 +29,14 @@ public class FileManager {
         return path.toAbsolutePath().toString();
     }
 
-    public byte[] get_file(String local_path) throws IOException {
+    public byte[] get_file(String local_path) {
         Path path = Paths.get(local_path);
-        return Files.readAllBytes(path);
+        byte[] file_bytes = null;
+        try {
+            file_bytes = Files.readAllBytes(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file_bytes;
     }
 }

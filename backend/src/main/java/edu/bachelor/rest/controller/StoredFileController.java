@@ -16,17 +16,17 @@ public class StoredFileController {
     private final StoredFileService storedFileService;
 
     @GetMapping
-    public List<StoredFile> getAllStoredFiles() {
+    public List<StoredFileDTO> getAllStoredFiles() {
         return this.storedFileService.getAllStoredFiles();
     }
 
     @GetMapping("/{id}")
-    public StoredFile getStoredFileById(@PathVariable Long id) throws Exception {
-        return this.storedFileService.getFileById(id).orElseThrow(() -> new Exception(""));
+    public StoredFileDTO getStoredFileById(@PathVariable Long id) throws Exception {
+        return this.storedFileService.getFileById(id);
     }
 
     @GetMapping("/owner/{owner_id}")
-    public List<StoredFile> getStoredFileByOwnerId(@PathVariable Long owner_id) {
+    public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
         return this.storedFileService.getStoredFilesByOwnerId(owner_id);
     }
 
