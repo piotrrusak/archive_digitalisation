@@ -1,4 +1,4 @@
-package edu.bachelor.dto;
+package edu.bachelor.rest.dto;
 
 import edu.bachelor.rest.model.Format;
 import edu.bachelor.rest.model.StoredFile;
