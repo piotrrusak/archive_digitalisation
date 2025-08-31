@@ -72,6 +72,7 @@ public class StoredFileService {
         }
 
         return storedFileRepository.save(StoredFileDTO.toStoredFile(dto, owner, format, primary, path));
+
     }
 
     public void deleteStoredFileById(Long id) {

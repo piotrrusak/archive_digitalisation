@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GoogleLogin } from '@react-oauth/google'
 import type { FormEvent } from 'react'
 import { useAuth } from '../hooks/useAuth'
 
 interface Errors {
   email?: string
   password?: string
+  confirmPassword?: string
 }
 
-interface LoginResponse {
+interface RegisterResponse {
   message: string
   user: {
     id: number
@@ -17,22 +17,17 @@ interface LoginResponse {
   }
   token: string
 }
-interface LoginErrorResponse {
+
+interface RegisterErrorResponse {
   message?: string
 }
 
-interface GoogleLoginResponse {
-  message: string
-  user: {
-    id: number
-    email: string
-  }
-  token: string
-}
-
-const LoginForm: React.FC = () => {
+const RegisterForm: React.FC = () => {
+  const [firstName, setFirstName] = useState<string>('')
+  const [lastName, setLastName] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [errors, setErrors] = useState<Errors>({})
   const navigate = useNavigate()
   const { login } = useAuth()
@@ -46,59 +41,44 @@ const LoginForm: React.FC = () => {
     } else if (!emailRegex.test(email)) {
       newErrors.email = 'Invalid email format'
     }
+
     if (!password) {
       newErrors.password = 'Password is required'
     } else if (password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters'
     }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password'
+    } else if (confirmPassword !== password) {
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
+
     return newErrors
   }
 
-  const attemptToLogIn = async (email: string, password: string): Promise<LoginResponse> => {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/users/login`, {
+  const attemptToRegister = async (email: string, password: string): Promise<RegisterResponse> => {
+    const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/users/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      }),
     })
 
-    const data = (await response.json()) as LoginResponse | LoginErrorResponse
+    const data = (await response.json()) as RegisterResponse | RegisterErrorResponse
 
     if (!response.ok) {
-      throw new Error(data.message ?? 'Login request failed')
+      throw new Error(data.message ?? 'Register request failed')
     }
 
     console.log('Server response:', data)
-    return data as LoginResponse
-  }
-
-  const sendGoogleTokenToBackend = async (tokenId: string, clientId: string): Promise<void> => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/auth/google`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id_token: tokenId, client_id: clientId }),
-      })
-
-      if (!response.ok) {
-        const data = (await response.json()) as { error: string }
-        throw new Error(data.error)
-      }
-
-      const data = (await response.json()) as GoogleLoginResponse
-      console.log('Google Login Backend data:', data)
-
-      login(data.token, data.user.id, data.user.email)
-      alert('Logged in with Google!')
-      void navigate('/')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Google auth failed'
-      console.error('Google auth error:', message)
-      alert(message)
-    }
+    return data as RegisterResponse
   }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
@@ -110,24 +90,48 @@ const LoginForm: React.FC = () => {
     } else {
       setErrors({})
 
-      void attemptToLogIn(email, password)
+      void attemptToRegister(email, password)
         .then((data) => {
           login(data.token, data.user.id, data.user.email)
           alert(data.message)
           void navigate('/')
         })
         .catch((err: unknown) => {
-          // Handle wrong credentials
-          const message = err instanceof Error ? err.message : 'Login failed'
-          setErrors({ email: message }) // You can also add a separate field
+          const message = err instanceof Error ? err.message : 'Register failed'
+          setErrors({ email: message })
         })
     }
   }
 
   return (
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '2rem' }}>
-      <h2>Login</h2>
+      <h2>Register</h2>
       <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="email">First name:</label>
+          <input
+            id="firstName"
+            type="text"
+            value={firstName}
+            onChange={(e) => {
+              setFirstName(e.target.value)
+            }}
+            style={{ width: '100%', padding: '.5rem' }}
+          />
+        </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="email">Email:</label>
+          <input
+            id="lastName"
+            type="text"
+            value={lastName}
+            onChange={(e) => {
+              setLastName(e.target.value)
+            }}
+            style={{ width: '100%', padding: '.5rem' }}
+          />
+        </div>
+        {/* Email */}
         <div style={{ marginBottom: '1rem' }}>
           <label htmlFor="email">Email:</label>
           <input
@@ -144,6 +148,7 @@ const LoginForm: React.FC = () => {
           )}
         </div>
 
+        {/* Password */}
         <div style={{ marginBottom: '1rem' }}>
           <label htmlFor="password">Password:</label>
           <input
@@ -160,35 +165,35 @@ const LoginForm: React.FC = () => {
           )}
         </div>
 
+        {/* Confirm Password */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="confirmPassword">Confirm Password:</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value)
+            }}
+            style={{ width: '100%', padding: '.5rem' }}
+          />
+          {errors.confirmPassword && (
+            <span style={{ color: 'red', fontSize: '.875rem' }}>{errors.confirmPassword}</span>
+          )}
+        </div>
+
         <button type="submit" style={{ padding: '.5rem 1rem' }}>
-          Login
+          Register
         </button>
       </form>
       <p style={{ marginTop: '1rem', fontSize: '.9rem' }}>
-        Don't have an account?{' '}
-        <Link to="/register" style={{ color: 'blue', textDecoration: 'underline' }}>
-          Register
+        Already have an account?{' '}
+        <Link to="/login" style={{ color: 'blue', textDecoration: 'underline' }}>
+          Login
         </Link>
       </p>
-      <div style={{ marginTop: '1rem' }}>
-        <GoogleLogin
-          onSuccess={(credentialResponse) => {
-            console.log(credentialResponse)
-            const tokenId = credentialResponse.credential
-            const clientId = credentialResponse.clientId
-            if (tokenId && clientId) {
-              void sendGoogleTokenToBackend(tokenId, clientId)
-            }
-          }}
-          onError={() => {
-            console.error('Google Login Failed')
-          }}
-          width="100%"
-          useOneTap
-        />
-      </div>
     </div>
   )
 }
 
-export default LoginForm
+export default RegisterForm

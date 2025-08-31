@@ -6,7 +6,6 @@
 **/__pycache__
 
 # Java
-
 **/*.class
 **/*.log
 **/*.ctxt

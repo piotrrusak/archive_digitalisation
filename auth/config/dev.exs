@@ -89,6 +89,9 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+config :auth, :backend_url, "http://localhost:8080"
+
 # try read config from env.exs file
 try do
   import_config "env.exs"
