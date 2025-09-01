@@ -14,7 +14,6 @@ import org.springframework.boot.autoconfigure.ssl.JksSslBundleProperties.Store;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;

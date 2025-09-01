@@ -48,6 +48,16 @@ services:
       SPRING_JPA_SHOW_SQL: "true"
       SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
 
+      # >>> Add these for the external auth client (Spring Boot relaxed binding maps ENV -> properties):
+      AUTH_BASE_URL: "http://host.docker.internal:4000"
+      AUTH_PATH: "/api/v1/token/verify"
+      AUTH_CONNECT_TIMEOUT_MS: "1000"
+      AUTH_READ_TIMEOUT_MS: "1500"
+
+    # On Linux, make sure this hostname resolves:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   db_auth:
   pg_data:
