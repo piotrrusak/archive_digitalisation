@@ -12,6 +12,7 @@ defmodule Auth.Accounts.User do
     field :provider, :string
     # The provider user ID
     field :uid, :string
+    field :deleted, :boolean, default: false
 
     timestamps(type: :utc_datetime)
   end
@@ -171,5 +172,12 @@ defmodule Auth.Accounts.User do
     |> put_change(:hashed_password, dummy_password)
     |> validate_email(validate_email: true)
     |> change(%{confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second)})
+  end
+
+  def delete_account_changeset(user) do
+    new_email = "#{user.email}+deleted-#{System.system_time(:second)}"
+
+    user
+    |> change(%{deleted: true, email: new_email})
   end
 end

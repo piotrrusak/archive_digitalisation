@@ -1,10 +1,13 @@
-export const ACCEPTED_MIME_TYPES: string[] = [
+export const ACCEPTED_MIME_TYPES_AND_EXTENSIONS: string[] = [
+  // MIME types
   'image/png',
   'image/jpeg',
   'image/webp',
   'image/gif',
   'image/tiff',
   'application/pdf',
+
+  // File extensions
   '.png',
   '.jpg',
   '.jpeg',

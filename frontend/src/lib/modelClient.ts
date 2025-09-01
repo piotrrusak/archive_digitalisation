@@ -17,7 +17,9 @@ export function setAuthToken(token: string | null) {
 }
 
 export function getApiBaseUrl(): string {
-  const base = import.meta.env.VITE_REST_API_BASE_URL as string | undefined
+  const base = (import.meta as unknown as { env?: { VITE_REST_API_BASE_URL?: string } }).env
+    ?.VITE_REST_API_BASE_URL
+
   if (!base) {
     throw new Error(
       'No VITE_REST_API_BASE_URL in env. Set e.g. VITE_REST_API_BASE_URL=http://localhost:8080/api/v1',
@@ -57,84 +59,72 @@ function inferContentType(file: File): string {
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
+    // ✅ blok zamiast shorthand, żeby nie „zwracać” void
     reader.onerror = () => {
       reject(new Error('Failed to read file'))
     }
     reader.onload = () => {
       const result = reader.result as string
-      const comma = result.indexOf(',')
-      if (comma === -1) {
+      const commaIndex = result.indexOf(',')
+      if (commaIndex === -1) {
         reject(new Error('Invalid base64 data format'))
         return
       }
-      resolve(result.slice(comma + 1))
+      resolve(result.slice(commaIndex + 1))
     }
     reader.readAsDataURL(file)
-  })
-}
-
-function withTimeout<T>(promise: Promise<T>, ms = 30000): Promise<T> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => {
-    controller.abort()
-  }, ms)
-
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error('Request timed out'))
-      }, ms)
-    }),
-  ]).finally(() => {
-    clearTimeout(timeout)
   })
 }
 
 async function postJson<T>(
   url: string,
   body: unknown,
-  { timeoutMs = 30000 }: { timeoutMs?: number } = {},
+  { timeoutMs = 30_000 }: { timeoutMs?: number } = {},
 ): Promise<T> {
-  const headers = new Headers({
-    'Content-Type': 'application/json',
-  })
-  if (AUTH_TOKEN) {
-    headers.set('Authorization', `Bearer ${AUTH_TOKEN}`)
-  }
+  const headers = new Headers({ 'Content-Type': 'application/json' })
+  if (AUTH_TOKEN) headers.set('Authorization', `Bearer ${AUTH_TOKEN}`)
 
-  const fetchPromise = fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  })
+  const controller = new AbortController()
+  // ✅ użyj window.setTimeout + blok
+  const timeoutId = window.setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
 
-  const res = await withTimeout(fetchPromise, timeoutMs)
-
-  let payload: unknown = null
-  const text = await res.text().catch(() => '')
   try {
-    payload = text ? JSON.parse(text) : null
-  } catch {
-    payload = text
-  }
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    })
 
-  if (!res.ok) {
-    let message: string | null = null
-    if (payload && typeof payload === 'object') {
-      const p = payload as Record<string, unknown>
-      if (typeof p.message === 'string') message = p.message
-      else if (typeof p.error === 'string') message = p.error
-      else if (typeof p.detail === 'string') message = p.detail
+    const rawText = await response.text().catch(() => '')
+    let payload: unknown = null
+    try {
+      payload = rawText ? JSON.parse(rawText) : null
+    } catch {
+      payload = rawText
     }
-    const finalMessage = message ?? `HTTP Error ${String(res.status)}`
-    const err = new Error(finalMessage) as Error & { status?: number; data?: unknown }
-    err.status = res.status
-    err.data = payload
-    throw err
-  }
 
-  return payload as T
+    if (!response.ok) {
+      let message: string | null = null
+      if (payload && typeof payload === 'object') {
+        const pl = payload as Record<string, unknown>
+        if (typeof pl.message === 'string') message = pl.message
+        else if (typeof pl.error === 'string') message = pl.error
+        else if (typeof pl.detail === 'string') message = pl.detail
+      }
+      const finalMessage = message ?? `HTTP Error ${String(response.status)}`
+      const err = new Error(finalMessage) as Error & { status?: number; data?: unknown }
+      err.status = response.status
+      err.data = payload
+      throw err
+    }
+
+    return payload as T
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
 }
 
 export async function uploadStoredFile(
@@ -155,5 +145,5 @@ export async function uploadStoredFile(
   }
 
   const url = `${apiBase}/stored_files`
-  return await postJson<StoredFileResponse>(url, payload, { timeoutMs: 30000 })
+  return postJson<StoredFileResponse>(url, payload, { timeoutMs: 30_000 })
 }
