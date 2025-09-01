@@ -20,11 +20,11 @@ async def post_stored_file(
     text
 ) :
     payload = {
-        "ownerId" : owner_id,
-        "formatId" : format_id_txt,
-        "generation" : generation,
-        "primaryFileId" : primary_file_id,
-        "content" : base64.b64encode(text.encode("utf-8")).decode("ascii"),
+        "ownerId": owner_id,
+        "formatId": format_id_txt,
+        "generation": generation,
+        "primaryFileId": primary_file_id,
+        "content": base64.b64encode(text.encode("utf-8")).decode("ascii"),
     }
     async with httpx.AsyncClient(timeout=30) as client :
         r = await client.post(
@@ -32,7 +32,10 @@ async def post_stored_file(
             json=payload,
             headers=_auth_headers(),
         )
-        r.raise_for_status()
+        if r.status_code >= 400 :
+            raise RuntimeError(
+                f"Backend {r.status_code} on POST /stored_files: {r.text}"
+            )
         return r.json()
 
 async def get_txt_format_id() :

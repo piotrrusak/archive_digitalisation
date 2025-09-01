@@ -11,11 +11,11 @@ app = FastAPI(title="OCR Service", version="0.0.2")
 logger = logging.getLogger("uvicorn.error")
 
 class IncomingFile(BaseModel) :
-    ownerId = Field(ge=1)
-    formatId = Field(ge=1)
-    generation = Field(ge=0)
-    primaryFileId = Field(default=None)
-    content = Field()
+    ownerId: int = Field(ge=1)
+    formatId: int = Field(ge=1)
+    generation: int = Field(ge=0)
+    primaryFileId: int | None = None
+    content: str
 
     @field_validator("content")
     @classmethod

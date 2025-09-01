@@ -14,9 +14,15 @@ services:
       timeout: 5s
       retries: 5
   ocr:
-    build: ../ocr
+    build:
+      context: ../ocr
     ports:
       - "8000:8000"
+    environment:
+      - BACKEND_BASE_URL=http://host.docker.internal:8080
+      - TXT_FORMAT_ID=7
+    extra_hosts:
+      - "host.docker.internal:host-gateway" 
 
 volumes:
   db_auth:
