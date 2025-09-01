@@ -85,7 +85,7 @@ export default function Documents() {
       } catch (e: unknown) {
         const isAbort =
           (e instanceof DOMException && (e.name === 'AbortError' || e.message === 'The operation was aborted.')) ||
-          (e instanceof TypeError && /abort/i.test(String(e.message)))
+          (e instanceof TypeError && /abort/i)
         if (isAbort) return
 
         console.error('[Documents] fetch error:', e)
@@ -128,14 +128,12 @@ export default function Documents() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (q === '') return docs
-    return docs.filter((d) =>
-      [d.name, d.type, d.path, d.id]
-        .filter(Boolean)
-        .some((v) => {
-          const s = typeof v === 'string' ? v : String(v)
-          return s.toLowerCase().includes(q)
-        }),
-    )
+    return docs.filter((d) => {
+      const fields = [d.name, d.type, d.path, d.id].filter(
+        (x): x is string => typeof x === 'string' && x.length > 0,
+      )
+      return fields.some((s) => s.toLowerCase().includes(q))
+    })
   }, [docs, query])
 
   async function copy(text: string): Promise<void> {
