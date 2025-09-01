@@ -1,5 +1,4 @@
-// src/pages/Documents.tsx
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 import { RefreshCcw, Search, FileText, Clipboard, AlertCircle } from 'lucide-react'
@@ -47,12 +46,14 @@ export default function Documents() {
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState<string>('')
 
+  const ctrlRef = useRef<AbortController | null>(null)
+
   const fetchDocs = useCallback(
     async (signal?: AbortSignal): Promise<void> => {
       setLoading(true)
       setError(null)
       const url = `${API_BASE}/v1/stored_files`
-      console.log('[Documents] GET', url, 'token?', Boolean(token))
+
       try {
         const res = await fetch(url, {
           method: 'GET',
@@ -63,13 +64,14 @@ export default function Documents() {
           signal,
         })
 
-        console.log('[Documents] status:', res.status)
-
         if (!res.ok) {
           const body = await res.text().catch(() => '')
-          const status = String(res.status) // number -> string is fine
-          const statusText = res.statusText // already string; do not wrap with String()
-          throw new Error(`${status} ${statusText}${body ? ` – ${body}` : ''}`)
+          throw new Error(`${res.status} ${res.statusText}${body ? ` – ${body}` : ''}`)
+        }
+
+        if (res.status === 204) {
+          setDocs([])
+          return
         }
 
         const json: unknown = await res.json()
@@ -77,8 +79,12 @@ export default function Documents() {
         const parsed = (json as unknown[]).map((x) => normalizeDoc(x as APIStoredFile))
         setDocs(parsed)
       } catch (e: unknown) {
+        const isAbort =
+          (e instanceof DOMException && (e.name === 'AbortError' || e.message === 'The operation was aborted.')) ||
+          (e instanceof TypeError && /abort/i.test(String(e.message)))
+        if (isAbort) return
+
         console.error('[Documents] fetch error:', e)
-        if (e instanceof DOMException && e.name === 'AbortError') return
 
         if (e instanceof TypeError) {
           setError(
@@ -87,7 +93,6 @@ export default function Documents() {
           return
         }
 
-        // Avoid base-to-string on objects like [object Object]
         const msg =
           e instanceof Error ? e.message : typeof e === 'string' ? e : 'Something went wrong.'
         setError(msg)
@@ -99,13 +104,21 @@ export default function Documents() {
   )
 
   useEffect(() => {
-    console.log('[Documents] mounted')
+    ctrlRef.current?.abort()
     const ctrl = new AbortController()
+    ctrlRef.current = ctrl
     void fetchDocs(ctrl.signal)
     return () => {
-      console.log('[Documents] unmounted (abort fetch)')
-      ctrl.abort()
+      ctrlRef.current?.abort()
+      ctrlRef.current = null
     }
+  }, [fetchDocs])
+
+  const refresh = useCallback(() => {
+    ctrlRef.current?.abort()
+    const ctrl = new AbortController()
+    ctrlRef.current = ctrl
+    void fetchDocs(ctrl.signal)
   }, [fetchDocs])
 
   const filtered = useMemo(() => {
@@ -150,9 +163,7 @@ export default function Documents() {
               />
             </div>
             <button
-              onClick={() => {
-                void fetchDocs()
-              }}
+              onClick={refresh}
               className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 hover:bg-gray-50"
             >
               <RefreshCcw className="h-4 w-4" />
@@ -197,7 +208,7 @@ export default function Documents() {
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 py-4">
-                      <div className="h-4 w-40 rounded bg-gray-200" />
+                      <div className="h-4 w-40 rounded bg-gray-2 00" />
                     </td>
                     <td className="px-4 py-4">
                       <div className="h-4 w-20 rounded bg-gray-200" />
