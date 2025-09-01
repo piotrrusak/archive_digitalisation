@@ -10,11 +10,9 @@ import edu.bachelor.rest.repository.UserRepository;
 import edu.bachelor.rest.utils.FileManager;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.boot.autoconfigure.ssl.JksSslBundleProperties.Store;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -31,22 +29,19 @@ public class StoredFileService {
 
     @Transactional(readOnly = true)
     public List<StoredFileDTO> getAllStoredFiles() {
-        return this.storedFileRepository.findAll().stream()
-                .map(file -> StoredFileDTO.fromStoredFile(file, this.fileManager.get_file(file.getResourcePath())))
-                .toList();
+        return this.storedFileRepository.findAll().stream().map(file -> StoredFileDTO.fromStoredFile(file, this.fileManager.get_file(file.getResourcePath()))).toList();
     }
 
     @Transactional(readOnly = true)
     public StoredFileDTO getFileById(Long id) {
-        StoredFile temp = this.storedFileRepository.findById(id).orElseGet(null);
-        return StoredFileDTO.fromStoredFile(temp, this.fileManager.get_file(temp.getResourcePath()));
+        StoredFile storedFile = this.storedFileRepository.findById(id).orElseGet(null);
+        return StoredFileDTO.fromStoredFile(storedFile, this.fileManager.get_file(storedFile.getResourcePath()));
     }
 
     @Transactional(readOnly = true)
-    public List<StoredFileDTO> getStoredFilesByOwnerId(Long id) {
+    public List<StoredFile> getStoredFilesByOwnerId(Long id) {
         return this.storedFileRepository.findAll().stream()
                 .filter(storedFile -> storedFile.getOwner().getId().equals(id))
-                .map(file -> StoredFileDTO.fromStoredFile(file, fileManager.get_file(file.getResourcePath())))
                 .toList();
     }
 
@@ -71,8 +66,14 @@ public class StoredFileService {
             throw new RuntimeException("Failed to save file content", e);
         }
 
-        return storedFileRepository.save(StoredFileDTO.toStoredFile(dto, owner, format, primary, path));
+        StoredFile entity = new StoredFile();
+        entity.setOwner(owner);
+        entity.setFormat(format);
+        entity.setGeneration(dto.generation());
+        entity.setPrimaryFile(primary);
+        entity.setResourcePath(path);
 
+        return storedFileRepository.save(entity);
     }
 
     public void deleteStoredFileById(Long id) {

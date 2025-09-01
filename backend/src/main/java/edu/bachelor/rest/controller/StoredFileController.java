@@ -25,10 +25,10 @@ public class StoredFileController {
         return this.storedFileService.getFileById(id);
     }
 
-    @GetMapping("/owner/{owner_id}")
-    public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
-        return this.storedFileService.getStoredFilesByOwnerId(owner_id);
-    }
+    // @GetMapping("/owner/{owner_id}")
+    // public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
+    //     return this.storedFileService.getStoredFilesByOwnerId(owner_id);
+    // }
 
     @PostMapping
     public StoredFile saveStoredFile(@RequestBody StoredFileDTO storedFileDTO) {
