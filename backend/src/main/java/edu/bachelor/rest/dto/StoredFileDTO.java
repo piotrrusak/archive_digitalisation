@@ -1,4 +1,4 @@
-package edu.bachelor.dto;
+package edu.bachelor.rest.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package edu.bachelor.rest.service;
 
-import edu.bachelor.dto.StoredFileDTO;
+import edu.bachelor.rest.dto.StoredFileDTO;
 import edu.bachelor.rest.model.Format;
 import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.model.User;
@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
