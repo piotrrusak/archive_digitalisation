@@ -44,6 +44,7 @@ public class ExternalAuthFilter extends OncePerRequestFilter {
             if (verify != null && verify.valid()) {
                 var principal = new ExternalUser(verify.user_id(), verify.email());
                 var auth = new ExternalAuthenticationToken(principal, authHeader, List.of());
+
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } else {
                 unauthorized(response, "Token not valid");
@@ -69,7 +70,7 @@ public class ExternalAuthFilter extends OncePerRequestFilter {
     }
 
     public record ExternalUser(String userId, String email) {}
-
+                                   
     static class ExternalAuthenticationToken extends AbstractAuthenticationToken {
         private final ExternalUser principal;
         private final String credentials;
