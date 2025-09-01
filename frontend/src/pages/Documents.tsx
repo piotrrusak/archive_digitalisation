@@ -1,29 +1,33 @@
 // src/pages/Documents.tsx
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 import { RefreshCcw, Search, FileText, Clipboard, AlertCircle } from 'lucide-react'
 
 // Prefer a relative, proxied API in dev to avoid CORS/mixed content.
 // Configure Vite proxy: vite.config.ts -> server.proxy['/api'] -> http://localhost:8080
-const API_BASE =
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
+const API_BASE: string =
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
 
-type APIStoredFile = {
-  id: number | string
-  resourcePath: string
-  format?: {
-    id?: number | string
-    mimeType?: string
-    name?: string
-    extension?: string
-  }
-  generation?: number
-  primaryFile?: any
-  owner?: any
+interface APIStoredFileFormat {
+  id?: number | string
+  mimeType?: string
+  name?: string
+  extension?: string
 }
 
-type Doc = {
+interface APIStoredFile {
+  id: number | string
+  // Mark optional so using ?? isn’t an unnecessary-condition
+  resourcePath?: string
+  format?: APIStoredFileFormat
+  generation?: number
+  primaryFile?: unknown
+  owner?: unknown
+}
+
+interface Doc {
   id: string
   name: string
   type?: string
@@ -34,7 +38,7 @@ type Doc = {
 function normalizeDoc(d: APIStoredFile): Doc {
   const id = String(d.id)
   const path = d.resourcePath ?? ''
-  const name = path.split(/[/\\]/).pop() || `file-${id}`
+  const name = path.split(/[/\\]/).pop() ?? `file-${id}`
   const type = d.format?.mimeType ?? d.format?.name ?? d.format?.extension
   return { id, name, type, path, generation: d.generation }
 }
@@ -42,68 +46,85 @@ function normalizeDoc(d: APIStoredFile): Doc {
 export default function Documents() {
   const { token } = useAuth()
   const [docs, setDocs] = useState<Doc[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState<string>('')
 
-  async function fetchDocs(signal?: AbortSignal) {
-    setLoading(true)
-    setError(null)
-    const url = `${API_BASE}/v1/stored_files`
-    console.log('[Documents] GET', url, 'token?', Boolean(token))
-    try {
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        signal,
-      })
+  const fetchDocs = useCallback(
+    async (signal?: AbortSignal): Promise<void> => {
+      setLoading(true)
+      setError(null)
+      const url = `${API_BASE}/v1/stored_files`
+      // eslint-disable-next-line no-console
+      console.log('[Documents] GET', url, 'token?', Boolean(token))
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          signal,
+        })
 
-      console.log('[Documents] status:', res.status)
+        // eslint-disable-next-line no-console
+        console.log('[Documents] status:', res.status)
 
-      if (!res.ok) {
-        const body = await res.text().catch(() => '')
-        throw new Error(`${res.status} ${res.statusText}${body ? ` – ${body}` : ''}`)
+        if (!res.ok) {
+          const body = await res.text().catch(() => '')
+          const status = String(res.status)
+          const statusText = String(res.statusText)
+          throw new Error(`${status} ${statusText}${body ? ` – ${body}` : ''}`)
+        }
+
+        const json: unknown = await res.json()
+        if (!Array.isArray(json)) throw new Error('Unexpected response shape.')
+        const parsed = (json as unknown[]).map((x) => normalizeDoc(x as APIStoredFile))
+        setDocs(parsed)
+      } catch (e: unknown) {
+        // eslint-disable-next-line no-console
+        console.error('[Documents] fetch error:', e)
+        // Abort?
+        if (e instanceof DOMException && e.name === 'AbortError') return
+
+        // Browser network/CORS/mixed-content issues surface as TypeError
+        if (e instanceof TypeError) {
+          setError(
+            'Network/CORS error: the browser blocked the request. Use a dev proxy or matching protocols.'
+          )
+          return
+        }
+
+        const msg = e instanceof Error ? e.message : String(e ?? 'Something went wrong.')
+        setError(msg)
+      } finally {
+        setLoading(false)
       }
-
-      const json = await res.json()
-      if (!Array.isArray(json)) throw new Error('Unexpected response shape.')
-      setDocs(json.map((x: APIStoredFile) => normalizeDoc(x)))
-    } catch (e: any) {
-      console.error('[Documents] fetch error:', e)
-      if (e?.name === 'AbortError') return
-      // Browser network/CORS/mixed-content issues surface as TypeError
-      if (e?.name === 'TypeError') {
-        setError('Network/CORS error: the browser blocked the request. Use a dev proxy or matching protocols.')
-      } else {
-        setError(e?.message || 'Something went wrong.')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    [token]
+  )
 
   useEffect(() => {
+    // eslint-disable-next-line no-console
     console.log('[Documents] mounted')
     const ctrl = new AbortController()
     void fetchDocs(ctrl.signal)
     return () => {
+      // eslint-disable-next-line no-console
       console.log('[Documents] unmounted (abort fetch)')
       ctrl.abort()
     }
-  }, [])
+  }, [fetchDocs])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return docs
+    if (q === '') return docs
     return docs.filter((d) =>
       [d.name, d.type, d.path, d.id].filter(Boolean).some((v) => String(v).toLowerCase().includes(q))
     )
   }, [docs, query])
 
-  async function copy(text: string) {
+  async function copy(text: string): Promise<void> {
     try {
       await navigator.clipboard.writeText(text)
     } catch {
@@ -117,7 +138,11 @@ export default function Documents() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">Documents</h1>
-            <p className="text-sm text-gray-500">{loading ? 'Loading…' : `${filtered.length} of ${docs.length} shown`}</p>
+            <p className="text-sm text-gray-500">
+              {loading
+                ? 'Loading…'
+                : `${String(filtered.length)} of ${String(docs.length)} shown`}
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -125,13 +150,17 @@ export default function Documents() {
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
               <input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                }}
                 placeholder="Search by name, type, path…"
                 className="pl-8 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <button
-              onClick={() => fetchDocs()}
+              onClick={() => {
+                void fetchDocs()
+              }}
               className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 hover:bg-gray-50"
             >
               <RefreshCcw className="h-4 w-4" />
@@ -140,7 +169,7 @@ export default function Documents() {
           </div>
         </div>
 
-        {error && (
+        {error !== null && (
           <div className="mt-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
             <AlertCircle className="h-5 w-5 mt-0.5" />
             <div>
@@ -206,7 +235,9 @@ export default function Documents() {
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => copy(d.path)}
+                          onClick={() => {
+                            void copy(d.path)
+                          }}
                           className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-100"
                           title="Copy the file system path"
                         >
