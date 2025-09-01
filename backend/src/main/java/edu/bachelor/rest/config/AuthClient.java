@@ -46,7 +46,6 @@ public class AuthClient {
     }
 
     public AuthVerifyResponse verify(String authorizationHeader) {
-        // If Elixir returns 4xx/5xx, we’ll just treat as invalid
         try {
             return restClient.get()
                     .uri(props.getPath())
@@ -55,7 +54,6 @@ public class AuthClient {
                     .retrieve()
                     .body(AuthVerifyResponse.class);
         } catch (Exception e) {
-            // network error, timeout, 500, etc. -> treat as invalid
             return new AuthVerifyResponse(false, null, null);
         }
     }

@@ -28,7 +28,6 @@ public class ExternalAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Skip if SecurityContext already has an Authentication (e.g., from earlier filter)
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
@@ -40,10 +39,8 @@ public class ExternalAuthFilter extends OncePerRequestFilter {
             AuthVerifyResponse verify = authClient.verify(authHeader);
             if (verify != null && verify.valid()) {
                 var principal = new ExternalUser(verify.user_id(), verify.email());
-
-                // No roles provided by Elixir; provision empty or a default role if you need one.
+                
                 var auth = new ExternalAuthenticationToken(principal, authHeader, List.of(
-                        // new SimpleGrantedAuthority("ROLE_USER")
                 ));
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
@@ -63,11 +60,9 @@ public class ExternalAuthFilter extends OncePerRequestFilter {
             {"error":"%s"}
             """.formatted(msg));
     }
-
-    // simple principal
+    
     public record ExternalUser(String userId, String email) {}
-
-    // simple Authentication impl
+    
     static class ExternalAuthenticationToken extends AbstractAuthenticationToken {
         private final ExternalUser principal;
         private final String credentials;

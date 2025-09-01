@@ -22,7 +22,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new ExternalAuthFilter(authClient), UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults()) // optional; mostly for local testing
+                .httpBasic(Customizer.withDefaults())
                 .build();
     }
 }

@@ -1,6 +1,6 @@
 package edu.bachelor.rest.controller;
 
-import edu.bachelor.dto.StoredFileDTO;
+import edu.bachelor.rest.dto.StoredFileDTO;
 import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.service.StoredFileService;
 import lombok.RequiredArgsConstructor;
