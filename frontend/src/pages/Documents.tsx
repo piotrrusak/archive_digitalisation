@@ -82,7 +82,7 @@ export default function Documents() {
 
         if (e instanceof TypeError) {
           setError(
-            'Network/CORS error: the browser blocked the request. Use a dev proxy or matching protocols.'
+            'Network/CORS error: the browser blocked the request. Use a dev proxy or matching protocols.',
           )
           return
         }
@@ -95,7 +95,7 @@ export default function Documents() {
         setLoading(false)
       }
     },
-    [token]
+    [token],
   )
 
   useEffect(() => {
@@ -112,7 +112,9 @@ export default function Documents() {
     const q = query.trim().toLowerCase()
     if (q === '') return docs
     return docs.filter((d) =>
-      [d.name, d.type, d.path, d.id].filter(Boolean).some((v) => String(v).toLowerCase().includes(q))
+      [d.name, d.type, d.path, d.id]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q)),
     )
   }, [docs, query])
 
@@ -173,11 +175,21 @@ export default function Documents() {
           <table className="min-w-full divide-y divide-gray-200 bg-white">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Path</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Generation</th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Name
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Type
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Path
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Generation
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -245,8 +257,8 @@ export default function Documents() {
         </div>
 
         <p className="mt-4 text-xs text-gray-500">
-          Dev tip: with Vite, set <code>server.proxy['/api']</code> to <code>http://localhost:8080</code> to see the
-          request in Spring logs.
+          Dev tip: with Vite, set <code>server.proxy['/api']</code> to{' '}
+          <code>http://localhost:8080</code> to see the request in Spring logs.
         </p>
       </div>
     </MainLayout>

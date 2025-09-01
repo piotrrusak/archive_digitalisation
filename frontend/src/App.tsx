@@ -15,7 +15,11 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/documents" element={isLoggedIn ? <Documents /> : <Navigate to="/login" />} /> {/* <-- add this */}
+        <Route
+          path="/documents"
+          element={isLoggedIn ? <Documents /> : <Navigate to="/login" />}
+        />{' '}
+        {/* <-- add this */}
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
         <Route path="/scan" element={isLoggedIn ? <Scan /> : <Navigate to="/login" />} />
