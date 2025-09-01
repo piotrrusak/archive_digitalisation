@@ -131,7 +131,10 @@ export default function Documents() {
     return docs.filter((d) =>
       [d.name, d.type, d.path, d.id]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q)),
+        .some((v) => {
+          const s = typeof v === 'string' ? v : String(v)
+          return s.toLowerCase().includes(q)
+        }),
     )
   }, [docs, query])
 
@@ -150,7 +153,7 @@ export default function Documents() {
           <div>
             <h1 className="text-2xl font-semibold">Documents</h1>
             <p className="text-sm text-gray-500">
-              {loading ? 'Loading…' : `${filtered.length} of ${docs.length} shown`}
+              {loading ? 'Loading…' : `${String(filtered.length)} of ${String(docs.length)} shown`}
             </p>
           </div>
 
