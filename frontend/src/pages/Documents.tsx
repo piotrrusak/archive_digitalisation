@@ -4,8 +4,6 @@ import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 import { RefreshCcw, Search, FileText, Clipboard, AlertCircle } from 'lucide-react'
 
-// Prefer a relative, proxied API in dev to avoid CORS/mixed content.
-// Configure Vite proxy: vite.config.ts -> server.proxy['/api'] -> http://localhost:8080
 const API_BASE: string =
   (import.meta.env.VITE_API_URL as string | undefined) ??
   (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
@@ -19,7 +17,6 @@ interface APIStoredFileFormat {
 
 interface APIStoredFile {
   id: number | string
-  // Mark optional so using ?? isn’t an unnecessary-condition
   resourcePath?: string
   format?: APIStoredFileFormat
   generation?: number
@@ -55,7 +52,6 @@ export default function Documents() {
       setLoading(true)
       setError(null)
       const url = `${API_BASE}/v1/stored_files`
-      // eslint-disable-next-line no-console
       console.log('[Documents] GET', url, 'token?', Boolean(token))
       try {
         const res = await fetch(url, {
@@ -67,13 +63,12 @@ export default function Documents() {
           signal,
         })
 
-        // eslint-disable-next-line no-console
         console.log('[Documents] status:', res.status)
 
         if (!res.ok) {
           const body = await res.text().catch(() => '')
-          const status = String(res.status)
-          const statusText = String(res.statusText)
+          const status = String(res.status) // number -> string is fine
+          const statusText = res.statusText // already string; do not wrap with String()
           throw new Error(`${status} ${statusText}${body ? ` – ${body}` : ''}`)
         }
 
@@ -82,12 +77,9 @@ export default function Documents() {
         const parsed = (json as unknown[]).map((x) => normalizeDoc(x as APIStoredFile))
         setDocs(parsed)
       } catch (e: unknown) {
-        // eslint-disable-next-line no-console
         console.error('[Documents] fetch error:', e)
-        // Abort?
         if (e instanceof DOMException && e.name === 'AbortError') return
 
-        // Browser network/CORS/mixed-content issues surface as TypeError
         if (e instanceof TypeError) {
           setError(
             'Network/CORS error: the browser blocked the request. Use a dev proxy or matching protocols.'
@@ -95,7 +87,9 @@ export default function Documents() {
           return
         }
 
-        const msg = e instanceof Error ? e.message : String(e ?? 'Something went wrong.')
+        // Avoid base-to-string on objects like [object Object]
+        const msg =
+          e instanceof Error ? e.message : typeof e === 'string' ? e : 'Something went wrong.'
         setError(msg)
       } finally {
         setLoading(false)
@@ -105,12 +99,10 @@ export default function Documents() {
   )
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
     console.log('[Documents] mounted')
     const ctrl = new AbortController()
     void fetchDocs(ctrl.signal)
     return () => {
-      // eslint-disable-next-line no-console
       console.log('[Documents] unmounted (abort fetch)')
       ctrl.abort()
     }
@@ -139,9 +131,7 @@ export default function Documents() {
           <div>
             <h1 className="text-2xl font-semibold">Documents</h1>
             <p className="text-sm text-gray-500">
-              {loading
-                ? 'Loading…'
-                : `${String(filtered.length)} of ${String(docs.length)} shown`}
+              {loading ? 'Loading…' : `${String(filtered.length)} of ${String(docs.length)} shown`}
             </p>
           </div>
 
