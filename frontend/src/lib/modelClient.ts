@@ -59,7 +59,6 @@ function inferContentType(file: File): string {
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    // ✅ blok zamiast shorthand, żeby nie „zwracać” void
     reader.onerror = () => {
       reject(new Error('Failed to read file'))
     }
@@ -85,7 +84,6 @@ async function postJson<T>(
   if (AUTH_TOKEN) headers.set('Authorization', `Bearer ${AUTH_TOKEN}`)
 
   const controller = new AbortController()
-  // ✅ użyj window.setTimeout + blok
   const timeoutId = window.setTimeout(() => {
     controller.abort()
   }, timeoutMs)

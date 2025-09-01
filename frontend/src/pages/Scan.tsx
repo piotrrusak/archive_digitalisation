@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Dropzone from '../components/upload/Dropzone'
 import { uploadStoredFile } from '../lib/modelClient'
 import type { StoredFileResponse } from '../lib/modelClient'
+import Sidebar from '../components/Sidebar'
 
 export default function Scan() {
   const [file, setFile] = useState<File | null>(null)
@@ -31,31 +32,37 @@ export default function Scan() {
   }
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Send Scan</h1>
-      <Dropzone onFileSelected={handleFileSelected} />
-      {file && (
-        <div className="mt-4">
-          <p>
-            Selected file: <strong>{file.name}</strong>
-          </p>
-          <button
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-            disabled={isSending}
-            onClick={() => {
-              void handleSend()
-            }}
-          >
-            {isSending ? 'Sending...' : 'Send'}
-          </button>
-        </div>
-      )}
-      {error && <p className="mt-2 text-red-600">Error: {error}</p>}
-      {result && (
-        <pre className="mt-4 p-2 bg-gray-100 rounded text-sm">
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      )}
+    <div className="min-h-screen flex">
+      <aside className="w-64 shrink-0 border-r bg-white">
+        <Sidebar />
+      </aside>
+
+      <main className="flex-1 p-4">
+        <h1 className="text-xl font-bold mb-4">Send Scan</h1>
+        <Dropzone onFileSelected={handleFileSelected} />
+        {file && (
+          <div className="mt-4">
+            <p>
+              Selected file: <strong>{file.name}</strong>
+            </p>
+            <button
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+              disabled={isSending}
+              onClick={() => {
+                void handleSend()
+              }}
+            >
+              {isSending ? 'Sending...' : 'Send'}
+            </button>
+          </div>
+        )}
+        {error && <p className="mt-2 text-red-600">Error: {error}</p>}
+        {result && (
+          <pre className="mt-4 p-2 bg-gray-100 rounded text-sm overflow-auto">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        )}
+      </main>
     </div>
   )
 }
