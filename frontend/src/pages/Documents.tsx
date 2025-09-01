@@ -84,7 +84,8 @@ export default function Documents() {
         setDocs(parsed)
       } catch (e: unknown) {
         const isAbort =
-          (e instanceof DOMException && (e.name === 'AbortError' || e.message === 'The operation was aborted.')) ||
+          (e instanceof DOMException &&
+            (e.name === 'AbortError' || e.message === 'The operation was aborted.')) ||
           (e instanceof TypeError && /abort/i)
         if (isAbort) return
 
