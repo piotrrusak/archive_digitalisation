@@ -32,7 +32,9 @@ interface Doc {
 }
 
 function normalizeDoc(d: APIStoredFile): Doc {
-  const id = String(d.id)
+  const rawId = d.id
+  const id = typeof rawId === 'number' ? String(rawId) : rawId
+
   const path = d.resourcePath ?? ''
   const name = path.split(/[/\\]/).pop() ?? `file-${id}`
   const type = d.format?.mimeType ?? d.format?.name ?? d.format?.extension
@@ -66,7 +68,9 @@ export default function Documents() {
 
         if (!res.ok) {
           const body = await res.text().catch(() => '')
-          throw new Error(`${res.status} ${res.statusText}${body ? ` – ${body}` : ''}`)
+          const statusText = `${String(res.status)} ${res.statusText}`
+          const message = body ? `${statusText} – ${body}` : statusText
+          throw new Error(message)
         }
 
         if (res.status === 204) {
@@ -146,7 +150,7 @@ export default function Documents() {
           <div>
             <h1 className="text-2xl font-semibold">Documents</h1>
             <p className="text-sm text-gray-500">
-              {loading ? 'Loading…' : `${String(filtered.length)} of ${String(docs.length)} shown`}
+              {loading ? 'Loading…' : `${filtered.length} of ${docs.length} shown`}
             </p>
           </div>
 
@@ -208,7 +212,7 @@ export default function Documents() {
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-4 py-4">
-                      <div className="h-4 w-40 rounded bg-gray-2 00" />
+                      <div className="h-4 w-40 rounded bg-gray-200" />
                     </td>
                     <td className="px-4 py-4">
                       <div className="h-4 w-20 rounded bg-gray-200" />
