@@ -18,6 +18,7 @@ public record StoredFileDTO (
         if (primary != null) {
             temp = primary.getId();
         }
+
         return new StoredFileDTO(
             storedFile.getOwner().getId(),
             storedFile.getFormat().getId(),
