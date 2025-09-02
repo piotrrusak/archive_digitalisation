@@ -35,7 +35,7 @@ public class ExternalAuthFilter extends OncePerRequestFilter {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if (authHeader == null) {
                 unauthorized(response, "Missing or invalid Authorization header");
                 return;
             }
