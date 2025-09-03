@@ -25,7 +25,9 @@ export default function Scan() {
       return
     }
     if (userId == null) {
-      setError('Cannot determine ownerId from token. Make sure JWT contains id/userId/uid or numeric sub.')
+      setError(
+        'Cannot determine ownerId from token. Make sure JWT contains id/userId/uid or numeric sub.',
+      )
       return
     }
 
@@ -101,9 +103,7 @@ export default function Scan() {
 
         {error && <p className="mt-2 text-red-600 break-words">Error: {error}</p>}
 
-        <p className="mt-2 text-white-600">
-          {result ? 'Upload successful!' : 'No result yet.'}
-        </p>
+        <p className="mt-2 text-white-600">{result ? 'Upload successful!' : 'No result yet.'}</p>
       </div>
     </MainLayout>
   )

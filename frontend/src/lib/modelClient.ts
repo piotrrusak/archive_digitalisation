@@ -49,10 +49,7 @@ function fileToBase64(file: File): Promise<string> {
 async function postJson<T>(
   url: string,
   body: unknown,
-  {
-    timeoutMs = 30_000,
-    token,
-  }: { timeoutMs?: number; token?: string } = {},
+  { timeoutMs = 30_000, token }: { timeoutMs?: number; token?: string } = {},
 ): Promise<T> {
   const controller = new AbortController()
 
