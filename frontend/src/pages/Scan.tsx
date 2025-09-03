@@ -21,19 +21,17 @@ export default function Scan() {
   const handleSend = async (): Promise<void> => {
     if (!file) return
     if (!token) {
-      setError('No token - log in again')
+      setError('Invalid token - try logging in again')
       return
     }
     if (userId == null) {
-      setError(
-        'Cannot determine ownerId from token. Make sure JWT contains id/userId/uid or numeric sub.',
-      )
+      setError('Invalid userId (null) - try logging in again')
       return
     }
 
     const ownerId = typeof userId === 'string' ? Number(userId) : userId
     if (!Number.isFinite(ownerId)) {
-      setError('Invalid ownerId (not a number)')
+      setError('Invalid ownerId (not a number) - try logging in again')
       return
     }
 
@@ -103,7 +101,9 @@ export default function Scan() {
 
         {error && <p className="mt-2 text-red-600 break-words">Error: {error}</p>}
 
-        <p className="mt-2 text-white-600">{result ? 'Upload successful!' : 'No result yet.'}</p>
+        <p className="mt-2 text-white-600">
+          {result ? 'Upload successful!' : 'No result yet.'}
+        </p>
       </div>
     </MainLayout>
   )
