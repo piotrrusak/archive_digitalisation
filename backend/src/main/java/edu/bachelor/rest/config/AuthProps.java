@@ -9,7 +9,7 @@ import lombok.Setter;
 @Configuration
 @ConfigurationProperties(prefix = "auth")
 @Getter @Setter
-class AuthProps {
+public class AuthProps {
     private String baseUrl;
     private String path;
     private int connectTimeoutMs = 1000;

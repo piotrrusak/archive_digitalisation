@@ -46,7 +46,7 @@ defmodule AuthWeb.UserRegistrationController do
         "#{@backend_url}/api/v1/users",
         [
           {"content-type", "application/json"},
-          {"authorization", "c7f29d4a18b0e52f6ac39b1a4e7d92c85d3a61f02b4c8e79f513ad02c9e476ab"}
+          {"authorization", ""}
         ],
         body
       )

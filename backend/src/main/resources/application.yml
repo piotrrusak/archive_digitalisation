@@ -1,11 +1,13 @@
-spring.application.name=backend
+spring:
+  application:
+    name: backend
 
 auth:
   base-url: http://host.docker.internal:4000
   path: /api/v1/token/verify
   connect-timeout-ms: 1000
   read-timeout-ms: 1500
-  bypass-token: 
+  bypass-token: ${AUTH_BYPASS_TOKEN:}
 
 logging:
   level:
