@@ -4,6 +4,8 @@ defmodule AuthWeb.UserRegistrationController do
   alias Auth.Accounts
   alias Auth.Accounts.User
 
+  @backend_url Application.compile_env(:auth, :backend_url)
+
   def create(conn, user_params) do
     user_params
     |> register_user_and_sync()

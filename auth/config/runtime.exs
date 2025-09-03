@@ -23,11 +23,6 @@ end
 # during deployment do it properly
 config :auth, :jwt_secret, "test"
 
-# === Backend (Java) integration ===
-config :auth,
-  backend_url: System.get_env("BACKEND_URL") || "http://localhost:8080",
-  backend_bypass_token: System.get_env("BACKEND_BYPASS_TOKEN") || "asdkfunhcekstukes"
-
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
