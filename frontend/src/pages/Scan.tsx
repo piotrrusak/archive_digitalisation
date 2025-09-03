@@ -12,8 +12,6 @@ export default function Scan() {
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<StoredFileResponse | null>(null)
 
-  console.log("User ID:", userId)
-
   const handleFileSelected = (f: File) => {
     setFile(f)
     setError(null)
