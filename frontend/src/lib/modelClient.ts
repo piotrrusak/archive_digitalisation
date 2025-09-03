@@ -1,20 +1,14 @@
 type Dict = Record<string, unknown>
 
-export interface StoredFileRequest {
-  filename: string
-  content_type: string
-  byte_size: number
-  file_base64: string
-  metadata?: Record<string, string | number | boolean | null>
+export interface SendFilePayload {
+  ownerId: number
+  formatId: number
+  generation: number
+  primaryFileId: number | null
+  content: string
 }
 
 export type StoredFileResponse = Dict
-
-let AUTH_TOKEN: string | null = null
-
-export function setAuthToken(token: string | null) {
-  AUTH_TOKEN = token
-}
 
 export function getApiBaseUrl(): string {
   const base = (import.meta as unknown as { env?: { VITE_REST_API_BASE_URL?: string } }).env
@@ -28,50 +22,26 @@ export function getApiBaseUrl(): string {
   return base.replace(/\/+$/, '')
 }
 
-function inferContentType(file: File): string {
-  if (file.type) return file.type
-
-  const ext = (file.name.split('.').pop() ?? '').toLowerCase()
-  switch (ext) {
-    case 'png':
-      return 'image/png'
-    case 'jpg':
-    case 'jpeg':
-      return 'image/jpeg'
-    case 'gif':
-      return 'image/gif'
-    case 'webp':
-      return 'image/webp'
-    case 'tif':
-    case 'tiff':
-      return 'image/tiff'
-    case 'pdf':
-      return 'application/pdf'
-    case 'bmp':
-      return 'image/bmp'
-    case 'heic':
-      return 'image/heic'
-    default:
-      return 'application/octet-stream'
-  }
-}
-
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    // ✅ blok zamiast shorthand, żeby nie „zwracać” void
+
     reader.onerror = () => {
       reject(new Error('Failed to read file'))
     }
+
     reader.onload = () => {
       const result = reader.result as string
       const commaIndex = result.indexOf(',')
+
       if (commaIndex === -1) {
         reject(new Error('Invalid base64 data format'))
         return
       }
+
       resolve(result.slice(commaIndex + 1))
     }
+
     reader.readAsDataURL(file)
   })
 }
@@ -79,13 +49,10 @@ function fileToBase64(file: File): Promise<string> {
 async function postJson<T>(
   url: string,
   body: unknown,
-  { timeoutMs = 30_000 }: { timeoutMs?: number } = {},
+  { timeoutMs = 30_000, token }: { timeoutMs?: number; token?: string } = {},
 ): Promise<T> {
-  const headers = new Headers({ 'Content-Type': 'application/json' })
-  if (AUTH_TOKEN) headers.set('Authorization', `Bearer ${AUTH_TOKEN}`)
-
   const controller = new AbortController()
-  // ✅ użyj window.setTimeout + blok
+
   const timeoutId = window.setTimeout(() => {
     controller.abort()
   }, timeoutMs)
@@ -93,7 +60,11 @@ async function postJson<T>(
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(body),
       signal: controller.signal,
     })
@@ -129,21 +100,32 @@ async function postJson<T>(
 
 export async function uploadStoredFile(
   file: File,
-  metadata?: Record<string, string | number | boolean | null>,
+  options: {
+    ownerId: number
+    formatId: number
+    generation: number
+    primaryFileId: number | null
+    endpointPath?: string
+  },
+  token?: string,
 ): Promise<StoredFileResponse> {
-  const [apiBase, file_base64] = await Promise.all([
+  if (!Number.isFinite(options.ownerId)) {
+    throw new Error('uploadStoredFile: options.ownerId must be a finite number')
+  }
+
+  const [apiBase, content] = await Promise.all([
     Promise.resolve(getApiBaseUrl()),
     fileToBase64(file),
   ])
 
-  const payload: StoredFileRequest = {
-    filename: file.name,
-    content_type: inferContentType(file),
-    byte_size: file.size,
-    file_base64,
-    ...(metadata ? { metadata } : {}),
+  const payload: SendFilePayload = {
+    ownerId: options.ownerId,
+    formatId: options.formatId,
+    generation: options.generation,
+    primaryFileId: options.primaryFileId,
+    content,
   }
 
-  const url = `${apiBase}/stored_files`
-  return postJson<StoredFileResponse>(url, payload, { timeoutMs: 30_000 })
+  const url = `${apiBase}/${options.endpointPath ?? 'stored_files'}`
+  return postJson<StoredFileResponse>(url, payload, { timeoutMs: 30_000, token })
 }
