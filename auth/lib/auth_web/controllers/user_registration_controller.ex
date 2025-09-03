@@ -28,9 +28,9 @@ defmodule AuthWeb.UserRegistrationController do
   end
 
   defp sync_user_with_backend(%User{} = user, %{
-        "first_name" => first_name,
-        "last_name" => last_name
-      }) do
+         "first_name" => first_name,
+         "last_name" => last_name
+       }) do
     body =
       %{
         id: user.id,
@@ -62,7 +62,6 @@ defmodule AuthWeb.UserRegistrationController do
         {:error, %{error: reason}}
     end
   end
-
 
   defp handle_response({:ok, user}, conn) do
     token = Auth.User.Auth.generate_jwt(user)
