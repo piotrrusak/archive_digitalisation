@@ -52,17 +52,20 @@ export default function Scan() {
     } catch (err: unknown) {
       if (err && typeof err === 'object') {
         const e = err as { message?: string; status?: number; data?: unknown }
+
         const backendDetail =
-          e?.data && typeof e.data === 'object'
+          e.data && typeof e.data === 'object'
             ? JSON.stringify(e.data as Record<string, unknown>)
             : null
+
         const msg = [
-          e.status ? `HTTP ${e.status}` : null,
+          e.status != null ? `HTTP ${String(e.status)}` : null,
           e.message ?? null,
           backendDetail ? `Details: ${backendDetail}` : null,
         ]
           .filter(Boolean)
           .join(' — ')
+
         setError(msg || 'Upload failed')
       } else {
         setError('Upload failed')

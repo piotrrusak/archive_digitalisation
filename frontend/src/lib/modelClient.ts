@@ -25,13 +25,23 @@ export function getApiBaseUrl(): string {
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Failed to read file'))
+
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'))
+    }
+
     reader.onload = () => {
       const result = reader.result as string
       const commaIndex = result.indexOf(',')
-      if (commaIndex === -1) return reject(new Error('Invalid base64 data format'))
+
+      if (commaIndex === -1) {
+        reject(new Error('Invalid base64 data format'))
+        return
+      }
+
       resolve(result.slice(commaIndex + 1))
     }
+
     reader.readAsDataURL(file)
   })
 }
@@ -45,7 +55,10 @@ async function postJson<T>(
   }: { timeoutMs?: number; token?: string } = {},
 ): Promise<T> {
   const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs)
+
+  const timeoutId = window.setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
 
   try {
     const response = await fetch(url, {
@@ -88,7 +101,6 @@ async function postJson<T>(
   }
 }
 
-
 export async function uploadStoredFile(
   file: File,
   options: {
@@ -100,8 +112,8 @@ export async function uploadStoredFile(
   },
   token?: string,
 ): Promise<StoredFileResponse> {
-  if (!options || typeof options.ownerId !== 'number') {
-    throw new Error('uploadStoredFile: options.ownerId (number) is required')
+  if (!Number.isFinite(options.ownerId)) {
+    throw new Error('uploadStoredFile: options.ownerId must be a finite number')
   }
 
   const [apiBase, content] = await Promise.all([
