@@ -24,13 +24,9 @@ export default function Scan() {
       setError('Invalid token - try logging in again')
       return
     }
-    if (userId == null) {
-      setError('Invalid userId (null) - try logging in again')
-      return
-    }
-
     const ownerId = typeof userId === 'string' ? Number(userId) : userId
-    if (!Number.isFinite(ownerId)) {
+
+    if (ownerId == null || !Number.isFinite(ownerId)) {
       setError('Invalid ownerId (not a number) - try logging in again')
       return
     }
