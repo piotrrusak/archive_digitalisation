@@ -1,9 +1,5 @@
 package edu.bachelor.rest.config;
 
-import java.util.List;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -43,7 +39,6 @@ public class AuthClient {
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(AuthVerifyResponse.class);
-
         } catch (Exception e) {
             return new AuthVerifyResponse(false, null, null);
         }
