@@ -27,7 +27,7 @@ export default function Scan() {
     const ownerId = typeof userId === 'string' ? Number(userId) : userId
 
     if (ownerId == null || !Number.isFinite(ownerId)) {
-      setError('Invalid ownerId (not a number) - try logging in again')
+      setError('Invalid ownerId - try logging in again')
       return
     }
 
@@ -97,9 +97,7 @@ export default function Scan() {
 
         {error && <p className="mt-2 text-red-600 break-words">Error: {error}</p>}
 
-        <p className="mt-2 text-white-600">
-          {result ? 'Upload successful!' : 'No result yet.'}
-        </p>
+        <p className="mt-2 text-white-600">{result ? 'Upload successful!' : 'No result yet.'}</p>
       </div>
     </MainLayout>
   )
