@@ -4,6 +4,8 @@ defmodule AuthWeb.UserRegistrationController do
   alias Auth.Accounts
   alias Auth.Accounts.User
 
+  @backend_url Application.compile_env(:auth, :backend_url)
+
   def create(conn, user_params) do
     user_params
     |> register_user_and_sync()
@@ -29,9 +31,6 @@ defmodule AuthWeb.UserRegistrationController do
          "first_name" => first_name,
          "last_name" => last_name
        }) do
-    backend_url = Application.get_env(:auth, :backend_url)
-    bypass_token = Application.get_env(:auth, :backend_bypass_token)
-
     body =
       %{
         id: user.id,
@@ -44,10 +43,10 @@ defmodule AuthWeb.UserRegistrationController do
     request =
       Finch.build(
         :post,
-        "#{backend_url}/api/v1/users",
+        "#{@backend_url}/api/v1/users",
         [
           {"content-type", "application/json"},
-          {"authorization", bypass_token}
+          {"authorization", "asdkfunhcekstukes"}
         ],
         body
       )
