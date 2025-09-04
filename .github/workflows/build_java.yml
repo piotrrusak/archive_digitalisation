@@ -38,5 +38,6 @@ jobs:
       - name: Package application
         run: mvn -B -f "${{ inputs.directory }}/pom.xml" package -DskipTests
       
-      - name: Format check
-        run: mvn fmt:format
+      - name: Check formatting
+        run: mvn -B -U com.spotify.fmt:fmt-maven-plugin:2.27:check
+        working-directory: backend
