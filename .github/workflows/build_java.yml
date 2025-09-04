@@ -37,3 +37,6 @@ jobs:
 
       - name: Package application
         run: mvn -B -f "${{ inputs.directory }}/pom.xml" package -DskipTests
+      
+      - name: Format check
+        run: mvn fmt:format
