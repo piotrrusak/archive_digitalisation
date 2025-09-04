@@ -26,16 +26,6 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Wait for Postgres (pg_isready)
-        run: |
-          for i in {1..30}; do
-            pg_isready -h 127.0.0.1 -p 5432 -U root -d swiftdb && echo "Postgres is up" && exit 0
-            echo "Waiting for Postgres... ($i)"
-            sleep 2
-          done
-          echo "Postgres did not become ready in time" >&2
-          exit 1
-
       - name: Prefetch dependencies (go offline)
         run: mvn -B -U -f "${{ inputs.directory }}/pom.xml" dependency:go-offline
 
