@@ -12,26 +12,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: postgres_backend
-          POSTGRES_USER: postgres_backend
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres_backend -d postgres_backend -h 127.0.0.1 -p 5432"
-          --health-interval 5s
-          --health-timeout 10s
-          --health-retries 5
-
     env:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/postgres_backend
-      SPRING_DATASOURCE_USERNAME: postgres_backend
-      SPRING_DATASOURCE_PASSWORD: password
-      SPRING_PROFILES_ACTIVE: ci
+      SPRING_PROFILES_ACTIVE: test
 
     steps:
       - name: Checkout code
