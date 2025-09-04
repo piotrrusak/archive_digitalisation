@@ -12,26 +12,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: swiftdb
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: root
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U root -d swiftdb -h 127.0.0.1 -p 5432"
-          --health-interval 5s
-          --health-timeout 10s
-          --health-retries 5
-
     env:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/swiftdb
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      SPRING_PROFILES_ACTIVE: ci
+      SPRING_PROFILES_ACTIVE: test
 
     steps:
       - name: Checkout code
@@ -43,16 +25,6 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: maven
-
-      - name: Wait for Postgres (pg_isready)
-        run: |
-          for i in {1..30}; do
-            pg_isready -h 127.0.0.1 -p 5432 -U root -d swiftdb && echo "Postgres is up" && exit 0
-            echo "Waiting for Postgres... ($i)"
-            sleep 2
-          done
-          echo "Postgres did not become ready in time" >&2
-          exit 1
 
       - name: Prefetch dependencies (go offline)
         run: mvn -B -U -f "${{ inputs.directory }}/pom.xml" dependency:go-offline

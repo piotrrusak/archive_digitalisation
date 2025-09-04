@@ -12,9 +12,18 @@ A Spring Boot 3 REST API for managing **users**, **file formats**, and **files**
 
 ## Quick Start
 
+After running database:
+
 ```bash
     mvn clean package
-    sudo docker-compose up
+    mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Or if you want to ensure safety of data on db:
+
+```bash
+    mvn clean package
+    mvn spring-boot:run -Dspring-boot.run.profiles=test
 ```
 
 ## ER Diagram

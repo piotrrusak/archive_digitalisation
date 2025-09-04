@@ -79,7 +79,7 @@ public class StoredFileService {
             primary = storedFileRepository.findById(dto.primaryFileId())
                     .orElseThrow(() -> new IllegalArgumentException("Primary file not found: " + dto.primaryFileId()));
         }
-
+        
         this.webClient.post()
             .uri(this.ocrPath)
             .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
