@@ -1,4 +1,3 @@
-// Dropzone.tsx
 import React, { useCallback, useRef, useState } from 'react'
 import { ACCEPTED_MIME_TYPES_AND_EXTENSIONS, MAX_FILE_SIZE_BYTES } from '../../config/upload'
 

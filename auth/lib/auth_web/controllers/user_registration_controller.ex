@@ -34,7 +34,7 @@ defmodule AuthWeb.UserRegistrationController do
     body =
       %{
         id: user.id,
-        email: user.email,
+        mail: user.email,
         first_name: first_name,
         last_name: last_name
       }
@@ -44,7 +44,10 @@ defmodule AuthWeb.UserRegistrationController do
       Finch.build(
         :post,
         "#{@backend_url}/api/v1/users",
-        [{"content-type", "application/json"}],
+        [
+          {"content-type", "application/json"},
+          {"authorization", ""}
+        ],
         body
       )
 

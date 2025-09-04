@@ -13,21 +13,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  postgres:
-    image: postgres:16
-    container_name: postgres-db
+  db_backend:
+    image: postgres:latest
     environment:
-      POSTGRES_DB: swiftdb
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_USER: postgres_backend
+      POSTGRES_PASSWORD: password
     ports:
       - "5434:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d swiftdb"]
+      test: ["CMD-SHELL", "pg_isready -U root -d postgres_backend"]
       interval: 5s
-      timeout: 10s
+      timeout: 5s
       retries: 5
   ocr:
     build:
@@ -37,34 +35,6 @@ services:
     environment:
       BACKEND_BASE_URL: "http://app:8080"
       TXT_FORMAT_ID: "7"
-
-  app:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: showcase
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/swiftdb"
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
-
-      # >>> Add these for the external auth client (Spring Boot relaxed binding maps ENV -> properties):
-      AUTH_BASE_URL: "http://host.docker.internal:4000"
-      AUTH_PATH: "/api/v1/token/verify"
-      AUTH_CONNECT_TIMEOUT_MS: "1000"
-      AUTH_READ_TIMEOUT_MS: "1500"
-
-    # On Linux, make sure this hostname resolves:
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   db_auth:

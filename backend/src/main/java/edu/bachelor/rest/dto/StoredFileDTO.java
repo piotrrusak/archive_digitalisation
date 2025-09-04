@@ -13,12 +13,17 @@ public record StoredFileDTO (
 ) {
 
     public static StoredFileDTO fromStoredFile(StoredFile storedFile, byte[] content) {
+        StoredFile primary = storedFile.getPrimaryFile();
+        Long temp = null;
+        if (primary != null) {
+            temp = primary.getId();
+        }
 
         return new StoredFileDTO(
             storedFile.getOwner().getId(),
             storedFile.getFormat().getId(),
             storedFile.getGeneration(),
-            storedFile.getPrimaryFile().getId(),
+            temp,
             content
         );
         
