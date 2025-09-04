@@ -26,7 +26,7 @@ public class AuthClient {
 
     public AuthVerifyResponse verify(String authorizationHeader) {
         try {
-            if ("asdkfunhcekstukes".equals(authorizationHeader)) {
+            if (props.getBypassToken().equals(authorizationHeader)) {
                 return new AuthVerifyResponse(
                     true,
                     null,
