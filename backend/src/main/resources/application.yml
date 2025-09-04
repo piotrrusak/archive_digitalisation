@@ -9,6 +9,10 @@ auth:
   read-timeout-ms: 1500
   bypass-token: ${AUTH_BYPASS_TOKEN:}
 
+ocr:
+  base-url: http://host.docker.internal:8000
+  path: /ocr/process
+
 logging:
   level:
     org.springframework.security: DEBUG
