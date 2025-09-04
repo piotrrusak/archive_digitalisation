@@ -46,8 +46,6 @@ public class SecurityConfig {
                         org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        .requestMatchers("/actuator/health", "/public/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new ExternalAuthFilter(authClient), UsernamePasswordAuthenticationFilter.class)

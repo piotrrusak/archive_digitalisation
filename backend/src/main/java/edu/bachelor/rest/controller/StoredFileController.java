@@ -3,6 +3,7 @@ package edu.bachelor.rest.controller;
 import edu.bachelor.rest.dto.StoredFileDTO;
 import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.service.StoredFileService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,14 +26,14 @@ public class StoredFileController {
         return this.storedFileService.getFileById(id);
     }
 
-    // @GetMapping("/owner/{owner_id}")
-    // public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
-    //     return this.storedFileService.getStoredFilesByOwnerId(owner_id);
-    // }
+    @GetMapping("/owner/{owner_id}")
+    public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
+        return this.storedFileService.getStoredFilesByOwnerId(owner_id);
+    }
 
     @PostMapping
-    public StoredFile saveStoredFile(@RequestBody StoredFileDTO storedFileDTO) {
-        return this.storedFileService.saveStoredFile(storedFileDTO);
+    public StoredFile saveStoredFile(HttpServletRequest request, @RequestBody StoredFileDTO storedFileDTO) {
+        return this.storedFileService.saveStoredFile(request, storedFileDTO);
     }
 
     @DeleteMapping("/{id}")
