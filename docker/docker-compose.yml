@@ -32,9 +32,7 @@ services:
       context: ../ocr
     ports:
       - "8000:8000"
-    environment:
-      BACKEND_BASE_URL: "http://app:8080"
-      TXT_FORMAT_ID: "7"
+      
 
 volumes:
   db_auth:
