@@ -26,10 +26,10 @@ public class SecurityConfig {
     cfg.setAllowCredentials(true);
     cfg.setMaxAge(3600L);
 
-        var source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", cfg);
-        return source;
-    }
+    var source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", cfg);
+    return source;
+  }
 
   @Bean
   SecurityFilterChain filterChain(

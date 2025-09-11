@@ -9,11 +9,7 @@ auth:
   path: /api/v1/token/verify
   connect-timeout-ms: 1000
   read-timeout-ms: 1500
-<<<<<<< HEAD
-  bypass-token: ${AUTH_BYPASS_TOKEN:asdkfunhcekstukes}
-=======
   bypass-token: ${AUTH_BYPASS_TOKEN:agsrgbbgadfaa}
->>>>>>> main
 
 ocr:
   base-url: http://localhost:8000
