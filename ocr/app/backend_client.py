@@ -1,5 +1,7 @@
 import base64
+
 import requests
+
 
 def send_file(
     backend_url: str,

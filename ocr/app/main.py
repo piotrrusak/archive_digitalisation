@@ -1,16 +1,18 @@
-import os
-from fastapi import FastAPI, Request
-from pydantic import BaseModel, Field, field_validator
 import base64
 import logging
+import os
 
-from app.ocr import ocr_png_bytes, _get_model
+from fastapi import FastAPI, Request
+from pydantic import BaseModel, Field, field_validator
+
 from app.backend_client import send_file
+from app.ocr import _get_model, ocr_png_bytes
 
 app = FastAPI(title="OCR Service", version="0.0.2")
 logger = logging.getLogger("uvicorn.error")
 
-class IncomingFile(BaseModel) :
+
+class IncomingFile(BaseModel):
     ownerId: int = Field(ge=1)
     formatId: int = Field(ge=1)
     generation: int = Field(ge=0)
@@ -19,12 +21,13 @@ class IncomingFile(BaseModel) :
 
     @field_validator("content")
     @classmethod
-    def validate_base64(cls, v) :
-        try :
-            base64.b64decode(v, validate = True)
-        except Exception as e :
-            raise ValueError(f"Invalid base64 content: {e}")
+    def validate_base64(cls, v):
+        try:
+            base64.b64decode(v, validate=True)
+        except Exception as e:
+            raise ValueError(f"Invalid base64 content: {e}") from e
         return v
+
 
 @app.get("/health")
 def health():
@@ -34,17 +37,22 @@ def health():
     except Exception as e:
         return {"status": "error", "detail": str(e)}
 
+
 @app.post("/ocr/process")
-def handle_file(payload : IncomingFile, request: Request) :
+def handle_file(payload: IncomingFile, request: Request):
     logger.info(
         "Received file: ownerId=%s formatId=%s generation=%s primaryFileId=%s size_b64=%d",
-        payload.ownerId, payload.formatId, payload.generation, payload.primaryFileId, len(payload.content),
+        payload.ownerId,
+        payload.formatId,
+        payload.generation,
+        payload.primaryFileId,
+        len(payload.content),
     )
 
-    try :
+    try:
         png_bytes = base64.b64decode(payload.content, validate=True)
-    except Exception :
-        raise Exception(detail="Invalid base64 in 'content'")
+    except Exception:
+        raise Exception(detail="Invalid base64 in 'content'") from None
 
     text = ocr_png_bytes(png_bytes)
     logger.info("OCR result: %s", text)
