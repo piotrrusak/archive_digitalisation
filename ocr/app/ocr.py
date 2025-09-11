@@ -29,3 +29,18 @@ def ocr_png_bytes(png_bytes):
 
     lines = [rec.prediction for rec in records]
     return "\n".join(lines)
+
+
+def test_ocr(test_image_path):
+    print(f"Testing OCR on image: {test_image_path}")
+    png_bytes = test_image_path.read_bytes()
+    text = ocr_png_bytes(png_bytes)
+    print("OCR Result:")
+    print("|" + text + "|")
+    return text
+
+
+if __name__ == "__main__" :
+    test_ocr(Path(__file__).resolve().parent / "../tests/files/0.png")
+    print()
+    test_ocr(Path(__file__).resolve().parent / "../tests/files/1.png")

@@ -69,3 +69,4 @@ def handle_file(payload: IncomingFile, request: Request):
     logger.info("Sent OCR result back to backend, got response: %s", result)
 
     return result
+
