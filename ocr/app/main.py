@@ -1,9 +1,11 @@
-from fastapi import FastAPI, HTTPException
+import os
+from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field, field_validator
 import base64
 import logging
 
-from app.ocr import ocr_png_bytes
+from app.ocr import ocr_png_bytes, _get_model
+from app.backend_client import send_file
 
 app = FastAPI(title="OCR Service", version="0.0.2")
 logger = logging.getLogger("uvicorn.error")
@@ -25,11 +27,15 @@ class IncomingFile(BaseModel) :
         return v
 
 @app.get("/health")
-def health() :
-    return {"status" : "ok"}
+def health():
+    try:
+        _ = _get_model()
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 @app.post("/ocr/process")
-def receive_file(payload : IncomingFile) :
+def handle_file(payload : IncomingFile, request: Request) :
     logger.info(
         "Received file: ownerId=%s formatId=%s generation=%s primaryFileId=%s size_b64=%d",
         payload.ownerId, payload.formatId, payload.generation, payload.primaryFileId, len(payload.content),
@@ -43,4 +49,15 @@ def receive_file(payload : IncomingFile) :
     text = ocr_png_bytes(png_bytes)
     logger.info("OCR result: %s", text)
 
-    return {"text" : text}
+    result = send_file(
+        backend_url=os.getenv("BACKEND_BASE_URL"),
+        auth_token=request.headers.get("authorization"),
+        owner_id=payload.ownerId,
+        format_id=payload.formatId,
+        generation=payload.generation,
+        text=text,
+        primary_file_id=payload.primaryFileId,
+    )
+    logger.info("Sent OCR result back to backend, got response: %s", result)
+
+    return result

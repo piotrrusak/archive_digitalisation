@@ -80,20 +80,23 @@ public class StoredFileService {
                     .orElseThrow(() -> new IllegalArgumentException("Primary file not found: " + dto.primaryFileId()));
         }
         
-        this.webClient.post()
-            .uri(this.ocrPath)
-            .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(dto)
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
 
         final String path;
         try {
             path = fileManager.save_file(dto.content());
         } catch (IOException e) {
             throw new RuntimeException("Failed to save file content", e);
+        }
+
+        if (dto.generation() <= 1) {
+            this.webClient.post()
+                .uri(this.ocrPath)
+                .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(dto)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
         }
 
         StoredFile entity = new StoredFile(null, owner, path, format, dto.generation(), primary);

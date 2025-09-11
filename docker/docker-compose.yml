@@ -38,6 +38,12 @@ services:
       TXT_FORMAT_ID: ${TXT_FORMAT_ID}
     extra_hosts:
       - "host.docker.internal:host-gateway" # T_T Please return backend to Docker pleeease, we can make it work, I hate using host.docker.internal T_T
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
 volumes:
   db_auth:

@@ -12,7 +12,7 @@ public class FileManager {
 
     private final PathGenerator pathGenerator;
 
-    private static final Path BASE_DIR = Path.of("/app/files");
+    private static final Path BASE_DIR = Path.of(System.getProperty("user.dir"), "files");
 
     public FileManager() {
         this.pathGenerator = new PathGenerator();
