@@ -40,7 +40,7 @@ def test_ocr(test_image_path):
     return text
 
 
-if __name__ == "__main__" :
+if __name__ == "__main__":
     test_ocr(Path(__file__).resolve().parent / "../tests/files/0.png")
     print()
     test_ocr(Path(__file__).resolve().parent / "../tests/files/1.png")

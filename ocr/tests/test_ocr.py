@@ -1,11 +1,12 @@
-from pathlib import Path
-import pytest
 import os
+from pathlib import Path
+
+import pytest
+
+import app.ocr as ocr_module
 
 DIR_PATH = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "files")))
 LEV_PERCENTAGE = 0.35
-
-import app.ocr as ocr_module
 
 
 LEV_AVAILABLE = True
@@ -41,16 +42,25 @@ def _collect_cases(data_dir: Path):
 
     pngs = sorted(data_dir.glob("*.png"))
     if not pngs:
-        return [pytest.param(None, None, marks=pytest.mark.skip(reason="No .png files found in DIR_PATH."))]
+        return [
+            pytest.param(
+                None, None, marks=pytest.mark.skip(reason="No .png files found in DIR_PATH.")
+            )
+        ]
 
     params = []
     for png in pngs:
         txt = png.with_suffix(".txt")
         if not txt.exists():
-            params.append(pytest.param(
-                png, None,
-                marks=pytest.mark.skip(reason=f"Missing ground-truth TXT for {png.name}. Expecting {txt.name}.")
-            ))
+            params.append(
+                pytest.param(
+                    png,
+                    None,
+                    marks=pytest.mark.skip(
+                        reason=f"Missing ground-truth TXT for {png.name}. Expecting {txt.name}."
+                    ),
+                )
+            )
         else:
             params.append(pytest.param(png, txt, id=png.name))
     return params
@@ -74,7 +84,9 @@ def test_ocr_quality_dynamic_threshold(png_path: Path, gt_path: Path, capsys):
         pytest.skip("Invalid parameters for this test case.")
 
     if not LEV_AVAILABLE:
-        pytest.skip("Levenshtein implementation is not available (install rapidfuzz or python-Levenshtein).")
+        pytest.skip(
+            "Levenshtein implementation is not available (install rapidfuzz or python-Levenshtein)."
+        )
 
     img_bytes = png_path.read_bytes()
     expected_text = gt_path.read_text(encoding="utf-8", errors="ignore")
