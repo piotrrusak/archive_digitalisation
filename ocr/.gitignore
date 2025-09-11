@@ -3,3 +3,5 @@
 .env
 
 **/scripts
+
+.ruff_cache/
