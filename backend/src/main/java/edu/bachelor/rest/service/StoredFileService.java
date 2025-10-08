@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -92,19 +94,19 @@ public class StoredFileService {
                           "Primary file not found: " + dto.primaryFileId()));
     }
 
-    // this.webClient
-    //     .post()
-    //     .uri(this.ocrPath)
-    //     .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-    //     .contentType(MediaType.APPLICATION_JSON)
-    //     .bodyValue(dto)
-    //     .retrieve()
-    //     .bodyToMono(String.class)
-    //     .block();
+    this.webClient
+        .post()
+        .uri(this.ocrPath)
+        .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(dto)
+        .retrieve()
+        .bodyToMono(String.class)
+        .block();
 
     final String path;
     try {
-      path = fileManager.saveFile(dto.content());
+      path = fileManager.save_file(dto.content());
     } catch (IOException e) {
       throw new RuntimeException("Failed to save file content", e);
     }

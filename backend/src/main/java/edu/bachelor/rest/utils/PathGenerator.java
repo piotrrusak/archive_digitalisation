@@ -17,7 +17,10 @@ public class PathGenerator {
     while (this.paths.contains(temp)) {
       continue;
     }
+<<<<<<< HEAD
     this.paths.add(temp);
+=======
+>>>>>>> 48607e5bd63efc4010db4c93fe5c0ad81059bfce
     return temp;
   }
 }
