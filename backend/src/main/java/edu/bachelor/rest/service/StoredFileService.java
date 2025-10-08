@@ -10,7 +10,6 @@ import edu.bachelor.rest.repository.UserRepository;
 import edu.bachelor.rest.utils.AWSFileManager;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -106,8 +105,8 @@ public class StoredFileService {
 
     final String path;
     try {
-      path = fileManager.save_file(dto.content());
-    } catch (IOException e) {
+      path = fileManager.saveFile(dto.content());
+    } catch (Exception e) {
       throw new RuntimeException("Failed to save file content", e);
     }
 
