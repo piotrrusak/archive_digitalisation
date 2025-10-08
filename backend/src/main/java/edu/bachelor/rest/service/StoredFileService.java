@@ -13,8 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -29,8 +27,7 @@ public class StoredFileService {
   private final FormatRepository formatRepository;
   private final AWSFileManager fileManager;
   private final WebClient.Builder webClientBuilder;
-  private WebClient webClient;
-
+  
   @Value("${ocr.base-url}")
   private String ocrBaseUrl;
 
@@ -39,7 +36,7 @@ public class StoredFileService {
 
   @PostConstruct
   void initWebClient() {
-    this.webClient = webClientBuilder.baseUrl(ocrBaseUrl).build();
+    webClientBuilder.baseUrl(ocrBaseUrl).build();
   }
 
   @Transactional(readOnly = true)
@@ -92,17 +89,7 @@ public class StoredFileService {
                       new IllegalArgumentException(
                           "Primary file not found: " + dto.primaryFileId()));
     }
-
-    this.webClient
-        .post()
-        .uri(this.ocrPath)
-        .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-        .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(dto)
-        .retrieve()
-        .bodyToMono(String.class)
-        .block();
-
+    
     final String path;
     try {
       path = fileManager.saveFile(dto.content());
