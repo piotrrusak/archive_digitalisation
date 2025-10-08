@@ -20,5 +20,6 @@ public class PathGenerator {
         this.paths.add(temp);
         return temp;
     }
-    
+    return temp;
+  }
 }
