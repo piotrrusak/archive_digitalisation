@@ -1,15 +1,15 @@
 package edu.bachelor.rest.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class PathGenerator {
 
-    private List<String> paths;
+    private Set<String> paths;
 
     public PathGenerator() {
-        this.paths = new ArrayList<>();
+        this.paths = new HashSet<>();
     }
 
     public String generateRandomPath() {
@@ -17,6 +17,7 @@ public class PathGenerator {
         while(this.paths.contains(temp)) {
             continue;
         }
+        this.paths.add(temp);
         return temp;
     }
     
