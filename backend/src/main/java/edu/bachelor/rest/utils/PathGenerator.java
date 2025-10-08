@@ -6,19 +6,18 @@ import java.util.UUID;
 
 public class PathGenerator {
 
-    private Set<String> paths;
+  private Set<String> paths;
 
-    public PathGenerator() {
-        this.paths = new HashSet<>();
-    }
+  public PathGenerator() {
+    this.paths = new HashSet<>();
+  }
 
-    public String generateRandomPath() {
-        String temp = UUID.randomUUID().toString();
-        while(this.paths.contains(temp)) {
-            continue;
-        }
-        this.paths.add(temp);
-        return temp;
+  public String generateRandomPath() {
+    String temp = UUID.randomUUID().toString();
+    while (this.paths.contains(temp)) {
+      continue;
     }
-    
+    this.paths.add(temp);
+    return temp;
+  }
 }
