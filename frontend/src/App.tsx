@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Account from './pages/Accounts'
 import Scan from './pages/Scan'
 import Documents from './pages/Documents' // <-- add this
+import Admin from './pages/Admin'
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
@@ -24,6 +25,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/scan" element={isLoggedIn ? <Scan /> : <Navigate to="/login" />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   )
