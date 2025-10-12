@@ -56,7 +56,6 @@ export default function Admin() {
   const closeModal = (key: keyof typeof modals) => {
     setModals((prev) => ({ ...prev, [key]: false }))
   }
-
   return (
     <div className="min-h-screen bg-white-base text-black-base p-8">
       {/* hack to render everything, definitely remove this in the future*/}
