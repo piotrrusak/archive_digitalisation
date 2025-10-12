@@ -50,8 +50,12 @@ export default function Admin() {
     setValues((prev) => ({ ...prev, [key]: value }))
   }
 
-  const openModal = (key: keyof typeof modals) => { setModals((prev) => ({ ...prev, [key]: true })); }
-  const closeModal = (key: keyof typeof modals) => { setModals((prev) => ({ ...prev, [key]: false })); }
+  const openModal = (key: keyof typeof modals) => {
+    setModals((prev) => ({ ...prev, [key]: true }))
+  }
+  const closeModal = (key: keyof typeof modals) => {
+    setModals((prev) => ({ ...prev, [key]: false }))
+  }
 
   return (
     <div className="min-h-screen bg-white-base text-black-base p-8">
@@ -213,14 +217,36 @@ export default function Admin() {
       <div className="mt-20 flex flex-col gap-4 items-center">
         <h1 className="text-3xl font-bold mb-4 text-center">🪟 Modal Variants</h1>
 
-        <Button label="Open Confirm + Cancel Modal" onClick={() => { openModal('confirmCancel'); }} />
-        <Button label="Open Confirm-only Modal" onClick={() => { openModal('confirmOnly'); }} />
-        <Button label="Open Cancel-only Modal" onClick={() => { openModal('cancelOnly'); }} />
-        <Button label="Open Modal with Back Button" onClick={() => { openModal('backModal'); }} />
+        <Button
+          label="Open Confirm + Cancel Modal"
+          onClick={() => {
+            openModal('confirmCancel')
+          }}
+        />
+        <Button
+          label="Open Confirm-only Modal"
+          onClick={() => {
+            openModal('confirmOnly')
+          }}
+        />
+        <Button
+          label="Open Cancel-only Modal"
+          onClick={() => {
+            openModal('cancelOnly')
+          }}
+        />
+        <Button
+          label="Open Modal with Back Button"
+          onClick={() => {
+            openModal('backModal')
+          }}
+        />
         <Button
           label="Open Delete Modal"
           variant="danger"
-          onClick={() => { openModal('deleteModal'); }}
+          onClick={() => {
+            openModal('deleteModal')
+          }}
         />
       </div>
 
@@ -232,7 +258,9 @@ export default function Admin() {
           alert('Confirmed!')
           closeModal('confirmCancel')
         }}
-        onCancel={() => { closeModal('confirmCancel'); }}
+        onCancel={() => {
+          closeModal('confirmCancel')
+        }}
         title="Confirm + Cancel Modal"
         subtitle="A basic modal with both buttons"
       >
@@ -255,7 +283,9 @@ export default function Admin() {
       <Modal
         id="cancelOnly"
         show={modals.cancelOnly}
-        onCancel={() => { closeModal('cancelOnly'); }}
+        onCancel={() => {
+          closeModal('cancelOnly')
+        }}
         title="Cancel Only Modal"
         subtitle="Only cancel button is visible"
       >
@@ -265,8 +295,12 @@ export default function Admin() {
       <Modal
         id="backModal"
         show={modals.backModal}
-        onCancel={() => { closeModal('backModal'); }}
-        onBack={() => { alert('Back button clicked!'); }}
+        onCancel={() => {
+          closeModal('backModal')
+        }}
+        onBack={() => {
+          alert('Back button clicked!')
+        }}
         hideExit
         title="Back Button Modal"
         subtitle="Modal with a back button and no close icon"
@@ -283,8 +317,12 @@ export default function Admin() {
         }}
         confirmVariant="danger"
         confirmLabel="Delete"
-        onCancel={() => { closeModal('deleteModal'); }}
-        onBack={() => { alert('Back button clicked!'); }}
+        onCancel={() => {
+          closeModal('deleteModal')
+        }}
+        onBack={() => {
+          alert('Back button clicked!')
+        }}
         hideExit
         title="Delete Modal"
         subtitle="Modal with a confirm button in different variant"
