@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { TextField } from '../components/ui/TextField'
 import { Button } from '../components/ui/Button'
+import { Modal } from '../components/ui/Modal'
 
 const colors = [
   { name: 'white-base', hex: '#FFFFFF' },
@@ -37,9 +38,20 @@ export default function Admin() {
     passwordError: '',
   })
 
+  const [modals, setModals] = useState({
+    confirmCancel: false,
+    confirmOnly: false,
+    cancelOnly: false,
+    backModal: false,
+    deleteModal: false,
+  })
+
   const handleChange = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }))
   }
+
+  const openModal = (key: keyof typeof modals) => { setModals((prev) => ({ ...prev, [key]: true })); }
+  const closeModal = (key: keyof typeof modals) => { setModals((prev) => ({ ...prev, [key]: false })); }
 
   return (
     <div className="min-h-screen bg-white-base text-black-base p-8">
@@ -197,6 +209,92 @@ export default function Admin() {
           />
         </div>
       </div>
+
+      <div className="mt-20 flex flex-col gap-4 items-center">
+        <h1 className="text-3xl font-bold mb-4 text-center">🪟 Modal Variants</h1>
+
+        <Button label="Open Confirm + Cancel Modal" onClick={() => { openModal('confirmCancel'); }} />
+        <Button label="Open Confirm-only Modal" onClick={() => { openModal('confirmOnly'); }} />
+        <Button label="Open Cancel-only Modal" onClick={() => { openModal('cancelOnly'); }} />
+        <Button label="Open Modal with Back Button" onClick={() => { openModal('backModal'); }} />
+        <Button
+          label="Open Delete Modal"
+          variant="danger"
+          onClick={() => { openModal('deleteModal'); }}
+        />
+      </div>
+
+      {/* Modals */}
+      <Modal
+        id="confirmCancel"
+        show={modals.confirmCancel}
+        onConfirm={() => {
+          alert('Confirmed!')
+          closeModal('confirmCancel')
+        }}
+        onCancel={() => { closeModal('confirmCancel'); }}
+        title="Confirm + Cancel Modal"
+        subtitle="A basic modal with both buttons"
+      >
+        <p className="text-center">This modal has both Confirm and Cancel actions.</p>
+      </Modal>
+
+      <Modal
+        id="confirmOnly"
+        show={modals.confirmOnly}
+        onConfirm={() => {
+          alert('Confirmed!')
+          closeModal('confirmOnly')
+        }}
+        title="Confirm Only Modal"
+        subtitle="Only confirm button is visible"
+      >
+        <p className="text-center">This modal only has a confirm action.</p>
+      </Modal>
+
+      <Modal
+        id="cancelOnly"
+        show={modals.cancelOnly}
+        onCancel={() => { closeModal('cancelOnly'); }}
+        title="Cancel Only Modal"
+        subtitle="Only cancel button is visible"
+      >
+        <p className="text-center">This modal only has a cancel button.</p>
+      </Modal>
+
+      <Modal
+        id="backModal"
+        show={modals.backModal}
+        onCancel={() => { closeModal('backModal'); }}
+        onBack={() => { alert('Back button clicked!'); }}
+        hideExit
+        title="Back Button Modal"
+        subtitle="Modal with a back button and no close icon"
+      >
+        <p className="text-center">This modal includes a back arrow and hides the exit icon.</p>
+      </Modal>
+
+      <Modal
+        id="deleteModal"
+        show={modals.deleteModal}
+        onConfirm={() => {
+          alert('Deleted!')
+          closeModal('deleteModal')
+        }}
+        confirmVariant="danger"
+        confirmLabel="Delete"
+        onCancel={() => { closeModal('deleteModal'); }}
+        onBack={() => { alert('Back button clicked!'); }}
+        hideExit
+        title="Delete Modal"
+        subtitle="Modal with a confirm button in different variant"
+      >
+        <p className="text-center">
+          Are you sure you want to delete this?
+          {/* Yes I did just write 'random image' into google, problem? :troll: */}
+          <img src="https://hatrabbits.com/wp-content/uploads/2017/01/random.jpg" />
+        </p>
+      </Modal>
     </div>
   )
 }
