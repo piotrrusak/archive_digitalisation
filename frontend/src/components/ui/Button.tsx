@@ -1,29 +1,48 @@
 import clsx from 'clsx'
+import { CirclePlus } from 'lucide-react'
 
 interface ButtonProps {
   label: string
   onClick?: () => void
   variant?: 'primary' | 'secondary' | 'danger'
+  type?: 'normal' | 'add'
   disabled?: boolean
+  buttonClass?: string
 }
 
-export function Button({ label, onClick, variant = 'primary', disabled = false }: ButtonProps) {
+export function Button({
+  label,
+  onClick,
+  variant = 'primary',
+  type = 'normal',
+  disabled = false,
+  buttonClass = '',
+}: ButtonProps) {
   const base =
-    'rounded-2xl px-4 py-2 font-semibold transition-colors duration-200 focus:outline-none'
+    'rounded-[4px] px-4 py-2 font-semibold transition-all duration-200 focus:outline-none shadow-sm hover:shadow-md active:shadow-inner'
 
   const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-    danger: 'bg-red-500 text-white hover:bg-red-600',
+    primary: 'bg-blue-action text-white-base',
+    secondary: 'text-black-base hover:bg-gray-accent',
+    danger: 'border border-red-dark text-black-base hover:bg-red-base',
   }
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={clsx(base, variants[variant], disabled && 'opacity-50 cursor-not-allowed')}
+      className={clsx(
+        base,
+        variants[variant],
+        disabled && 'opacity-50 cursor-not-allowed',
+        !disabled && 'hover:opacity-80',
+        buttonClass,
+      )}
     >
-      {label}
+      <div className="flex gap-2.5 align-middle items-center">
+        {type === 'add' && <CirclePlus size={16} />}
+        <span className="uppercase">{label}</span>
+      </div>
     </button>
   )
 }

@@ -3,6 +3,7 @@
 // see ARC-80
 import { useState } from 'react'
 import { TextField } from '../components/ui/TextField'
+import { Button } from '../components/ui/Button'
 
 const colors = [
   { name: 'white-base', hex: '#FFFFFF' },
@@ -129,6 +130,70 @@ export default function Admin() {
             }}
             placeholder="Password with error"
             error="Invalid password"
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-4 mt-12">
+        <h1 className="text-3xl font-bold mb-4 text-center">🧩 Button Variants</h1>
+
+        <div className="flex flex-col gap-4 items-start max-w-md mx-auto">
+          <Button
+            label="Primary Button"
+            variant="primary"
+            onClick={() => {
+              alert('Primary button clicked!')
+            }}
+          />
+          <Button
+            label="Primary Add Button"
+            variant="primary"
+            type="add"
+            onClick={() => {
+              alert('Primary Add button clicked!')
+            }}
+          />
+
+          <Button
+            label="Secondary Button"
+            variant="secondary"
+            onClick={() => {
+              alert('Secondary button clicked!')
+            }}
+          />
+
+          <Button
+            label="Danger Button"
+            variant="danger"
+            onClick={() => {
+              alert('Danger button clicked!')
+            }}
+          />
+
+          <Button
+            label="Disabled Button"
+            variant="primary"
+            disabled
+            onClick={() => {
+              alert('This should not fire')
+            }}
+          />
+
+          <Button
+            label="Custom Styled Button"
+            variant="secondary"
+            buttonClass="border-2 border-blue-base bg-blue-accent text-blue-action hover:bg-blue-outline"
+            onClick={() => {
+              alert('Custom styled button clicked!')
+            }}
+          />
+          <Button
+            label="Custom Styled Disabled Button"
+            variant="secondary"
+            disabled
+            buttonClass="border-2 border-blue-base bg-blue-accent text-blue-action"
+            onClick={() => {
+              alert('Custom styled button clicked!')
+            }}
           />
         </div>
       </div>
