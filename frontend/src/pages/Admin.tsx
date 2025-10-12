@@ -2,6 +2,8 @@
 // In future this will become makeshift admin page that is protected
 // see ARC-80
 
+import MainLayout from '../components/MainLayout'
+
 const colors = [
   { name: 'white-base', hex: '#FFFFFF' },
   { name: 'black-base', hex: '#292929' },
@@ -26,33 +28,35 @@ const colors = [
 
 export default function Admin() {
   return (
-    <div className="min-h-screen bg-white-base text-black-base p-8">
-      {/* hack to render everything, definitely remove this in the future*/}
-      <div
-        className="hidden
+    <MainLayout>
+      <div className="p-8">
+        {/* hack to render everything, definitely remove this in the future*/}
+        <div
+          className="hidden
         bg-white-base bg-black-base bg-grey-base bg-grey-accent bg-grey-outline bg-grey-text
         bg-blue-base bg-blue-accent bg-blue-outline bg-blue-action
         bg-red-base bg-red-mid bg-red-dark
         bg-green-base bg-green-mid bg-green-dark
         bg-yellow-base bg-yellow-mid bg-yellow-dark
         "
-      ></div>
-      <h1 className="text-3xl font-bold mb-8 text-center">🎨 Color Palette</h1>
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {colors.map((color) => (
-          <div
-            key={color.name}
-            className="flex flex-col items-center justify-center rounded-xl shadow-md border border-grey-outline p-4 text-center"
-          >
+        ></div>
+        <h1 className="text-3xl font-bold mb-8 text-center">🎨 Color Palette</h1>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {colors.map((color) => (
             <div
-              className="w-24 h-24 rounded-lg border border-grey-outline mb-3"
-              style={{ backgroundColor: `var(--color-${color.name})` }}
-            />
-            <p className="font-medium text-sm">{color.name}</p>
-            <p className="text-xs text-grey-text">{color.hex}</p>
-          </div>
-        ))}
+              key={color.name}
+              className="flex flex-col items-center justify-center rounded-xl shadow-md border border-grey-outline p-4 text-center"
+            >
+              <div
+                className="w-24 h-24 rounded-lg border border-grey-outline mb-3"
+                style={{ backgroundColor: `var(--color-${color.name})` }}
+              />
+              <p className="font-medium text-sm">{color.name}</p>
+              <p className="text-xs text-grey-text">{color.hex}</p>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </MainLayout>
   )
 }
