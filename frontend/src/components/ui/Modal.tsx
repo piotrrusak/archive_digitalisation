@@ -90,7 +90,7 @@ export function Modal({
               {title}
             </h2>
           )}
-          {!hideExit && (
+          {!hideExit && onCancel && (
             <button
               onClick={onCancel}
               className="absolute right-4 text-gray-outline hover:text-gray-text"
