@@ -26,6 +26,17 @@
   --color-yellow-base: #fef2cd;
   --color-yellow-mid: #f2d374;
   --color-yellow-dark: #cc9e08;
+
+  --animate-flash-timer: flash-timer 3s ease-in-out 1;
+
+  @keyframes flash-timer {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
+  }
 }
 
 :root {

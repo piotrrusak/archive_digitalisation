@@ -1,6 +1,7 @@
 // This is temporary admin page for component/colors testing
 // In future this will become makeshift admin page that is protected
 // see ARC-80
+import { useFlash } from '../contexts/FlashContext'
 
 const colors = [
   { name: 'white-base', hex: '#FFFFFF' },
@@ -25,6 +26,18 @@ const colors = [
 ]
 
 export default function Admin() {
+  const { addFlash } = useFlash()
+
+  const handleTestFlash = (type: 'success' | 'error' | 'info' | 'warning') => {
+    const messages: Record<typeof type, string> = {
+      success: '✅ Operation completed successfully!',
+      error: '❌ Something went wrong!',
+      info: "i Here's some useful information.",
+      warning: '⚠️ Be careful — check your inputs!',
+    }
+    addFlash(type, messages[type])
+  }
+
   return (
     <div className="min-h-screen bg-white-base text-black-base p-8">
       {/* hack to render everything, definitely remove this in the future*/}
@@ -52,6 +65,41 @@ export default function Admin() {
             <p className="text-xs text-grey-text">{color.hex}</p>
           </div>
         ))}
+      </div>
+      <h1 className="text-3xl font-bold mb-8 text-center">⚠️ Flash Messages</h1>
+      <div className="flex flex-wrap justify-center gap-4 mb-10">
+        <button
+          onClick={() => {
+            handleTestFlash('success')
+          }}
+          className="bg-green-dark text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+        >
+          Test Success Flash
+        </button>
+        <button
+          onClick={() => {
+            handleTestFlash('error')
+          }}
+          className="bg-red-dark text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+        >
+          Test Error Flash
+        </button>
+        <button
+          onClick={() => {
+            handleTestFlash('info')
+          }}
+          className="bg-blue-base text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+        >
+          Test Info Flash
+        </button>
+        <button
+          onClick={() => {
+            handleTestFlash('warning')
+          }}
+          className="bg-yellow-dark text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+        >
+          Test Warning Flash
+        </button>
       </div>
     </div>
   )
