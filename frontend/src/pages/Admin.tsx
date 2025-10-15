@@ -6,6 +6,8 @@ import { TextField } from '../components/ui/TextField'
 import { Button } from '../components/ui/Button'
 import { Modal } from '../components/ui/Modal'
 
+import MainLayout from '../components/MainLayout'
+
 const colors = [
   { name: 'white-base', hex: '#FFFFFF' },
   { name: 'black-base', hex: '#292929' },
@@ -57,7 +59,7 @@ export default function Admin() {
     setModals((prev) => ({ ...prev, [key]: false }))
   }
   return (
-    <div className="min-h-screen bg-white-base text-black-base p-8">
+    <MainLayout>
       {/* hack to render everything, definitely remove this in the future*/}
       <div
         className="hidden
@@ -332,6 +334,6 @@ export default function Admin() {
           <img src="https://hatrabbits.com/wp-content/uploads/2017/01/random.jpg" />
         </p>
       </Modal>
-    </div>
+    </MainLayout>
   )
 }
