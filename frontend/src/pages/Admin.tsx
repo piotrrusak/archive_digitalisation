@@ -43,7 +43,7 @@ export default function Admin() {
     }
     addFlash(type, messages[type])
   }
-  
+
   const [values, setValues] = useState({
     text: '',
     textDisabled: '',
@@ -227,7 +227,7 @@ export default function Admin() {
           />
         </div>
       </div>
-      
+
       <h1 className="text-3xl font-bold mb-8 text-center">⚠️ Flash Messages</h1>
       <div className="flex flex-wrap justify-center gap-4 mb-10">
         <button
