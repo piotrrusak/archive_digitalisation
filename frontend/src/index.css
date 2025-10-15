@@ -5,10 +5,10 @@
 
   --color-black-base: #292929;
 
-  --color-grey-base: #f5f5f5;
-  --color-grey-accent: #ececec;
-  --color-grey-outline: #cacaca;
-  --color-grey-text: #939393;
+  --color-gray-base: #f5f5f5;
+  --color-gray-accent: #ececec;
+  --color-gray-outline: #cacaca;
+  --color-gray-text: #939393;
 
   --color-blue-base: #3f4fcf;
   --color-blue-accent: #eaeaff;
@@ -26,22 +26,14 @@
   --color-yellow-base: #fef2cd;
   --color-yellow-mid: #f2d374;
   --color-yellow-dark: #cc9e08;
+
+  --font-montserrat: 'Montserrat', sans-serif;
 }
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  width: 100%;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  body {
+    @apply font-montserrat;
+  }
 }
 
 a {
@@ -73,8 +65,5 @@ h1 {
   }
   a:hover {
     color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
   }
 }
