@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
@@ -27,6 +29,7 @@ public class StoredFileService {
   private final FormatRepository formatRepository;
   private final AWSFileManager fileManager;
   private final WebClient.Builder webClientBuilder;
+  private WebClient webClient;
   
   @Value("${ocr.base-url}")
   private String ocrBaseUrl;
@@ -36,7 +39,7 @@ public class StoredFileService {
 
   @PostConstruct
   void initWebClient() {
-    webClientBuilder.baseUrl(ocrBaseUrl).build();
+    this.webClient = webClientBuilder.baseUrl(ocrBaseUrl).build();
   }
 
   @Transactional(readOnly = true)
@@ -51,7 +54,7 @@ public class StoredFileService {
 
   @Transactional(readOnly = true)
   public StoredFileDTO getFileById(Long id) {
-    StoredFile storedFile = this.storedFileRepository.findById(id).orElseGet(null);
+    StoredFile storedFile = this.storedFileRepository.findById(id).orElse(null);
     return StoredFileDTO.fromStoredFile(
         storedFile, this.fileManager.getFile(storedFile.getResourcePath()));
   }
@@ -89,12 +92,25 @@ public class StoredFileService {
                       new IllegalArgumentException(
                           "Primary file not found: " + dto.primaryFileId()));
     }
+
     
     final String path;
     try {
       path = fileManager.saveFile(dto.content());
     } catch (Exception e) {
       throw new RuntimeException("Failed to save file content", e);
+    }
+
+    if (dto.generation() <= 1) {
+      this.webClient
+          .post()
+          .uri(this.ocrPath)
+          .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+          .contentType(MediaType.APPLICATION_JSON)
+          .bodyValue(dto)
+          .retrieve()
+          .bodyToMono(String.class)
+          .block();
     }
 
     StoredFile entity = new StoredFile(null, owner, path, format, dto.generation(), primary);

@@ -25,7 +25,6 @@ export function getApiBaseUrl(): string {
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-
     reader.onerror = () => {
       reject(new Error('Failed to read file'))
     }
@@ -52,7 +51,6 @@ async function postJson<T>(
   { timeoutMs = 30_000, token }: { timeoutMs?: number; token?: string } = {},
 ): Promise<T> {
   const controller = new AbortController()
-
   const timeoutId = window.setTimeout(() => {
     controller.abort()
   }, timeoutMs)
