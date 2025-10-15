@@ -23,7 +23,7 @@ export default function Sidebar() {
 
   return (
     <div className="h-full bg-gray-base text-black-base flex flex-col p-2 w-[256px] items-center uppercase text-base font-semibold">
-      <div className="text-base p-4 font-semibold">Archive Digitalization</div>
+      <div className="text-base text-center p-4 font-semibold">Archive Digitalization</div>
 
       <div className="h-[1px] bg-gray-outline w-full" />
 

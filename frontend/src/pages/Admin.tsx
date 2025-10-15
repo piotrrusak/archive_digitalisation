@@ -60,10 +60,9 @@ export default function Admin() {
   }
   return (
     <MainLayout>
-      <div className="p-8">
-        {/* hack to render everything, definitely remove this in the future*/}
-        <div
-          className="hidden
+      {/* hack to render everything, definitely remove this in the future*/}
+      <div
+        className="hidden
         bg-white-base bg-black-base bg-gray-base bg-gray-accent bg-gray-outline bg-gray-text
         bg-blue-base bg-blue-accent bg-blue-outline bg-blue-action
         bg-red-base bg-red-mid bg-red-dark
