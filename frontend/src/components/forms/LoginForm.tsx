@@ -71,6 +71,8 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    console.log(e)
+
     const validationErrors = validateForm()
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
@@ -82,10 +84,12 @@ const LoginForm: React.FC = () => {
 
     try {
       const data = await attemptToLogIn(email, password)
+      console.log(data)
       login(data.token, data.user.id, data.user.email)
       addFlash('success', data.message)
       void navigate('/')
     } catch (err: unknown) {
+      console.log(err)
       const message = err instanceof Error ? err.message : 'Login failed'
       addFlash('error', message)
     } finally {
@@ -98,7 +102,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="w-full flex-col gap-8">
-      <form onSubmit={void handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
         <TextField
           label="Email"
           placeholder="Enter your email"
