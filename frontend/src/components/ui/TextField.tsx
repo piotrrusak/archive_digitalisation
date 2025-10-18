@@ -12,6 +12,7 @@ interface TextFieldProps {
   type?: 'text' | 'password'
   disabled?: boolean
   error?: string
+  id?: string
 }
 
 export function TextField({
@@ -24,16 +25,22 @@ export function TextField({
   type = 'text',
   disabled = false,
   error,
+  id,
 }: TextFieldProps) {
   const [showPassword, setShowPassword] = useState(false)
 
   const isPassword = type === 'password'
   const inputType = isPassword && !showPassword ? 'password' : 'text'
 
+  const inputId = id ?? `textfield-${(label ?? 'input').toLowerCase().replace(/\s+/g, '-')}`
+
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label className={clsx('text-normal font-medium text-black-base', labelClass)}>
+        <label
+          htmlFor={inputId}
+          className={clsx('text-normal font-medium text-black-base', labelClass)}
+        >
           {label}
         </label>
       )}
@@ -47,6 +54,7 @@ export function TextField({
         )}
       >
         <input
+          id={inputId}
           type={inputType}
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
