@@ -32,7 +32,7 @@ export function TextField({
   const isPassword = type === 'password'
   const inputType = isPassword && !showPassword ? 'password' : 'text'
 
-  const inputId = id || `textfield-${label?.toLowerCase().replace(/\s+/g, '-')}`
+  const inputId = id ?? `textfield-${(label ?? 'input').toLowerCase().replace(/\s+/g, '-')}`
 
   return (
     <div className="flex flex-col gap-1">
