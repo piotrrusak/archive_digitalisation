@@ -4,7 +4,6 @@ This is subproject dedicated for front-end part of this project
 
 ## env
 
-
 Current `.env` requires this values to be specified
 
 ```env

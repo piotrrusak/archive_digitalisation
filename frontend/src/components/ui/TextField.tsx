@@ -31,7 +31,7 @@ export function TextField({
   const inputType = isPassword && !showPassword ? 'password' : 'text'
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="w-full flex flex-col gap-1">
       {label && (
         <label className={clsx('text-normal font-medium text-black-base', labelClass)}>
           {label}
