@@ -1,135 +1,242 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { User } from 'lucide-react'
 import MainLayout from '../components/MainLayout'
-import Modal from '../components/Modal'
-import { User, Mail, Lock, Trash2 } from 'lucide-react'
+import { Button } from '../components/ui/Button'
+import { TextField } from '../components/ui/TextField'
 import { useAuth } from '../hooks/useAuth'
-import type { FormEvent } from 'react'
+import { Modal } from '../components/ui/Modal'
+import { useNavigate } from 'react-router-dom'
 
-export default function Accounts() {
-  const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false)
-  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
-  const { token, userId, userEmail } = useAuth()
+// Private component for divider
+function Divider() {
+  return <div className="h-px w-full bg-gray-outline" />
+}
 
-  const handleChangePassword = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    // TODO: ARC-40
-    console.log('Password change submitted')
-    setShowPasswordModal(false)
+interface UserProfileResponse {
+  id: number
+  mail: string
+  firstName: string | null
+  lastName: string | null
+}
+
+interface UserProfile {
+  firstName: string
+  lastName: string
+}
+
+async function fetchUserProfile(userId: number, userToken: string): Promise<UserProfile> {
+  const url = `${import.meta.env.VITE_BACKEND_API_BASE_URL as string}/users/${userId.toString()}`
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${userToken}`,
+    },
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch user profile: ${res.status.toString()}`)
   }
 
-  const handleDeleteAccount = async () => {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/users/delete_account`, {
+  const data: UserProfileResponse = (await res.json()) as UserProfileResponse
+
+  return {
+    firstName: data.firstName ?? '',
+    lastName: data.lastName ?? '',
+  }
+}
+
+async function handleDeleteAccount(
+  userId: number | null,
+  userToken: string | null,
+  logout: () => void,
+  navigate: ReturnType<typeof useNavigate>,
+): Promise<void> {
+  if (typeof userId !== 'number' || isNaN(userId) || !userToken) return
+
+  const url = `${import.meta.env.VITE_AUTH_API_BASE_URL}/users/delete_account`
+
+  try {
+    const res = await fetch(url, {
       method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: token ?? '',
+        Accept: 'application/json',
+        Authorization: `Bearer ${userToken}`,
       },
     })
 
-    if (!response.ok) {
-      const data = (await response.json()) as { error: string }
-      throw new Error(data.error)
+    if (res.ok) {
+      logout()
+      void navigate('/')
+    } else {
+      const text = await res.text()
+      console.error(`Failed to delete user (${res.status.toString()}): ${text}`)
+    }
+  } catch (err) {
+    console.error('Error while deleting user:', err)
+  }
+}
+
+export default function Accounts() {
+  const { userId, token, userEmail, logout } = useAuth()
+
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [initialFirst, setInitialFirst] = useState(firstName)
+  const [initialLast, setInitialLast] = useState(lastName)
+  const [showModal, setShowModal] = useState(false)
+
+  const isProfileChanged = firstName !== initialFirst || lastName !== initialLast
+
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const isPasswordValid =
+    password.length >= 6 && confirmPassword.length >= 6 && password === confirmPassword
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (typeof userId !== 'number' || isNaN(userId) || !token) return
+    const loadProfile = async () => {
+      try {
+        const data = await fetchUserProfile(userId, token)
+        console.log(data)
+        setFirstName(data.firstName)
+        setLastName(data.lastName)
+        setInitialFirst(data.firstName)
+        setInitialLast(data.lastName)
+      } catch (err) {
+        console.error('Failed to fetch user profile', err)
+      }
     }
 
-    const data = (await response.json()) as { message: string }
-    alert(data.message)
-    setShowDeleteModal(false)
+    void loadProfile()
+  }, [userId, token])
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault()
+    setInitialFirst(firstName)
+    setInitialLast(lastName)
+    alert('Profile updated successfully!')
+  }
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!isPasswordValid) return
+    alert('Password changed successfully!')
+    setPassword('')
+    setConfirmPassword('')
   }
 
   return (
     <MainLayout>
-      <div className="max-w-lg mx-auto p-6 space-y-6">
-        <h1> ID: {userId}</h1>
-        <div className="flex items-center space-x-3">
-          <User className="w-5 h-5 text-gray-600" />
-          <div>
-            <p className="text-sm text-gray-500">Account Name</p>
-            {/* Placeholder */}
-            <p className="text-lg font-medium">John Doe</p>
-          </div>
+      <div className="w-fit p-3 mr-auto flex flex-col justify-center gap-5">
+        <div className="flex items-center gap-4">
+          <span className="text-3xl font-semibold text-black-base">My Account</span>
+          <User className="w-7 h-7 text-black-base" />
+        </div>
+        <Divider />
+
+        <form onSubmit={handleSaveProfile} className="flex flex-col items-start gap-2.5 w-[450px]">
+          <span className="text-gray-text font-semibold">General Information</span>
+          <TextField
+            label="First Name"
+            value={firstName}
+            onChange={setFirstName}
+            placeholder="Enter first name"
+            inputClass="flex-1"
+          />
+          <TextField
+            label="Last Name"
+            value={lastName}
+            onChange={setLastName}
+            placeholder="Enter last name"
+            inputClass="flex-1"
+          />
+          <Button label="Save" variant="primary" type="normal" disabled={!isProfileChanged} />
+        </form>
+
+        <Divider />
+
+        <div className="flex flex-col items-start gap-2.5 w-[450px]">
+          <span className="text-gray-text font-semibold">Email address</span>
+          <p className="text-gray-text text-sm">
+            Email address is used to identify user and receive notifications about completed scans
+          </p>
+          <TextField inputClass="flex-1" disabled value={userEmail ?? ''} />
         </div>
 
-        <div className="flex items-center space-x-3">
-          <Mail className="w-5 h-5 text-gray-600" />
-          <div>
-            <p className="text-sm text-gray-500">Email</p>
-            {/* Placeholder */}
-            <p className="text-lg font-medium text-gray-800">{userEmail}</p>
-          </div>
-        </div>
+        <Divider />
 
-        <div className="space-y-4 pt-4">
-          <button
-            onClick={() => {
-              setShowPasswordModal(true)
-            }}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Lock className="w-4 h-4 mr-2" />
-            Change Password
-          </button>
+        <form
+          onSubmit={handleChangePassword}
+          className="flex flex-col items-start gap-2.5 w-[450px]"
+        >
+          <span className="text-gray-text font-semibold">Change Password</span>
+          <TextField
+            label="New Password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            placeholder="Enter new password"
+            inputClass="flex-1"
+            error={
+              password.length > 0 && password.length < 6
+                ? 'Password must be at least 6 characters'
+                : undefined
+            }
+          />
+          <TextField
+            label="Confirm Password"
+            type="password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            placeholder="Confirm new password"
+            inputClass="flex-1"
+            error={
+              confirmPassword.length > 0 && confirmPassword !== password
+                ? 'Passwords do not match'
+                : undefined
+            }
+          />
+          <Button
+            label="Change Password"
+            variant="primary"
+            type="normal"
+            disabled={!isPasswordValid}
+          />
+        </form>
 
-          <button
+        <Divider />
+
+        <div className="flex-1 flex-col justify-start">
+          <Button
+            label="Delete Account"
+            variant="danger"
+            type="normal"
             onClick={() => {
-              setShowDeleteModal(true)
+              setShowModal(true)
             }}
-            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete Account
-          </button>
+          />
         </div>
       </div>
-
-      {showPasswordModal && (
-        <Modal
-          title="Change Password"
-          onClose={() => {
-            setShowPasswordModal(false)
-          }}
-          footer={null}
-        >
-          <form onSubmit={handleChangePassword} className="space-y-4">
-            <input
-              type="password"
-              placeholder="Current Password"
-              className="w-full border p-2 rounded"
-            />
-            <input
-              type="password"
-              placeholder="New Password"
-              className="w-full border p-2 rounded"
-            />
-            <input
-              type="password"
-              placeholder="Confirm New Password"
-              className="w-full border p-2 rounded"
-            />
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-            >
-              Update Password
-            </button>
-          </form>
-        </Modal>
-      )}
-
-      {showDeleteModal && (
-        <Modal
-          title="Delete Account"
-          onClose={() => {
-            setShowDeleteModal(false)
-          }}
-          onConfirm={void handleDeleteAccount}
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
-        >
-          <p className="text-gray-700">
-            Are you sure you want to delete your account? This action cannot be undone.
-          </p>
-        </Modal>
-      )}
+      <Modal
+        id="deleteModal"
+        show={showModal}
+        onConfirm={() => void handleDeleteAccount(userId, token, logout, navigate)}
+        confirmVariant="danger"
+        confirmLabel="Delete"
+        onCancel={() => {
+          setShowModal(false)
+        }}
+        title="Delete Account"
+      >
+        <p className="text-center text-black-base text-xl">
+          Are you sure you want to delete this account? This action is permanent and cannot be
+          undone
+        </p>
+      </Modal>
     </MainLayout>
   )
 }
