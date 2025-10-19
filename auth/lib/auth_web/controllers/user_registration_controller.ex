@@ -35,8 +35,8 @@ defmodule AuthWeb.UserRegistrationController do
       %{
         id: user.id,
         mail: user.email,
-        first_name: first_name,
-        last_name: last_name
+        firstName: first_name,
+        lastName: last_name
       }
       |> Jason.encode!()
 
