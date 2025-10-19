@@ -115,6 +115,9 @@ export default function Accounts() {
   }, [userId, token])
 
   const handleSaveProfile = (e: React.FormEvent) => {
+    // Not yet implemented
+    // see ARC-96 (https://linear.app/archive-digitalisation/issue/ARC-96/implement-edit-first-and-last-name-on-the-account-page)
+    // for more context
     e.preventDefault()
     setInitialFirst(firstName)
     setInitialLast(lastName)
