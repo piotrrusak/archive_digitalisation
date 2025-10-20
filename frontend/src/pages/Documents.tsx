@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
-import { RefreshCcw, Search, FileText, Clipboard, AlertCircle } from 'lucide-react'
+import { RefreshCcw, Search, FileText } from 'lucide-react'
+import { DocStatus } from '../components/documents/DocStatus'
+import { DocOptionsMenu } from '../components/documents/DocOptionsMenu'
 
 const API_BASE: string =
-  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
   (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
 
 interface APIStoredFileFormat {
@@ -27,18 +29,16 @@ interface Doc {
   id: string
   name: string
   type?: string
-  path: string
   generation?: number
 }
 
 function normalizeDoc(d: APIStoredFile): Doc {
   const rawId = d.id
   const id = typeof rawId === 'number' ? String(rawId) : rawId
-
-  const path = d.resourcePath ?? ''
-  const name = path.split(/[/\\]/).pop() ?? `file-${id}`
+  const name =
+    d.resourcePath?.split(/[/\\]/).pop() ?? `file-${id}`
   const type = d.format?.mimeType ?? d.format?.name ?? d.format?.extension
-  return { id, name, type, path, generation: d.generation }
+  return { id, name, type, generation: d.generation }
 }
 
 export default function Documents() {
@@ -66,13 +66,7 @@ export default function Documents() {
           signal,
         })
 
-        if (!res.ok) {
-          const body = await res.text().catch(() => '')
-          const statusText = `${String(res.status)} ${res.statusText}`
-          const message = body ? `${statusText} – ${body}` : statusText
-          throw new Error(message)
-        }
-
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         if (res.status === 204) {
           setDocs([])
           return
@@ -80,27 +74,12 @@ export default function Documents() {
 
         const json: unknown = await res.json()
         if (!Array.isArray(json)) throw new Error('Unexpected response shape.')
-        const parsed = (json as unknown[]).map((x) => normalizeDoc(x as APIStoredFile))
+        const parsed = (json as APIStoredFile[]).map((x) => normalizeDoc(x))
         setDocs(parsed)
       } catch (e: unknown) {
-        const isAbort =
-          (e instanceof DOMException &&
-            (e.name === 'AbortError' || e.message === 'The operation was aborted.')) ||
-          (e instanceof TypeError && /abort/i)
-        if (isAbort) return
-
+        if (e instanceof DOMException && e.name === 'AbortError') return
         console.error('[Documents] fetch error:', e)
-
-        if (e instanceof TypeError) {
-          setError(
-            'Network/CORS error: the browser blocked the request. Use a dev proxy or matching protocols.',
-          )
-          return
-        }
-
-        const msg =
-          e instanceof Error ? e.message : typeof e === 'string' ? e : 'Something went wrong.'
-        setError(msg)
+        setError(e instanceof Error ? e.message : 'Failed to load documents.')
       } finally {
         setLoading(false)
       }
@@ -113,10 +92,7 @@ export default function Documents() {
     const ctrl = new AbortController()
     ctrlRef.current = ctrl
     void fetchDocs(ctrl.signal)
-    return () => {
-      ctrlRef.current?.abort()
-      ctrlRef.current = null
-    }
+    return () => ctrlRef.current?.abort()
   }, [fetchDocs])
 
   const refresh = useCallback(() => {
@@ -129,43 +105,37 @@ export default function Documents() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (q === '') return docs
-    return docs.filter((d) => {
-      const fields = [d.name, d.type, d.path, d.id].filter(
-        (x): x is string => typeof x === 'string' && x.length > 0,
-      )
-      return fields.some((s) => s.toLowerCase().includes(q))
-    })
+    return docs.filter((d) =>
+      [d.name, d.type, d.id]
+        .filter(Boolean)
+        .some((s) => s!.toLowerCase().includes(q)),
+    )
   }, [docs, query])
-
-  async function copy(text: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      // silent fallback
-    }
-  }
 
   return (
     <MainLayout>
-      <div className="p-6">
+      <div className="p-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Documents</h1>
-            <p className="text-sm text-gray-500">
-              {loading ? 'Loading…' : `${String(filtered.length)} of ${String(docs.length)} shown`}
+            <div className='flex gap-3 items-center text-black-base'>
+              <span className="text-2xl font-semibold">Documents</span>
+              <FileText />
+            </div>
+            
+            <p className="text-sm text-gray-text">
+              {loading ? 'Loading…' : `${filtered.length} of ${docs.length} shown`}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2 top-2.5 h-5 w-5 text-gray-text" />
               <input
                 value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value)
-                }}
-                placeholder="Search by name, type, path…"
-                className="pl-8 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by name…"
+                className="pl-8 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:to-blue-action"
               />
             </div>
             <button
@@ -178,56 +148,45 @@ export default function Documents() {
           </div>
         </div>
 
-        {error !== null && (
-          <div className="mt-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-            <AlertCircle className="h-5 w-5 mt-0.5" />
-            <div>
-              <p className="font-medium">Failed to load documents</p>
-              <p className="text-sm">{error}</p>
-            </div>
+        {/* //TODO: move to flash */}
+        {error && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+            <p className="font-medium">Failed to load documents</p>
+            <p className="text-sm">{error}</p>
           </div>
         )}
 
-        <div className="mt-6 overflow-hidden rounded-xl border">
-          <table className="min-w-full divide-y divide-gray-200 bg-white">
-            <thead className="bg-gray-50">
+        {/* Table */}
+        <div className="mt-6 overflow-hidden rounded-b-xl w-full">
+          <table className="min-w-full divide-y divide-gray-outline bg-white">
+            <thead className="bg-gray-accent border border-gray-outline w-full rounded-xl">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-text">
                   Name
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-text">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-text">
                   Type
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Path
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-text">
                   Generation
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Actions
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-text">
+                  {/* Empty header for ellipsis menu */}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-outline text-base-black bg-gray-base">
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-4">
-                      <div className="h-4 w-40 rounded bg-gray-200" />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="h-4 w-20 rounded bg-gray-200" />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="h-4 w-80 rounded bg-gray-200" />
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="h-4 w-16 rounded bg-gray-200" />
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <div className="ml-auto h-8 w-28 rounded bg-gray-200" />
-                    </td>
+                    <td className="px-4 py-4"><div className="h-4 w-40 rounded bg-gray-200" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-20 rounded bg-gray-200" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-20 rounded bg-gray-200" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-16 rounded bg-gray-200" /></td>
+                    <td className="px-4 py-4 text-right"><div className="h-8 w-8 rounded bg-gray-200" /></td>
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
@@ -244,27 +203,14 @@ export default function Documents() {
                   <tr key={d.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div className="font-medium">{d.name}</div>
-                      <div className="text-xs text-gray-500">ID: {d.id}</div>
                     </td>
-                    <td className="px-4 py-3">{d.type ?? '—'}</td>
                     <td className="px-4 py-3">
-                      <span className="text-sm break-all">{d.path}</span>
+                      <DocStatus doc={d} />
                     </td>
-                    <td className="px-4 py-3">{d.generation ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            void copy(d.path)
-                          }}
-                          className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:bg-gray-100"
-                          title="Copy the file system path"
-                        >
-                          <Clipboard className="h-4 w-4" />
-                          Copy path
-                        </button>
-                        {/* Open/Download buttons require backend URLs; add later if exposed */}
-                      </div>
+                    <td className="px-4 py-3">{d.type ?? ''}</td>
+                    <td className="px-4 py-3">{d.generation ?? ''}</td>
+                    <td className="px-4 py-3 text-right">
+                      <DocOptionsMenu doc={d} />
                     </td>
                   </tr>
                 ))
@@ -272,11 +218,6 @@ export default function Documents() {
             </tbody>
           </table>
         </div>
-
-        <p className="mt-4 text-xs text-gray-500">
-          Dev tip: with Vite, set <code>server.proxy['/api']</code> to{' '}
-          <code>http://localhost:8080</code> to see the request in Spring logs.
-        </p>
       </div>
     </MainLayout>
   )
