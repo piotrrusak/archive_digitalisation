@@ -5,3 +5,9 @@
 **/scripts
 
 .ruff_cache/
+
+model_training/data
+
+model_training/dataset
+
+model_training/input
