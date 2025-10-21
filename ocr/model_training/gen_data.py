@@ -7,238 +7,405 @@ from PIL import Image, ImageTk
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DATA_DIR = os.path.join(SCRIPT_DIR, 'data')
 OUTPUT_FILE_PATH = os.path.join(SCRIPT_DIR, 'input', 'dataset.json')
-PREVIOUSLY_GENERATED = 30
-
-
 DATA_DIR = os.path.join(SCRIPT_DIR, 'dataset')
 
 os.makedirs(OUTPUT_DATA_DIR, exist_ok=True)
 
+IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.webp', '.tif', '.tiff'}
+
 
 def collect_image_files(root_dir) :
-    image_exts = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.webp', '.tif', '.tiff'}
     paths = []
     for root, _, files in os.walk(root_dir) :
         for fname in files :
-            if os.path.splitext(fname)[1].lower() in image_exts :
+            if os.path.splitext(fname)[1].lower() in IMAGE_EXTS :
                 paths.append(os.path.join(root, fname))
     paths.sort()
     return paths
 
+
 class ImageAnnotator :
-    def __init__(self, master, image_paths, start_index, output_file_path = OUTPUT_FILE_PATH) :
+
+    HANDLE_SIZE = 6
+    HANDLE_HIT = 8
+
+    def __init__(self, master, image_paths, start_index, output_file_path=OUTPUT_FILE_PATH) :
         self.master = master
-        self.master.title("Image annotator — Shift+Enter to submit")
+        self.master.title("Image annotator — Shift+Enter submit, Enter add line, drag to edit")
         self.image_paths = image_paths
-        self.step = 2
         self.current_pos = start_index
         self.current_image_path = ""
         self.output_file_path = output_file_path
 
         self._orig_img = None
-        self._tk_img = None
-        self._resize_job_fast = None
-        self._resize_job_final = None
-        self._last_draw_size = (0, 0)
+        self._render_photo = None
+        self._render_size = (0, 0)
+        self._render_offset = (0, 0)
+
+        self._clicks = []
+        self._sel_rect = None
+        self._rect_id = None
+        self._handle_ids = []
+        self._drag_mode = None
+        self._drag_start = None
+
+        self._lines = []
 
         self.master.geometry("1400x900")
         self.master.minsize(1000, 600)
 
-        main_frame = ttk.Frame(self.master, padding = 10)
+        main_frame = ttk.Frame(self.master, padding=10)
         main_frame.pack(fill="both", expand=True)
 
         left_frame = ttk.Frame(main_frame)
-        left_frame.pack(side = "left", fill = "both", expand = True)
+        left_frame.pack(side="left", fill="both", expand=True)
 
         self.path_var = tk.StringVar()
-        self.path_label = ttk.Label(left_frame, textvariable = self.path_var, font = ("TkDefaultFont", 10))
-        self.path_label.pack(anchor = "w", pady = (0, 6))
+        self.path_label = ttk.Label(left_frame, textvariable=self.path_var, font=("TkDefaultFont", 10))
+        self.path_label.pack(anchor="w", pady=(0, 6))
 
-        self.image_panel = ttk.Label(left_frame, anchor = "center")
-        self.image_panel.pack(fill = "both", expand = True)
+        self.canvas = tk.Canvas(left_frame, bg="#ddd")
+        self.canvas.pack(fill="both", expand=True)
 
-        right_frame = ttk.Frame(main_frame, width = 400)
-        right_frame.pack(side = "right", fill = "y", padx = (15, 0))
+        right_frame = ttk.Frame(main_frame, width=420)
+        right_frame.pack(side="right", fill="y", padx=(15, 0))
 
-        self.text = tk.Text(right_frame, height = 20, wrap = "word")
-        self.text.pack(fill = "both", expand = True, pady = (0, 4))
+        self.text = tk.Text(right_frame, height=10, wrap="word", state="disabled")
+        self.text.pack(fill="both", expand=True, pady=(0, 4))
 
-        hint = ttk.Label(right_frame, text = "Hint: Shift+Enter = submit\nEnter = newline", foreground = "#666")
-        hint.pack(anchor = "w", pady = (0, 6))
+        self.hint_var = tk.StringVar(value=(
+            '''Instruction:
+            • Click 2× to create rectangle. After the first click, the rect follows the cursor.
+            • Grab the edge/corner (or center) to resize/move.
+            • Enter — add a line; Shift+Enter — save the image; ESC — cancel selection.'''
+        ))
+        ttk.Label(right_frame, textvariable=self.hint_var, foreground="#555").pack(anchor="w", pady=(0, 6))
 
-        self.text.bind("<Shift-Return>", self.on_submit)
+        self.canvas.bind("<Configure>", self._on_canvas_resize)
+        self.canvas.bind("<Button-1>", self._on_canvas_click)
+        self.canvas.bind("<B1-Motion>", self._on_canvas_drag)
+        self.canvas.bind("<ButtonRelease-1>", self._on_canvas_release)
+        self.canvas.bind("<Motion>", self._on_canvas_motion)
+        self.master.bind("<Escape>", self._on_escape)
+        self.text.bind("<Return>", self._on_text_enter)
+        self.text.bind("<Shift-Return>", self._on_submit)
 
-        self.image_panel.bind("<Configure>", self._on_panel_resize)
+        os.makedirs(os.path.dirname(self.output_file_path), exist_ok=True)
+        if not os.path.exists(self.output_file_path):
+            with open(self.output_file_path, "w", encoding="utf-8") as f:
+                json.dump([], f)
 
-        self._tk_img = None
         self._load_current()
+
+    def _fit_image(self, ow, oh, avail_w, avail_h) :
+        if avail_w <= 0 or avail_h <= 0 :
+            return 0, 0
+        img_ratio = ow / max(1, oh)
+        panel_ratio = avail_w / max(1, avail_h)
+        if img_ratio > panel_ratio :
+            new_w = avail_w
+            new_h = int(new_w / img_ratio)
+        else :
+            new_h = avail_h
+            new_w = int(new_h * img_ratio)
+        return max(new_w, 1), max(new_h, 1)
+
+    def _display_image(self) :
+        if self._orig_img is None :
+            return
+        cw = max(self.canvas.winfo_width(), 1)
+        ch = max(self.canvas.winfo_height(), 1)
+        ow, oh = self._orig_img.size
+        new_w, new_h = self._fit_image(ow, oh, cw, ch)
+        self._render_size = (new_w, new_h)
+        off_x = (cw - new_w) // 2
+        off_y = (ch - new_h) // 2
+        self._render_offset = (off_x, off_y)
+        resized = self._orig_img.resize((new_w, new_h), Image.LANCZOS)
+        self._render_photo = ImageTk.PhotoImage(resized)
+        self.canvas.delete("all")
+        self.canvas.create_image(off_x, off_y, image=self._render_photo, anchor="nw", tags=("img",))
+        for ln in self._lines :
+            x1, y1, x2, y2 = ln['bbox']
+            dx1, dy1 = self._orig_to_disp(x1, y1)
+            dx2, dy2 = self._orig_to_disp(x2, y2)
+            self._draw_selection(dx1, dy1, dx2, dy2)
+        
+        if self._sel_rect is not None :
+            x1, y1, x2, y2 = self._sel_rect
+            self._draw_selection(x1, y1, x2, y2)
+        else :
+            self._rect_id = None
+        self._clicks = []
+
+    def _on_canvas_resize(self, _) :
+        self._display_image()
+
+    def _orig_to_disp(self, x, y) :
+        ow, oh = self._orig_img.size
+        rw, rh = self._render_size
+        off_x, off_y = self._render_offset
+        sx = rw / ow
+        sy = rh / oh
+        return int(off_x + x * sx), int(off_y + y * sy)
+
+    def _disp_to_orig(self, x, y) :
+        ow, oh = self._orig_img.size
+        rw, rh = self._render_size
+        off_x, off_y = self._render_offset
+        rx = max(0, min(rw, x - off_x))
+        ry = max(0, min(rh, y - off_y))
+        sx = ow / max(1, rw)
+        sy = oh / max(1, rh)
+        return int(rx * sx), int(ry * sy)
+
+    
+    def _constrain_to_image(self, x, y) :
+        off_x, off_y = self._render_offset
+        rw, rh = self._render_size
+        x = max(off_x, min(off_x + rw, x))
+        y = max(off_y, min(off_y + rh, y))
+        return x, y
+
+    def _draw_selection(self, x1, y1, x2, y2) :
+        x1, x2 = sorted((x1, x2))
+        y1, y2 = sorted((y1, y2))
+        x1, y1 = self._constrain_to_image(x1, y1)
+        x2, y2 = self._constrain_to_image(x2, y2)
+        if self._rect_id is not None :
+            self.canvas.delete(self._rect_id)
+        self._rect_id = self.canvas.create_rectangle(
+            x1, y1, x2, y2,
+            outline="#1e90ff", width=2, fill="#1e90ff", stipple="gray25"
+        )
+        
+        for hid in self._handle_ids :
+            self.canvas.delete(hid)
+        self._handle_ids = []
+        for hx, hy in ((x1, y1), (x2, y1), (x1, y2), (x2, y2)) :
+            hid = self.canvas.create_rectangle(
+                hx - self.HANDLE_SIZE, hy - self.HANDLE_SIZE,
+                hx + self.HANDLE_SIZE, hy + self.HANDLE_SIZE,
+                outline="#1e90ff", fill="#f0f8ff"
+            )
+            self._handle_ids.append(hid)
+        self._sel_rect = [x1, y1, x2, y2]
+
+    def _start_rubber_band(self, x, y) :
+        self._clicks = [(x, y)]
+        self.canvas.delete("temp_rect")
+        
+        rect_id = self.canvas.create_rectangle(
+            x, y, x+1, y+1,
+            outline="#1e90ff", width=2, dash=(4, 2), tags=("temp_rect",)
+        )
+        return rect_id
+
+    def _on_canvas_motion(self, event) :
+        
+        if len(self._clicks) == 1 and self._orig_img is not None :
+            x1, y1 = self._clicks[0]
+            x2, y2 = self._constrain_to_image(event.x, event.y)
+            self.canvas.coords("temp_rect", x1, y1, x2, y2)
+        elif self._sel_rect is not None :
+            x1, y1, x2, y2 = self._sel_rect
+            mode = self._hit_test(event.x, event.y, x1, y1, x2, y2)
+            cursor = {
+                'tl': 'top_left_corner', 'tr': 'top_right_corner',
+                'bl': 'bottom_left_corner', 'br': 'bottom_right_corner',
+                'move': 'fleur', None: ''
+            }.get(mode, '')
+            self.canvas.configure(cursor=cursor)
+
+    def _on_canvas_click(self, event) :
+        if self._orig_img is None :
+            return
+        off_x, off_y = self._render_offset
+        rw, rh = self._render_size
+        if not (off_x <= event.x <= off_x + rw and off_y <= event.y <= off_y + rh) :
+            return
+
+        if self._sel_rect is not None :
+            x1, y1, x2, y2 = self._sel_rect
+            mode = self._hit_test(event.x, event.y, x1, y1, x2, y2)
+            if mode :
+                self._drag_mode = mode
+                self._drag_start = (event.x, event.y)
+                return
+
+        if len(self._clicks) == 0 :
+            self._start_rubber_band(event.x, event.y)
+        elif len(self._clicks) == 1 :
+            x1, y1 = self._clicks[0]
+            x2, y2 = self._constrain_to_image(event.x, event.y)
+            self.canvas.delete("temp_rect")
+            self._draw_selection(x1, y1, x2, y2)
+            self.text.config(state="normal")
+            self.text.delete("1.0", "end")
+            self.text.focus_set()
+            self._clicks = []
+
+    def _on_canvas_drag(self, event) :
+        if self._sel_rect is None or self._drag_mode is None :
+            return
+        x1, y1, x2, y2 = self._sel_rect
+        ex, ey = self._constrain_to_image(event.x, event.y)
+        if self._drag_mode == 'move' :
+            sx, sy = self._drag_start
+            dx, dy = ex - sx, ey - sy
+            self._drag_start = (ex, ey)
+            self._draw_selection(x1 + dx, y1 + dy, x2 + dx, y2 + dy)
+        else :
+            if 't' in self._drag_mode :
+                y1 = ey
+            if 'b' in self._drag_mode :
+                y2 = ey
+            if 'l' in self._drag_mode :
+                x1 = ex
+            if 'r' in self._drag_mode :
+                x2 = ex
+            self._draw_selection(x1, y1, x2, y2)
+
+    def _on_canvas_release(self, _event) :
+        self._drag_mode = None
+        self._drag_start = None
+
+    def _hit_test(self, x, y, x1, y1, x2, y2) :
+        x1, x2 = sorted((x1, x2))
+        y1, y2 = sorted((y1, y2))
+        h = self.HANDLE_HIT
+        corners = {
+            'tl': (x1, y1), 'tr': (x2, y1), 'bl': (x1, y2), 'br': (x2, y2)
+        }
+        for name, (hx, hy) in corners.items() :
+            if abs(x - hx) <= h and abs(y - hy) <= h :
+                return name
+        if x1 + h < x < x2 - h and y1 + h < y < y2 - h :
+            return 'move'
+        return None
+
+    def _on_escape(self, _) :
+        if self._rect_id is not None :
+            self.canvas.delete(self._rect_id)
+            self._rect_id = None
+        for hid in self._handle_ids :
+            self.canvas.delete(hid)
+        self._handle_ids = []
+        self.canvas.delete("temp_rect")
+        self._sel_rect = None
+        self._clicks = []
+        self.text.delete("1.0", "end")
+        self.text.config(state="disabled")
+
+    def _on_text_enter(self, event) :
+        if self._sel_rect is None :
+            return "break"
+        text = self.text.get("1.0", "end").strip()
+        x1d, y1d, x2d, y2d = self._sel_rect
+        x1o, y1o = self._disp_to_orig(x1d, y1d)
+        x2o, y2o = self._disp_to_orig(x2d, y2d)
+        x1o, x2o = sorted((x1o, x2o))
+        y1o, y2o = sorted((y1o, y2o))
+        self._lines.append({"bbox": [x1o, y1o, x2o, y2o], "text": text})
+
+        self.text.delete("1.0", "end")
+        self.text.config(state="disabled")
+        self._sel_rect = None
+        self._clicks = []
+        self._rect_id = None
+        for hid in self._handle_ids :
+            self.canvas.delete(hid)
+        self._handle_ids = []
+        self._display_image()
+        return "break"
+
+    def _save_image_record(self) :
+        name = f"{self.current_pos:04d}"
+        rel_filepath = f"data/{name}.png"
+        abs_filepath = os.path.join(SCRIPT_DIR, rel_filepath)
+        os.makedirs(os.path.dirname(abs_filepath), exist_ok=True)
+
+        try :
+            img = Image.open(self.current_image_path)
+            img.save(abs_filepath)
+        except Exception as e :
+            messagebox.showerror("Error", f"Failed to save image copy {e}")
+            return False
+
+        try :
+            with open(self.output_file_path, "r", encoding="utf-8") as f :
+                dataset = json.load(f)
+                if not isinstance(dataset, list) :
+                    dataset = []
+        except Exception as e :
+            dataset = []
+
+        record = {"filepath": rel_filepath, "name": name, "lines": self._lines}
+        dataset.append(record)
+        try :
+            with open(self.output_file_path, "w", encoding="utf-8") as f :
+                json.dump(dataset, f, ensure_ascii=False, indent=2)
+        except Exception as e :
+            messagebox.showerror("Error", f"Failed to write JSON: {e}")
+            return False
+        print(f"Saved record {name} with {len(self._lines)} line(s)")
+        return True
+
+    def _on_submit(self, _event) :
+        try :
+            self._on_text_enter(None)
+        except Exception as e :
+            messagebox.showerror("Error", f"Failed to commit current line:\n{e}")
+            return "break"
+        
+        if not self._save_image_record() :
+            return "break"
+        self._goto_next_image()
+        return "break"
+
+    def _goto_next_image(self) :
+        self.current_pos += 2
+        if self.current_pos >= len(self.image_paths) :
+            messagebox.showinfo("Done", "Reached the end of the dataset.")
+            self.master.after(100, self.master.destroy)
+        else :
+            self._load_current()
 
     def _load_current(self) :
         self.current_image_path = self.image_paths[self.current_pos]
+        self.path_var.set(self.current_image_path)
         try :
             self._orig_img = Image.open(self.current_image_path).convert("RGBA")
         except Exception as e :
             self._orig_img = Image.new("RGBA", (800, 600), (220, 220, 220, 255))
-            messagebox.showwarning("Warning", f"Cannot open image:\n{e}")
-
-        self._last_draw_size = (0, 0)
-        self._display_image_fast()
+            messagebox.showwarning("Warning", f"Cannot open image: {e}")
+        self._lines = []
+        self._clicks = []
+        self._rect_id = None
+        self._sel_rect = None
+        for hid in self._handle_ids :
+            self.canvas.delete(hid)
+        self._handle_ids = []
         self.text.delete("1.0", "end")
-        self.text.focus_set()
+        self.text.config(state="disabled")
+        self.master.after(10, self._display_image)
 
-    def _display_image(self, path: str) :
-        try :
-            img = Image.open(path)
-        except Exception as e :
-            ph = Image.new("RGB", (800, 600), color = (220, 220, 220))
-            self._tk_img = ImageTk.PhotoImage(ph)
-            self.image_panel.configure(image = self._tk_img, text = f"Cannot open image: {e}", compound = "center")
-            return
-
-        panel_width = max(self.image_panel.winfo_width(), 400)
-        panel_height = max(self.master.winfo_height() - 100, 300)
-
-        img_ratio = img.width / max(1, img.height)
-        panel_ratio = panel_width / max(1, panel_height)
-
-        if img_ratio > panel_ratio :
-            new_w = panel_width
-            new_h = int(new_w / img_ratio)
-        else :
-            new_h = panel_height
-            new_w = int(new_h * img_ratio)
-
-        if new_w > 0 and new_h > 0 :
-            img = img.resize((new_w, new_h), Image.LANCZOS)
-
-        self._tk_img = ImageTk.PhotoImage(img)
-        self.image_panel.configure(image = self._tk_img, text = "", compound = None)
-
-    def _on_resize(self, _) :
-        if self.current_image_path :
-            self._display_image(self.current_image_path)
-
-    def _on_panel_resize(self, _) :
-        if self._resize_job_fast is None :
-            self._resize_job_fast = self.master.after(40, self._display_image_fast)
-        if self._resize_job_final is not None :
-            self.master.after_cancel(self._resize_job_final)
-        self._resize_job_final = self.master.after(180, self._display_image_final)
-
-    def _compute_fit_size(self) :
-        if self._orig_img is None :
-            return (0, 0)
-        panel_width = max(self.image_panel.winfo_width(), 1)
-        panel_height = max(self.image_panel.winfo_height(), 1)
-
-        ow, oh = self._orig_img.size
-        img_ratio = ow / max(1, oh)
-        panel_ratio = panel_width / max(1, panel_height)
-
-        if img_ratio > panel_ratio :
-            new_w = panel_width
-            new_h = int(new_w / img_ratio)
-        else :
-            new_h = panel_height
-            new_w = int(new_h * img_ratio)
-
-        return (max(new_w, 1), max(new_h, 1))
-
-    def _should_redraw(self, new_size) :
-        lw, lh = self._last_draw_size
-        nw, nh = new_size
-        return abs(nw - lw) >= 2 or abs(nh - lh) >= 2
-
-    def _display_image_fast(self) :
-        self._resize_job_fast = None
-        if self._orig_img is None :
-            return
-        new_w, new_h = self._compute_fit_size()
-        if not self._should_redraw((new_w, new_h)) :
-            return
-        preview = self._orig_img.resize((new_w, new_h), Image.BILINEAR)
-        self._tk_img = ImageTk.PhotoImage(preview)
-        self.image_panel.configure(image = self._tk_img, text = "", compound = None)
-        self._last_draw_size = (new_w, new_h)
-
-    def _display_image_final(self) :
-        self._resize_job_final = None
-        if self._orig_img is None :
-            return
-        new_w, new_h = self._compute_fit_size()
-        sharp = self._orig_img.resize((new_w, new_h), Image.LANCZOS)
-        self._tk_img = ImageTk.PhotoImage(sharp)
-        self.image_panel.configure(image = self._tk_img, text = "", compound = None)
-        self._last_draw_size = (new_w, new_h)
-
-    def save_new_record(self, text) :
-        name = f"{self.current_pos:04d}"
-        filepath = f"data/{name}.png"
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        global_path = os.path.join(SCRIPT_DIR, filepath)
-        try :
-            img = Image.open(self.current_image_path)
-            img.save(global_path)
-        except Exception as e :
-            messagebox.showerror("Error", f"Failed to save image:\n{e}")
-            return "break"
-        
-        with open(self.output_file_path, "r", encoding = "utf-8") as f :
-            dataset = json.load(f)
-        
-        new_record = {"filepath": filepath, "name": name, "text": text}
-        dataset.append(new_record)
-
-        with open(self.output_file_path, "w", encoding = "utf-8") as f :
-            json.dump(dataset, f, ensure_ascii = False, indent = 2)
-
-        print(f"Saved record {name} on path: {filepath}")
-
-    def on_submit(self, _) :
-        user_text = self.text.get("1.0", "end").rstrip("\n")
-        self.save_new_record(user_text)
-
-        self.current_pos += 2
-        if self.current_pos >= len(self.image_paths) :
-            self._flush_and_quit()
-        else :
-            self._load_current()
-        return "break"
-
-    def _flush_and_quit(self) :
-        os.makedirs(os.path.dirname(self.output_file), exist_ok=True)
-        if not os.path.exists(self.output_file) :
-            with open(self.output_file, "w", encoding = "utf-8") as f :
-                json.dump([], f)
-
-        try :
-            with open(self.output_file, "r", encoding = "utf-8") as f :
-                existing = json.load(f)
-                if not isinstance(existing, list) :
-                    existing = []
-        except Exception :
-            existing = []
-
-        with open(self.output_file, "w", encoding = "utf-8") as f :
-            json.dump(existing, f, ensure_ascii = False, indent = 2)
-
-        messagebox.showinfo("Saved", f"Saved {len(self.results)} record(s) to:\n{self.output_file}")
-        self.master.after(100, self.master.destroy)
 
 def main() :
     all_files = collect_image_files(DATA_DIR)
-
     print(f"Collected {len(all_files)} image files from dataset.")
 
+    os.makedirs(os.path.dirname(OUTPUT_FILE_PATH), exist_ok=True)
     if not os.path.exists(OUTPUT_FILE_PATH) :
-        with open(OUTPUT_FILE_PATH, "w", encoding="utf-8") as f :
+        with open(OUTPUT_FILE_PATH, "w", encoding="utf-8") as f:
             json.dump([], f)
 
-    with open(OUTPUT_FILE_PATH, "r", encoding="utf-8") as f :
-        dataset = json.load(f)
-        last_record_number = (int(dataset[-1]['name']) if dataset else 0)
-
-    last_record_number = max(last_record_number, PREVIOUSLY_GENERATED)
+    try :
+        with open(OUTPUT_FILE_PATH, "r", encoding="utf-8") as f :
+            dataset = json.load(f)
+            last_record_number = int(dataset[-1]['name']) if dataset else -1
+    except Exception :
+        last_record_number = -1
 
     even_data = True
 
@@ -249,6 +416,6 @@ def main() :
     ImageAnnotator(root, all_files, start_index)
     root.mainloop()
 
-if __name__ == "__main__" :
 
+if __name__ == "__main__" :
     main()
