@@ -240,7 +240,7 @@ def main() :
 
     last_record_number = max(last_record_number, PREVIOUSLY_GENERATED)
 
-    even_data = False
+    even_data = True
 
     start_index = last_record_number + (1 if even_data != (last_record_number % 2 == 0) else 2)
     print(f"Last record number: {last_record_number}, starting from index: {start_index}")
