@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { RefreshCcw, Search, FileText } from 'lucide-react'
 import { DocStatus } from '../components/documents/DocStatus'
 import { DocOptionsMenu } from '../components/documents/DocOptionsMenu'
+import { Modal } from '../components/ui/Modal'
 
 const API_BASE: string =
   (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
@@ -35,8 +36,7 @@ interface Doc {
 function normalizeDoc(d: APIStoredFile): Doc {
   const rawId = d.id
   const id = typeof rawId === 'number' ? String(rawId) : rawId
-  const name =
-    d.resourcePath?.split(/[/\\]/).pop() ?? `file-${id}`
+  const name = d.resourcePath?.split(/[/\\]/).pop() ?? `file-${id}`
   const type = d.format?.mimeType ?? d.format?.name ?? d.format?.extension
   return { id, name, type, generation: d.generation }
 }
@@ -47,6 +47,10 @@ export default function Documents() {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState<string>('')
+
+  // modal state
+  const [deleteModal, setDeleteModal] = useState(false)
+  const [docToDelete, setDocToDelete] = useState<Doc | null>(null)
 
   const ctrlRef = useRef<AbortController | null>(null)
 
@@ -66,7 +70,7 @@ export default function Documents() {
           signal,
         })
 
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+        if (!res.ok) throw new Error(`${res.status.toString()} ${res.statusText}`)
         if (res.status === 204) {
           setDocs([])
           return
@@ -108,9 +112,40 @@ export default function Documents() {
     return docs.filter((d) =>
       [d.name, d.type, d.id]
         .filter(Boolean)
-        .some((s) => s!.toLowerCase().includes(q)),
+        .some((s) => typeof s === 'string' && s.toLowerCase().includes(q)),
     )
   }, [docs, query])
+
+  const openModal = (doc: Doc) => {
+    setDocToDelete(doc)
+    setDeleteModal(true)
+  }
+
+  const closeModal = () => {
+    setDocToDelete(null)
+    setDeleteModal(false)
+  }
+
+  const confirmDelete = async () => {
+    if (!docToDelete) return
+    try {
+      const url = `${API_BASE}/v1/stored_files/${docToDelete.id}`
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      })
+
+      if (!res.ok) throw new Error(`${res.status.toString()} ${res.statusText}`)
+      setDocs((prev) => prev.filter((d) => d.id !== docToDelete.id))
+    } catch (err) {
+      console.error('Delete failed:', err)
+      alert('Failed to delete document.')
+    } finally {
+      closeModal()
+    }
+  }
 
   return (
     <MainLayout>
@@ -118,13 +153,14 @@ export default function Documents() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <div className='flex gap-3 items-center text-black-base'>
+            <div className="flex gap-3 items-center text-black-base">
               <span className="text-2xl font-semibold">Documents</span>
               <FileText />
             </div>
-            
             <p className="text-sm text-gray-text">
-              {loading ? 'Loading…' : `${filtered.length} of ${docs.length} shown`}
+              {loading
+                ? 'Loading…'
+                : `${filtered.length.toString()} of ${docs.length.toString()} shown`}
             </p>
           </div>
 
@@ -133,9 +169,11 @@ export default function Documents() {
               <Search className="absolute left-2 top-2.5 h-5 w-5 text-gray-text" />
               <input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                }}
                 placeholder="Search by name…"
-                className="pl-8 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:to-blue-action"
+                className="pl-8 pr-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <button
@@ -148,7 +186,6 @@ export default function Documents() {
           </div>
         </div>
 
-        {/* //TODO: move to flash */}
         {error && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
             <p className="font-medium">Failed to load documents</p>
@@ -156,7 +193,6 @@ export default function Documents() {
           </div>
         )}
 
-        {/* Table */}
         <div className="mt-6 overflow-hidden rounded-b-xl w-full">
           <table className="min-w-full divide-y divide-gray-outline bg-white">
             <thead className="bg-gray-accent border border-gray-outline w-full rounded-xl">
@@ -173,20 +209,28 @@ export default function Documents() {
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-text">
                   Generation
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-text">
-                  {/* Empty header for ellipsis menu */}
-                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-text"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-outline text-base-black bg-gray-base">
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-4"><div className="h-4 w-40 rounded bg-gray-200" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-20 rounded bg-gray-200" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-20 rounded bg-gray-200" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-16 rounded bg-gray-200" /></td>
-                    <td className="px-4 py-4 text-right"><div className="h-8 w-8 rounded bg-gray-200" /></td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-40 rounded bg-gray-200" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-20 rounded bg-gray-200" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-20 rounded bg-gray-200" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-16 rounded bg-gray-200" />
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <div className="h-8 w-8 rounded bg-gray-200" />
+                    </td>
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
@@ -210,7 +254,13 @@ export default function Documents() {
                     <td className="px-4 py-3">{d.type ?? ''}</td>
                     <td className="px-4 py-3">{d.generation ?? ''}</td>
                     <td className="px-4 py-3 text-right">
-                      <DocOptionsMenu doc={d} />
+                      <DocOptionsMenu
+                        doc={d}
+                        token={token}
+                        onDelete={() => {
+                          openModal(d)
+                        }}
+                      />
                     </td>
                   </tr>
                 ))
@@ -219,6 +269,21 @@ export default function Documents() {
           </table>
         </div>
       </div>
+      <Modal
+        id="deleteModal"
+        show={deleteModal}
+        onConfirm={() => void confirmDelete()}
+        confirmVariant="danger"
+        confirmLabel="Delete"
+        onCancel={closeModal}
+        hideExit
+        title="Delete Document"
+        subtitle={`Are you sure you want to delete "${docToDelete?.name ?? ''}"?`}
+      >
+        <div className="text-center space-y-4">
+          <p>This action cannot be undone.</p>
+        </div>
+      </Modal>
     </MainLayout>
   )
 }
