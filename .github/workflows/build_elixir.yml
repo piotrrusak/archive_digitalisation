@@ -16,6 +16,7 @@ jobs:
       ELIXIR_VERSION: "1.18.3"
       OTP_VERSION: "27.3.1"
       MIX_ENV: "test"
+      BACKEND_AUTHORIZATION_TOKEN: "agsrgbbgadfaa"
     
     services:
       db_auth:
