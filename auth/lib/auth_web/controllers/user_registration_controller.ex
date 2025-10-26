@@ -4,7 +4,11 @@ defmodule AuthWeb.UserRegistrationController do
   alias Auth.Accounts
   alias Auth.Accounts.User
 
-  @backend_url Application.compile_env(:auth, :backend_url)
+  # Changed to raising version. If on start any of those are failing
+  # Check if everything from config/env.exs.example is present
+  # in config/env.exs
+  @backend_url Application.compile_env!(:auth, :backend_url)
+  @backend_token Application.compile_env!(:auth, :backend_authorization_token)
 
   def create(conn, user_params) do
     user_params
@@ -46,7 +50,7 @@ defmodule AuthWeb.UserRegistrationController do
         "#{@backend_url}/api/v1/users",
         [
           {"content-type", "application/json"},
-          {"authorization", "agsrgbbgadfaa"}
+          {"authorization", @backend_token}
         ],
         body
       )
