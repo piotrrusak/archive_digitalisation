@@ -25,9 +25,7 @@ defmodule AuthWeb.ChangePasswordController do
       {:error, changeset} ->
         errors =
           Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-            Enum.reduce(opts, msg, fn {key, value}, acc ->
-              String.replace(acc, "%{#{key}}", to_string(value))
-            end)
+            parse_errors(msg, opts)
           end)
 
         conn
@@ -37,5 +35,11 @@ defmodule AuthWeb.ChangePasswordController do
           errors: errors
         })
     end
+  end
+
+  defp parse_errors(msg, opts) do
+    Enum.reduce(opts, msg, fn {key, value}, acc ->
+      String.replace(acc, "%{#{key}}", to_string(value))
+    end)
   end
 end
