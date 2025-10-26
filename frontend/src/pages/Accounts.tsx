@@ -6,6 +6,7 @@ import { TextField } from '../components/ui/TextField'
 import { useAuth } from '../hooks/useAuth'
 import { Modal } from '../components/ui/Modal'
 import { useNavigate } from 'react-router-dom'
+import { useFlash } from '../contexts/FlashContext'
 
 // Private component for divider
 function Divider() {
@@ -22,6 +23,11 @@ interface UserProfileResponse {
 interface UserProfile {
   firstName: string
   lastName: string
+}
+
+interface AuthApiErrorResponse {
+  message?: string
+  errors?: Record<string, string[]>
 }
 
 async function fetchUserProfile(userId: number, userToken: string): Promise<UserProfile> {
@@ -78,8 +84,38 @@ async function handleDeleteAccount(
   }
 }
 
+async function handleChangePasswordApi(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string,
+  token: string | null,
+) {
+  if (!token) return
+
+  const url = `${import.meta.env.VITE_AUTH_API_BASE_URL}/users/update_password`
+
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      current_password: currentPassword,
+      password: newPassword,
+      password_confirmation: confirmPassword,
+    }),
+  })
+
+  if (!res.ok) {
+    const data = (await res.json()) as AuthApiErrorResponse
+    throw new Error(data.message ?? 'Failed to change password')
+  }
+}
+
 export default function Accounts() {
   const { userId, token, userEmail, logout } = useAuth()
+  const { addFlash } = useFlash()
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -89,10 +125,14 @@ export default function Accounts() {
 
   const isProfileChanged = firstName !== initialFirst || lastName !== initialLast
 
+  const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const isPasswordValid =
-    password.length >= 6 && confirmPassword.length >= 6 && password === confirmPassword
+    currentPassword.length >= 6 &&
+    password.length >= 6 &&
+    confirmPassword.length >= 6 &&
+    password === confirmPassword
 
   const navigate = useNavigate()
 
@@ -124,12 +164,22 @@ export default function Accounts() {
     alert('Profile updated successfully!')
   }
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isPasswordValid) return
-    alert('Password changed successfully!')
-    setPassword('')
-    setConfirmPassword('')
+    if (!isPasswordValid || !token) return
+
+    try {
+      await handleChangePasswordApi(currentPassword, password, confirmPassword, token)
+
+      addFlash('success', 'Password changed successfully!')
+
+      setCurrentPassword('')
+      setPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      console.error(err)
+      addFlash('error', `Failed to change password: ${(err as Error).message}`)
+    }
   }
 
   return (
@@ -173,10 +223,25 @@ export default function Accounts() {
         <Divider />
 
         <form
-          onSubmit={handleChangePassword}
+          onSubmit={(e) => {
+            void handleChangePassword(e)
+          }}
           className="flex flex-col items-start gap-2.5 w-[450px]"
         >
           <span className="text-gray-text font-semibold">Change Password</span>
+          <TextField
+            label="Current Password"
+            type="password"
+            value={currentPassword}
+            onChange={setCurrentPassword}
+            placeholder="Enter current password"
+            inputClass="flex-1"
+            error={
+              currentPassword.length > 0 && currentPassword.length < 6
+                ? 'Password must be at least 6 characters'
+                : undefined
+            }
+          />
           <TextField
             label="New Password"
             type="password"
