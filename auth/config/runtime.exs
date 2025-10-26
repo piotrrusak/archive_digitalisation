@@ -23,9 +23,10 @@ end
 # during deployment do it properly
 config :auth, :jwt_secret, "test"
 
-config :auth, :backend_authorization_token,
-  System.get_env("BACKEND_AUTHORIZATION_TOKEN") ||
-    raise "missing BACKEND_AUTHORIZATION_TOKEN environment variable"
+config :auth,
+       :backend_authorization_token,
+       System.get_env("BACKEND_AUTHORIZATION_TOKEN") ||
+         raise("missing BACKEND_AUTHORIZATION_TOKEN environment variable")
 
 if config_env() == :prod do
   database_url =
