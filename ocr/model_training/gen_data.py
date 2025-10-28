@@ -301,6 +301,8 @@ class ImageAnnotator :
         if self._sel_rect is None :
             return "break"
         text = self.text.get("1.0", "end").strip()
+        if len(text) == 0 :
+            return "break"
         x1d, y1d, x2d, y2d = self._sel_rect
         x1o, y1o = self._disp_to_orig(x1d, y1d)
         x2o, y2o = self._disp_to_orig(x2d, y2d)
@@ -357,6 +359,7 @@ class ImageAnnotator :
         except Exception as e :
             messagebox.showerror("Error", f"Failed to commit current line:\n{e}")
             return "break"
+        
         
         if not self._save_image_record() :
             return "break"
