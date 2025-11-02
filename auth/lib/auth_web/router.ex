@@ -25,6 +25,7 @@ defmodule AuthWeb.Router do
     pipe_through(:auth_api)
 
     get "/token/verify", TokenController, :verify
+    put "/users/update_password", ChangePasswordController, :change_password
     delete "/users/delete_account", DeleteAccountController, :delete_account
   end
 end
