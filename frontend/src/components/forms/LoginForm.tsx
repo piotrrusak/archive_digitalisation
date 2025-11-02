@@ -98,7 +98,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="w-full flex-col gap-8">
-      <form onSubmit={void handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
         <TextField
           label="Email"
           placeholder="Enter your email"

@@ -30,7 +30,7 @@ public class StoredFileService {
   private final AWSFileManager fileManager;
   private final WebClient.Builder webClientBuilder;
   private WebClient webClient;
-  
+
   @Value("${ocr.base-url}")
   private String ocrBaseUrl;
 
@@ -57,6 +57,12 @@ public class StoredFileService {
     StoredFile storedFile = this.storedFileRepository.findById(id).orElse(null);
     return StoredFileDTO.fromStoredFile(
         storedFile, this.fileManager.getFile(storedFile.getResourcePath()));
+  }
+
+  @Transactional(readOnly = true)
+  public byte[] exportFileById(Long id) {
+    StoredFile storedFile = this.storedFileRepository.findById(id).orElse(null);
+    return this.fileManager.getFile(storedFile.getResourcePath());
   }
 
   @Transactional(readOnly = true)
@@ -93,7 +99,6 @@ public class StoredFileService {
                           "Primary file not found: " + dto.primaryFileId()));
     }
 
-    
     final String path;
     try {
       path = fileManager.saveFile(dto.content());

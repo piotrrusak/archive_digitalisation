@@ -25,6 +25,11 @@ public class StoredFileController {
     return this.storedFileService.getFileById(id);
   }
 
+  @GetMapping("/{id}/export")
+  public byte[] exportStoredFileById(@PathVariable Long id) throws Exception {
+    return this.storedFileService.exportFileById(id);
+  }
+
   @GetMapping("/owner/{owner_id}")
   public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
     return this.storedFileService.getStoredFilesByOwnerId(owner_id);
