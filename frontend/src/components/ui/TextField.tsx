@@ -35,7 +35,7 @@ export function TextField({
   const inputId = id ?? `textfield-${(label ?? 'input').toLowerCase().replace(/\s+/g, '-')}`
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="w-full flex flex-col gap-1">
       {label && (
         <label
           htmlFor={inputId}

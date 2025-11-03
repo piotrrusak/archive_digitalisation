@@ -77,4 +77,24 @@ defmodule Auth.Accounts do
     |> User.delete_account_changeset()
     |> Repo.update()
   end
+
+  @doc """
+  Updates a user's password after validating the current password.
+
+  ## Examples
+
+      iex> update_user_password(user, %{current_password: "old", password: "new", password_confirmation: "new"})
+      {:ok, %User{}}
+
+      iex> update_user_password(user, %{current_password: "wrong", password: "new", password_confirmation: "new"})
+      {:error, %Ecto.Changeset{}}
+  """
+  def update_user_password(user, attrs, opts \\ []) do
+    user
+    |> User.password_changeset(attrs, opts)
+    |> User.validate_current_password(
+      Map.get(attrs, "current_password") || Map.get(attrs, :current_password)
+    )
+    |> Repo.update()
+  end
 end
