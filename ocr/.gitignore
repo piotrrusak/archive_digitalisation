@@ -1,0 +1,7 @@
+**/models/
+
+.env
+
+**/scripts
+
+.ruff_cache/
