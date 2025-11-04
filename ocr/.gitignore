@@ -11,3 +11,7 @@ model_training/data
 model_training/dataset
 
 model_training/input
+
+temp/
+
+model_training/audit_out/
