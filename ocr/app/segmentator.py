@@ -110,7 +110,7 @@ def segment_lines_from_image(
 
 if __name__ == "__main__" :
     print(getattr(vgsl.TorchVGSLModel.load_model(str(MODEL_PATH)).nn, "model_type", None))
-    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0000.png"
+    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0001.png"
     SAVE_DIR = SCRIPT_DIR / ".." / "temp" / "seg_lines"
 
     SAVE_LINES = False
@@ -159,4 +159,4 @@ if __name__ == "__main__" :
         im_out = Image.fromarray(img_arr)
         im_out.save(SAVE_DIR / "segmented_image.png")
 
-    print(f"💾 Saved lines to directory: {SAVE_DIR.resolve()}")
+    print(f"Saved lines to directory: {SAVE_DIR.resolve()}")

@@ -16,7 +16,7 @@ temp/
 
 model_training/audit_out
 
-model_training/segtrain_runs
+model_training/train_runs
 
 model_training/data_backup
 

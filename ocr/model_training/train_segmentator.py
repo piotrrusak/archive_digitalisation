@@ -1,7 +1,6 @@
 from __future__ import annotations
 import glob, random, re, json, shutil, datetime
 from pathlib import Path
-from typing import Optional, List, Tuple
 from PIL import Image
 
 import torch
@@ -12,11 +11,11 @@ print_memory_info()
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR   = (SCRIPT_DIR / "data").resolve()
-OUT_DIR    = (SCRIPT_DIR / "segtrain_runs").resolve()
+OUT_DIR    = (SCRIPT_DIR / "train_runs").resolve()
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MIN_EPOCHS = 5
-MAX_EPOCHS = 200
+MAX_EPOCHS = 55
 SEED = 42
 
 
@@ -73,7 +72,7 @@ def train(
     print(f"train: {len(train_xml)}  |  val: {len(val_xml)}")
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run_dir = (out_root / timestamp).resolve()
+    run_dir = (out_root / f"seg_{timestamp}").resolve()
     run_dir.mkdir(parents=True, exist_ok=True)
 
     SEG_SPEC = "[1,900,0,3 Cr7,7,32,2,2 Gn16 Cr3,3,64,2,2 Gn16 Cr3,3,64 Gn16 Cr3,3,128 Gn16]"
