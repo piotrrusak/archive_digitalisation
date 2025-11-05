@@ -1,73 +1,48 @@
 from __future__ import annotations
-import os
-import json
-import numpy as np
+import os, json
 from pathlib import Path
+import numpy as np
 from PIL import Image
+import cv2
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(SCRIPT_DIR, "data")
-JSON_DIR = os.path.join(SCRIPT_DIR, "input")
+DATA_DIR   = os.path.join(SCRIPT_DIR, "data")
+JSON_PATH = os.path.join(os.path.join(SCRIPT_DIR, "input"), "dataset.json")
 
-def main():
+DOWNSCALE_FACTOR = 1
+
+def handle_record(item) :
+    filepath = os.path.join(SCRIPT_DIR, item["filepath"])
+
+    img_arr = np.array(Image.open(filepath))
+
+    lines = item.get("lines", [])
+    min_x0 = max(min(ln["bbox"][0] for ln in lines), 1) - 1
+    min_y0 = max(min(ln["bbox"][1] for ln in lines), 1) - 1
+    max_x1 = min(max(ln["bbox"][2] for ln in lines), img_arr.shape[1] - 1) + 1
+    max_y1 = min(max(ln["bbox"][3] for ln in lines), img_arr.shape[0] - 1) + 1
+
+    new_image = (np.random.power(50, size=img_arr.shape[:2]) * 255).astype(np.uint8)
+
+    new_image[min_y0:max_y1, min_x0:max_x1] = img_arr[min_y0:max_y1, min_x0:max_x1]
+    img_crop = new_image
+
+    img_crop = cv2.resize(img_crop, (0, 0), fx=1/DOWNSCALE_FACTOR, fy=1/DOWNSCALE_FACTOR)
+    for ln in lines :
+        ln["bbox"][0] = int(ln["bbox"][0] / DOWNSCALE_FACTOR)
+        ln["bbox"][1] = int(ln["bbox"][1] / DOWNSCALE_FACTOR)
+        ln["bbox"][2] = int(ln["bbox"][2] / DOWNSCALE_FACTOR)
+        ln["bbox"][3] = int(ln["bbox"][3] / DOWNSCALE_FACTOR)
+
+    img_crop_pil = Image.fromarray(img_crop)
+    img_crop_pil.save(filepath)
+
+def main() :
     os.makedirs(DATA_DIR, exist_ok=True)
-    json_path = os.path.join(JSON_DIR, "dataset.json")
-    ds = json.loads(Path(json_path).read_text(encoding="utf-8"))
-    for item in ds:
-        rel_path = item["filepath"]
-        img_path = (Path(DATA_DIR) / Path(rel_path).name).resolve()
-        name = item.get("name") or Path(rel_path).stem
-        if not img_path.exists():
-            raise FileNotFoundError(f"Image not found: {img_path}")
-
-        with Image.open(img_path) as im:
-            arr = np.array(im)
-
-        if arr.dtype != np.uint8:
-            arr = arr.astype(np.uint8)
-        
-        UPPER_LINE_CROP = 620
-        LOWER_LINE_CROP = 2700
-
-        arr = arr[UPPER_LINE_CROP:LOWER_LINE_CROP]
-
-        lines = item.get("lines", [])
-        for line in lines :
-            line['bbox'][1] -= UPPER_LINE_CROP
-            line['bbox'][3] -= UPPER_LINE_CROP
-
-            # arr[line['bbox'][1]:line['bbox'][3], line['bbox'][0]] = 0
-            # arr[line['bbox'][1]:line['bbox'][3], line['bbox'][2]] = 0
-            # arr[line['bbox'][1], line['bbox'][0]:line['bbox'][2]] = 0
-            # arr[line['bbox'][3], line['bbox'][0]:line['bbox'][2]] = 0
+    ds = json.loads(Path(JSON_PATH).read_text(encoding="utf-8"))
+    for item in ds :
+        handle_record(item)
 
 
-        arr[:lines[0]['bbox'][1]] = 255
-        arr[lines[-1]['bbox'][3]:] = 255
-        arr[:, :min(lines, key = lambda x: x['bbox'][0])['bbox'][0]] = 255
-        arr[:, max(lines, key = lambda x: x['bbox'][2])['bbox'][2]:] = 255
-
-        tolerance = 0.5
-
-        for y in range(arr.shape[0]) :
-            for x in range(arr.shape[1]) :
-                if arr[y, x] < 255*tolerance :
-                    arr[y, x] = 0
-                else :
-                    arr[y, x] = 255
-
-        item['lines'] = lines
-        
-        out_im = Image.fromarray(arr)
-        out_path = Path(DATA_DIR) / f"{name}.png"
-        out_im.save(out_path)
-        print(f"OK: {img_path.name} -> {out_path.name}")
-
-
-
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(ds, f, ensure_ascii=False, indent=4)
-
-
-if __name__ == "__main__":
+if __name__ == "__main__" :
     main()

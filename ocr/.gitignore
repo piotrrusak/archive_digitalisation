@@ -14,4 +14,12 @@ model_training/input
 
 temp/
 
-model_training/audit_out/
+model_training/audit_out
+
+model_training/segtrain_runs
+
+model_training/data_backup
+
+model_training/input_backup
+
+model_training/pipeline.sh
