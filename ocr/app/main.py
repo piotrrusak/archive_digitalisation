@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field, field_validator
 
 from app.backend_client import send_file
-from app.ocr import _get_model, ocr_png_bytes
+from app.ocr import run_ocr,_get_model
 
 app = FastAPI(title="OCR Service", version="0.0.2")
 logger = logging.getLogger("uvicorn.error")
@@ -54,7 +54,7 @@ def handle_file(payload: IncomingFile, request: Request):
     except Exception:
         raise Exception(detail="Invalid base64 in 'content'") from None
 
-    text = ocr_png_bytes(png_bytes)
+    text = run_ocr(png_bytes)
     logger.info("OCR result: %s", text)
 
     result = send_file(

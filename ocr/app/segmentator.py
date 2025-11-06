@@ -12,6 +12,11 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel"
 _SEG_MODEL = None
 
+TEXT_DIRECTION = "horizontal-lr"
+PAD = 2
+SAVE_DIR = SCRIPT_DIR / ".." / "temp" / "seg_lines"
+BBOX_LINE_WIDTH = 5
+
 def _ensure_pil_image(img) :
     if isinstance(img, Image.Image) :
         return img
@@ -108,29 +113,7 @@ def segment_lines_from_image(
         results.append(item)
     return results
 
-if __name__ == "__main__" :
-    print(getattr(vgsl.TorchVGSLModel.load_model(str(MODEL_PATH)).nn, "model_type", None))
-    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0001.png"
-    SAVE_DIR = SCRIPT_DIR / ".." / "temp" / "seg_lines"
-
-    SAVE_LINES = False
-    BBOX_LINE_WIDTH = 5
-
-    if SAVE_DIR.exists():
-        for f in SAVE_DIR.iterdir():
-            if f.is_file():
-                f.unlink()
-    else:
-        SAVE_DIR.mkdir(parents=True, exist_ok=True)
-
-    TEXT_DIRECTION = "horizontal-lr"
-    PAD = 2
-
-    print(f"Image: {IMAGE_PATH}")
-    print(f"Model: {MODEL_PATH}")
-
-    im = Image.open(IMAGE_PATH)
-
+def segment(im) :
     print("[DEBUG] Starting segmentation...")
     lines = segment_lines_from_image(
         im,
@@ -139,24 +122,46 @@ if __name__ == "__main__" :
         return_mode="pil",
     )
 
+    return lines
 
+def debug_save(im, lines, save_dir = SAVE_DIR) :
     img_arr = np.array(im.convert("RGB"))
 
     print(f"Found {len(lines)} lines:")
-    SAVE_DIR.mkdir(parents=True, exist_ok=True)
+    save_dir.mkdir(parents = True, exist_ok = True)
     for item in lines:
-        idx = item["index"]
         bbox = item["bbox"]
-        if SAVE_LINES :
-            item["pil_image"].save(SAVE_DIR / f"line_{idx:03d}.png")
-        else :
-            x0, y0, x1, y1 = bbox
-            img_arr[y0-BBOX_LINE_WIDTH:y1+BBOX_LINE_WIDTH, x0-BBOX_LINE_WIDTH:x0] = (255, 0, 0)
-            img_arr[y0-BBOX_LINE_WIDTH:y1+BBOX_LINE_WIDTH, x1:x1+BBOX_LINE_WIDTH] = (255, 0, 0)
-            img_arr[y0-BBOX_LINE_WIDTH:y0, x0-BBOX_LINE_WIDTH:x1+BBOX_LINE_WIDTH] = (255, 0, 0)
-            img_arr[y1:y1+BBOX_LINE_WIDTH, x0-BBOX_LINE_WIDTH:x1+BBOX_LINE_WIDTH] = (255, 0, 0)
-    if not SAVE_LINES :
-        im_out = Image.fromarray(img_arr)
-        im_out.save(SAVE_DIR / "segmented_image.png")
+        x0, y0, x1, y1 = bbox
+        img_arr[y0-BBOX_LINE_WIDTH:y1+BBOX_LINE_WIDTH, x0-BBOX_LINE_WIDTH:x0] = (255, 0, 0)
+        img_arr[y0-BBOX_LINE_WIDTH:y1+BBOX_LINE_WIDTH, x1:x1+BBOX_LINE_WIDTH] = (255, 0, 0)
+        img_arr[y0-BBOX_LINE_WIDTH:y0, x0-BBOX_LINE_WIDTH:x1+BBOX_LINE_WIDTH] = (255, 0, 0)
+        img_arr[y1:y1+BBOX_LINE_WIDTH, x0-BBOX_LINE_WIDTH:x1+BBOX_LINE_WIDTH] = (255, 0, 0)
 
-    print(f"Saved lines to directory: {SAVE_DIR.resolve()}")
+    im_out = Image.fromarray(img_arr)
+    im_out.save(save_dir / "segmented_image.png")
+
+    print(f"Saved lines to directory: {save_dir.resolve()}")
+
+
+if __name__ == "__main__" :
+    print(getattr(vgsl.TorchVGSLModel.load_model(str(MODEL_PATH)).nn, "model_type", None))
+    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0001.png"
+
+
+    if SAVE_DIR.exists():
+        for f in SAVE_DIR.iterdir():
+            if f.is_file():
+                f.unlink()
+    else:
+        SAVE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+    print(f"Image: {IMAGE_PATH}")
+    print(f"Model: {MODEL_PATH}")
+
+    im = Image.open(IMAGE_PATH)
+
+    lines = segment(im)
+    debug_save(im, lines)
+
+
