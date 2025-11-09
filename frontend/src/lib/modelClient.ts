@@ -11,12 +11,12 @@ export interface SendFilePayload {
 export type StoredFileResponse = Dict
 
 export function getApiBaseUrl(): string {
-  const base = (import.meta as unknown as { env?: { VITE_REST_API_BASE_URL?: string } }).env
-    ?.VITE_REST_API_BASE_URL
+  const base = (import.meta as unknown as { env?: { VITE_BACKEND_API_BASE_URL?: string } }).env
+    ?.VITE_BACKEND_API_BASE_URL
 
   if (!base) {
     throw new Error(
-      'No VITE_REST_API_BASE_URL in env. Set e.g. VITE_REST_API_BASE_URL=http://localhost:8080/api/v1',
+      'VITE_BACKEND_API_BASE_URL in env. Set e.g. VITE_BACKEND_API_BASE_URL=http://localhost:8080/api/v1',
     )
   }
   return base.replace(/\/+$/, '')
@@ -126,4 +126,24 @@ export async function uploadStoredFile(
 
   const url = `${apiBase}/${options.endpointPath ?? 'stored_files'}`
   return postJson<StoredFileResponse>(url, payload, { timeoutMs: 30_000, token })
+}
+
+export async function uploadStoredFiles(
+  files: File[],
+  options: {
+    ownerId: number
+    formatId: number
+    generation: number
+    primaryFileId: number | null
+    endpointPath?: string
+  },
+  token?: string,
+): Promise<StoredFileResponse[]> {
+  if (files.length === 0) {
+    return []
+  }
+
+  const results = await Promise.all(files.map((file) => uploadStoredFile(file, options, token)))
+
+  return results
 }

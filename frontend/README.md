@@ -1,69 +1,135 @@
-# React + TypeScript + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This subproject contains the frontend of the application, built with React, TypeScript, Vite, and TailwindCSS.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Install dependencies
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Start the development server
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+npm run dev
+```
+
+This command runs the app in development mode using Vite.
+You can open the app at `http://localhost:5173`
+(default Vite port).
+
+## Environment Variables
+
+The frontend uses a gitignored `.env` file to store API keys and other secrets.
+
+To set up your local environment file:
+
+Duplicate the example file:
+
+```
+cp .env.example .env
+```
+
+Open `.env` and fill in your own values for each variable.
+
+**Note: Never commit your `.env` file to version control.**
+
+## Code Quality Tools
+
+### Prettier — Code Formatter
+
+This project uses Prettier to ensure consistent code style.
+
+To format all files:
+
+```
+npm run format
+```
+
+To check formatting without applying changes:
+
+```
+npm run format:check
+```
+
+### ESLint — Linter
+
+This project uses ESLint to catch code issues and enforce best practices.
+
+To run linting:
+
+```
+npm run lint
+```
+
+To automatically fix some lint issues:
+
+```
+npx eslint . --fix
+```
+
+### Testing
+
+This project uses Vitest and Testing Library for testing.
+
+Run all tests once:
+
+```
+npm run test
+```
+
+Run tests in watch mode:
+
+```
+npm run test:watch
+```
+
+Run tests with coverage:
+
+```
+npm run test -- --coverage
+```
+
+### Type Checking
+
+To run TypeScript type checks without building:
+
+```
+npm run typecheck
+```
+
+## Build & Preview
+
+Build the project for production:
+
+```
+npm run build
+```
+
+Preview the built app locally:
+
+```
+npm run preview
+```
+
+## Tech Stack
+
+- React 19
+- TypeScript
+- Vite
+- TailwindCSS
+- Framer Motion
+- React Router DOM
+- ESLint + Prettier
+- Vitest + Testing Library
+
+## Tips
+
+- Commit only formatted and linted code to keep the repo clean (The CI will block you anyway :p).
+
+- Configure your IDE (e.g., VS Code) to:
+  - Use Prettier as the default formatter.
+
+  - Run ESLint on save.

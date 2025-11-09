@@ -8,6 +8,7 @@ import Account from './pages/Accounts'
 import Scan from './pages/Scan'
 import Documents from './pages/Documents' // <-- add this
 import Admin from './pages/Admin'
+import { GoogleCallback } from './pages/GoogleCallback'
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
@@ -26,6 +27,7 @@ function App() {
         <Route path="/scan" element={isLoggedIn ? <Scan /> : <Navigate to="/login" />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/auth/google/callback" element={<GoogleCallback />} />
       </Routes>
     </BrowserRouter>
   )
