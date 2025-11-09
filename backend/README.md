@@ -26,6 +26,14 @@ Or if you want to ensure safety of data on db: (probably only for tests)
     mvn spring-boot:run -Dspring-boot.run.profiles=test
 ```
 
+## Useful commands:
+
+Before commit use fmt formatter in root:
+
+```bash
+    mvn fmt:format
+```
+
 ## ER Diagram
 ![](schema.png)
 
