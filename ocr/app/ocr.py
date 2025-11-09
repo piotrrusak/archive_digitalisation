@@ -63,4 +63,4 @@ def test_ocr(test_image_path):
 
 
 if __name__ == "__main__":
-    test_ocr(Path(__file__).resolve().parent / "../model_training/data/0001.png")
+    test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png")
