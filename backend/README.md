@@ -158,7 +158,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
     curl --silent --show-error --fail \
       -X POST "http://localhost:8080/api/v1/stored_files" \
-      -H "Authorization: -----------"" \
+      -H "Authorization: -----------" \
       -H "Content-Type: application/json" \
       -d '{
         "ownerId": 1,
@@ -172,7 +172,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
     curl --silent --show-error --fail \
       -X POST "http://localhost:8080/api/v1/users" \
-      -H "Authorization: -----------"" \
+      -H "Authorization: -----------" \
       -H "Content-Type: application/json" \
       -d '{
         "id": 1,
@@ -186,7 +186,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
     curl --silent --show-error --fail
       -X PATCH "http://localhost:8080/api/v1/users/1"
-      -H "Authorization: agsrgbbgadfaa"
+      -H "Authorization: -----------"
       -H "Content-Type: application/json"
       -d '{
         "mail": "archive.digitalisation@bachelor.pl",
