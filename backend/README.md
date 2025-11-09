@@ -39,6 +39,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 |-------------|---------------------|-----------------------|
 | GET         | /api/v1/users       | findAll               |
 | GET         | /api/v1/users/{id}  | findById              |
+| PATCH       | /api/v1/users/{id}  | updateById with body  |
 | POST        | /api/v1/users       | save                  |
 | DELETE      | /api/v1/users/{id}  | deleteById            |
 
@@ -149,7 +150,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
     curl --silent --show-error --fail \
       -X POST "http://localhost:8080/api/v1/formats" \
-      -H "Authorization: agsrgbbgadfaa" \
+      -H "Authorization: -----------" \
       -H "Content-Type: application/json" \
       -d '{"format":"txt1"}'
 
@@ -157,7 +158,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
     curl --silent --show-error --fail \
       -X POST "http://localhost:8080/api/v1/stored_files" \
-      -H "Authorization: agsrgbbgadfaa" \
+      -H "Authorization: -----------"" \
       -H "Content-Type: application/json" \
       -d '{
         "ownerId": 1,
@@ -171,7 +172,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
     curl --silent --show-error --fail \
       -X POST "http://localhost:8080/api/v1/users" \
-      -H "Authorization: agsrgbbgadfaa" \
+      -H "Authorization: -----------"" \
       -H "Content-Type: application/json" \
       -d '{
         "id": 1,
@@ -179,6 +180,19 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
         "username": "test1.test@test.com",
         "firstName": "test1.test@test.com",
         "lastName": "test1.test@test.com"
+    }'
+
+- PATCH on /api/v1/users/1
+
+    curl --silent --show-error --fail
+      -X PATCH "http://localhost:8080/api/v1/users/1"
+      -H "Authorization: agsrgbbgadfaa"
+      -H "Content-Type: application/json"
+      -d '{
+        "mail": "archive.digitalisation@bachelor.pl",
+        "username": "ad",
+        "firstName": "archive",
+        "lastName": "digitalisation"
     }'
 
 Remember about NOTNULL variables. Firstly you have to have owner and format with id=1 and then adding file is possible.
