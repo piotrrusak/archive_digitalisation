@@ -8,6 +8,22 @@ A Spring Boot 3 REST API.
 - **DB**: PostgreSQL
 - **Base URL**: `http://localhost:8080`
 
+## About AWS configuration
+
+To enable the connection with AWS S3, you need to be logged in prepared account. You need credentials to this profile. Probably you will get file named: account_name_credentials.csv. Inside of it you have 3 columns. Username, password and url. Now ensure that you have aws-cli installed on your system:
+
+```bash
+    aws --version
+```
+
+Then you have to log in AWS website using url, username and password. Afterwards enter IAM->Users->your_account->create_access_key. With downloaded .csv you can log into cli using:
+
+```bash
+aws configure
+```
+
+Congratulations.
+
 ---
 
 ## Quick Start
