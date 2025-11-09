@@ -58,7 +58,7 @@ export default function Documents() {
     async (signal?: AbortSignal): Promise<void> => {
       setLoading(true)
       setError(null)
-      const url = `${API_BASE}/v1/stored_files`
+      const url = `${API_BASE}/stored_files`
 
       try {
         const res = await fetch(url, {
