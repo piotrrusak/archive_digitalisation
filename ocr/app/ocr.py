@@ -7,9 +7,9 @@ from kraken import binarization, pageseg, rpred
 from kraken.lib.models import load_any
 from PIL import Image
 
-from pdf_converter import initialize_pdf_with_image, insert_text_at_bbox
+from app.pdf_converter import initialize_pdf_with_image, insert_text_at_bbox
 
-from segmentator import segment, debug_save
+from app.segmentator import segment, debug_save
 
 _MODEL = None
 
@@ -50,7 +50,9 @@ def run_ocr(png_bytes):
 
     pdf_doc.save(pdf_path)
 
-    return "\n".join(text_lines)
+    print("\n".join(text_lines))
+
+    return pdf_doc.read_bytes()
 
 
 def test_ocr(test_image_path):

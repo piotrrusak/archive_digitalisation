@@ -12,7 +12,7 @@ pillow>=10.0
 numpy>=1.26
 scikit-image>=0.22
 scipy>=1.10
-PyMuPDF>=1.24.10
+PyMuPDF>=1.24.10  # provides `import fitz`
 
 # tooling / tests
 pytest>=8.3
