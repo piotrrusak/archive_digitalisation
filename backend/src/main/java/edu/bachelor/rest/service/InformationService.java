@@ -1,6 +1,7 @@
 package edu.bachelor.rest.service;
 
 import edu.bachelor.rest.dto.AvailableModels;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,10 +15,19 @@ import org.springframework.web.reactive.function.client.WebClient;
 @RequiredArgsConstructor
 public class InformationService {
 
-  private final WebClient webClient;
+  private final WebClient.Builder webClientBuilder;
+  private WebClient webClient;
+
+  @Value("${ocr.base-url}")
+  private String ocrBaseUrl;
 
   @Value("${ocr.path}")
   private String ocrPath;
+
+  @PostConstruct
+  void initWebClient() {
+    this.webClient = webClientBuilder.baseUrl(ocrBaseUrl).build();
+  }
 
   @Transactional
   public AvailableModels getAvailableModels(HttpServletRequest request) {
