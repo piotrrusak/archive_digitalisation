@@ -131,8 +131,7 @@ public class StoredFileService {
           .block();
     }
 
-    StoredFile storedFile =
-        StoredFileDTO.toStoredFile(dto, owner, format, primary, path);
+    StoredFile storedFile = StoredFileDTO.toStoredFile(dto, owner, format, primary, path);
     storedFile =
         java.util.Objects.requireNonNull(
             storedFile, "StoredFileDTO.toStoredFile returned null for dto=" + dto);
