@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useFlash } from '../contexts/FlashContext'
@@ -8,8 +8,11 @@ export function GoogleCallback() {
   const location = useLocation()
   const { login } = useAuth()
   const { addFlash } = useFlash()
+  const hasRun = useRef(false)
 
   useEffect(() => {
+    if (hasRun.current) return
+    hasRun.current = true
     const query = new URLSearchParams(location.search)
     const code = query.get('code')
 
@@ -27,6 +30,8 @@ export function GoogleCallback() {
           body: JSON.stringify({
             code,
             redirect_uri: `${window.location.origin}/auth/google/callback`,
+            user_found_redirect: `${window.location.origin}/`,
+            user_created_redirect: `${window.location.origin}/`,
           }),
         })
 
