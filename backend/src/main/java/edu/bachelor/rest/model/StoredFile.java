@@ -46,4 +46,7 @@ public class StoredFile {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "primary_file_id")
   private StoredFile primaryFile;
+
+  @Column(name = "processing_model_id", nullable = true)
+  private Integer processingModelId;
 }
