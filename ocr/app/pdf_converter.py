@@ -29,12 +29,13 @@ def _pil_to_pixmap(image):
     return fitz.Pixmap(colorspace, width, height, samples, alpha)
 
 
-def initialize_pdf_with_image(image):
+def initialize_pdf_with_image(image, visible_image = True):
     pdf_doc = fitz.open()
     rect = fitz.Rect(0, 0, image.width, image.height)
     page = pdf_doc.new_page(width=image.width, height=image.height)
-    pix = _pil_to_pixmap(image)
-    page.insert_image(rect, pixmap=pix)
+    if visible_image:
+        pix = _pil_to_pixmap(image)
+        page.insert_image(rect, pixmap=pix)
     return pdf_doc
 
 
@@ -65,7 +66,7 @@ def find_fontsize(line_height, line_width, text, fontname="helv"):
     return int(fontsize) - 1
 
 
-def insert_text_at_bbox(pdf_doc, text, bbox, draw_rect=False):
+def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False):
     page = pdf_doc[0]
     x0, y0, x1, y1 = bbox
     rect = fitz.Rect(x0, y0, x1, y1)
@@ -84,7 +85,7 @@ def insert_text_at_bbox(pdf_doc, text, bbox, draw_rect=False):
     )
 
     page.insert_text(
-        point, text, fontsize=fs, fontname="helv", color=0, fill_opacity=0, overlay=True
+        point, text, fontsize=fs, fontname="helv", color=0, fill_opacity=1, overlay=True
     )
 
 
@@ -95,54 +96,56 @@ def pdf_to_bytes(pdf_doc):
 if __name__ == "__main__":
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0001.png"
+    VISIBLE_IMAGE = False
+    VISIBLE_RECTS = False
     im = Image.open(IMAGE_PATH)
-    pdf_doc = initialize_pdf_with_image(im)
+    pdf_doc = initialize_pdf_with_image(im, VISIBLE_IMAGE)
 
     out_path = OUT_DIR / "output.pdf"
 
     text = "Though they may gather same Left -wing"
     bbox = (356, 789, 2319, 938)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "support, a large majority of Labour"
     bbox = (336, 962, 2209, 1103)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "M Ps are likely to turn down the Foot-"
     bbox = (333, 1147, 2248, 1284)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "Griffithus resolution. Mr. Foot's line will"
     bbox = (325, 1316, 2252, 1458)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "bthalas Labonr M Ps opposed the"
     bbox = (336, 1493, 2244, 1647)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "overnment Bill which brougut life peers"
     bbox = (321, 1674, 2366, 1820)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "mto existence, they schould not no ut"
     bbox = (325, 1847, 2347, 1993)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "forwad nominees. He believes that the"
     bbox = (344, 2028, 2347, 2174)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "House of Lords should be aboolished and"
     bbox = (340, 2213, 2343, 2351)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = "that Labour should not take any steps"
     bbox = (325, 2394, 2319, 2532)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     text = 'which would appear to "prop up an out.'
     bbox = (325, 2587, 2374, 2713)
-    insert_text_at_bbox(pdf_doc, text, bbox, True)
+    insert_text_at_bbox(pdf_doc, text, bbox, VISIBLE_IMAGE, VISIBLE_RECTS)
 
     pdf_doc.save(out_path)
 

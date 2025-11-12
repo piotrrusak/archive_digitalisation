@@ -76,8 +76,10 @@ def run_ocr(png_bytes, model_id):
     ocr_handler = get_model_handler(model_id)
     text_lines: list[str] = []
 
+    VISIBLE_IMAGE = False
+
     pdf_path = OUT_DIR / "ocr_overlay.pdf"
-    pdf_doc = initialize_pdf_with_image(im)
+    pdf_doc = initialize_pdf_with_image(im, visible_image=VISIBLE_IMAGE)
 
     for item in lines:
         x0, y0, x1, y1 = item["bbox"]
@@ -87,7 +89,7 @@ def run_ocr(png_bytes, model_id):
 
         line_txt = "".join(rec.prediction + "\n" for rec in records).strip()
         text_lines.append(line_txt)
-        insert_text_at_bbox(pdf_doc, line_txt, item["bbox"])
+        insert_text_at_bbox(pdf_doc, line_txt, item["bbox"], visible_image=VISIBLE_IMAGE)
 
     pdf_doc.save(pdf_path)
 
@@ -99,7 +101,7 @@ def run_ocr(png_bytes, model_id):
 def test_ocr(test_image_path):
     print(f"Testing OCR on image: {test_image_path}")
     png_bytes = test_image_path.read_bytes()
-    text = run_ocr(png_bytes)
+    run_ocr(png_bytes)
 
 
 if __name__ == "__main__":
