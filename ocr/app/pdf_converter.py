@@ -28,12 +28,12 @@ def _pil_to_pixmap(image) :
     return fitz.Pixmap(colorspace, width, height, samples, alpha)
 
 def initialize_pdf_with_image(image) :
-    pdf_bytes = fitz.open()
+    pdf_doc = fitz.open()
     rect = fitz.Rect(0, 0, image.width, image.height)
-    page = pdf_bytes.new_page(width = image.width, height = image.height)
+    page = pdf_doc.new_page(width = image.width, height = image.height)
     pix = _pil_to_pixmap(image)
     page.insert_image(rect, pixmap = pix)
-    return pdf_bytes
+    return pdf_doc
 
 def measure_text_single_line(text, fontsize = 11, fontname = "helv"):
     font = fitz.Font(fontname)
@@ -88,6 +88,9 @@ def insert_text_at_bbox(pdf_doc, text, bbox, draw_rect = False) :
         fill_opacity = 0,
         overlay=True
     )
+
+def pdf_to_bytes(pdf_doc) :
+    return pdf_doc.write()
 
 
 if __name__ == "__main__" :

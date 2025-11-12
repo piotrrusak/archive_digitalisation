@@ -1,8 +1,25 @@
 import base64
-from typing import Optional, Dict, Any
 
 import requests
 
+def get_pdf_format(backend_url, auth_token, timeout = 10) :
+    url = f"{backend_url.rstrip('/')}/api/v1/formats"
+    headers = {}
+    if auth_token :
+        headers["Authorization"] = auth_token
+
+    resp = requests.get(url, headers = headers, timeout = timeout)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if not isinstance(data, list) :
+        raise ValueError("Unexpected formats response payload (expected a list)")
+
+    for item in data :
+        if isinstance(item, dict) and str(item.get("format", "")).lower() == "pdf" :
+            return item
+
+    raise ValueError("PDF format not found in backend formats list")
 
 def send_file(
     backend_url,

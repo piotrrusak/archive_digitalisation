@@ -5,7 +5,7 @@ import os
 from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
-from app.backend_client import send_file
+from app.backend_client import send_file, get_pdf_format
 from app.ocr import run_ocr, _get_model
 
 app = FastAPI(title="OCR Service", version="0.0.3")
@@ -60,11 +60,14 @@ def handle_file(payload: IncomingFile, request: Request) :
     backend_base_url = os.getenv("BACKEND_BASE_URL")
     auth_header = request.headers.get("authorization")
 
+    pdf_format = get_pdf_format(backend_base_url, auth_header)
+    logger.info("Using backend PDF format: %s", pdf_format)
+
     result = send_file(
         backend_url=backend_base_url,
         auth_token=auth_header,
         owner_id=payload.ownerId,
-        format_id=payload.formatId,
+        format_id=pdf_format["id"],
         generation=payload.generation,
         content_bytes=pdf_bytes,
         primary_file_id=payload.primaryFileId,
