@@ -7,7 +7,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - db_auth:/var/lib/postgresql/data
+      - db_auth:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres_auth"]
       interval: 5s
@@ -21,7 +21,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres_backend"]
       interval: 5s

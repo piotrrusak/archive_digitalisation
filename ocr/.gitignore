@@ -5,3 +5,21 @@
 **/scripts
 
 .ruff_cache/
+
+model_training/data
+
+model_training/dataset
+
+model_training/input
+
+temp/
+
+model_training/audit_out
+
+model_training/train_runs
+
+model_training/data_backup
+
+model_training/input_backup
+
+model_training/pipeline.sh
