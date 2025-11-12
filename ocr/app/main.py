@@ -8,9 +8,8 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from app.backend_client import get_pdf_format, send_file
-from app.ocr import _get_model, run_ocr, test_ocr
+from app.ocr import get_model_list, run_ocr, test_ocr
 
-app = FastAPI(title="OCR Service", version="0.0.3")
 app = FastAPI(title="OCR Service", version="0.0.3")
 logger = logging.getLogger("uvicorn.error")
 
@@ -35,7 +34,7 @@ class IncomingFile(BaseModel):
 @app.get("/health")
 def health():
     try:
-        _ = _get_model()
+        _ = get_model_list()
         return {"status": "ok"}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
@@ -57,7 +56,9 @@ def handle_file(payload: IncomingFile, request: Request):
     except Exception as err:
         raise HTTPException(status_code=400, detail="Invalid base64 in 'content'") from err
 
-    pdf_bytes = run_ocr(png_bytes)
+    model_id = 1
+
+    pdf_bytes = run_ocr(png_bytes, model_id=model_id)
     logger.info("OCR produced PDF bytes: %d bytes", len(pdf_bytes))
 
     backend_base_url = os.getenv("BACKEND_BASE_URL")
@@ -82,3 +83,4 @@ def handle_file(payload: IncomingFile, request: Request):
 
 if __name__ == "__main__":
     test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png")
+

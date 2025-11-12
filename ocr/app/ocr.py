@@ -20,8 +20,10 @@ except ImportError:
 
 MODEL_LIST = None
 
-
 def get_model_list():
+    global MODEL_LIST
+    if MODEL_LIST is not None:
+        return MODEL_LIST
     script_dir = Path(__file__).resolve().parents[1]
     model_dir = script_dir / "models" / "ocr_models"
     model_files = []
