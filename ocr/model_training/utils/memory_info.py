@@ -16,9 +16,7 @@ def human_readable_bytes(num_bytes):
 
 def main():
     ram = psutil.virtual_memory()
-    print(
-        f"Free RAM: {human_readable_bytes(ram.available)} out of {human_readable_bytes(ram.total)}"
-    )
+    print(f"Free RAM: {human_readable_bytes(ram.available)} out of {human_readable_bytes(ram.total)}")
 
     pynvml.nvmlInit()
     gpu_count = pynvml.nvmlDeviceGetCount()

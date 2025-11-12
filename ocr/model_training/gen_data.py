@@ -61,9 +61,7 @@ class ImageAnnotator:
         left_frame.pack(side="left", fill="both", expand=True)
 
         self.path_var = tk.StringVar()
-        self.path_label = ttk.Label(
-            left_frame, textvariable=self.path_var, font=("TkDefaultFont", 10)
-        )
+        self.path_label = ttk.Label(left_frame, textvariable=self.path_var, font=("TkDefaultFont", 10))
         self.path_label.pack(anchor="w", pady=(0, 6))
 
         self.canvas = tk.Canvas(left_frame, bg="#ddd")
@@ -83,9 +81,7 @@ class ImageAnnotator:
             • Enter — add a line; Shift+Enter — save the image; ESC — cancel selection."""
             )
         )
-        ttk.Label(right_frame, textvariable=self.hint_var, foreground="#555").pack(
-            anchor="w", pady=(0, 6)
-        )
+        ttk.Label(right_frame, textvariable=self.hint_var, foreground="#555").pack(anchor="w", pady=(0, 6))
 
         self.canvas.bind("<Configure>", self._on_canvas_resize)
         self.canvas.bind("<Button-1>", self._on_canvas_click)

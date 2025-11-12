@@ -1,12 +1,13 @@
 import base64
 import logging
 import os
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from app.backend_client import get_pdf_format, send_file
-from app.ocr import _get_model, run_ocr
+from app.ocr import _get_model, run_ocr, test_ocr
 
 app = FastAPI(title="OCR Service", version="0.0.3")
 logger = logging.getLogger("uvicorn.error")
@@ -78,8 +79,4 @@ def handle_file(payload: IncomingFile, request: Request):
 
 
 if __name__ == "__main__":
-
-    from app.ocr import test_ocr
-    from pathlib import Path
-    
     test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png")

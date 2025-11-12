@@ -42,11 +42,7 @@ def _collect_cases(data_dir: Path):
 
     pngs = sorted(data_dir.glob("*.png"))
     if not pngs:
-        return [
-            pytest.param(
-                None, None, marks=pytest.mark.skip(reason="No .png files found in DIR_PATH.")
-            )
-        ]
+        return [pytest.param(None, None, marks=pytest.mark.skip(reason="No .png files found in DIR_PATH."))]
 
     params = []
     for png in pngs:
@@ -56,9 +52,7 @@ def _collect_cases(data_dir: Path):
                 pytest.param(
                     png,
                     None,
-                    marks=pytest.mark.skip(
-                        reason=f"Missing ground-truth TXT for {png.name}. Expecting {txt.name}."
-                    ),
+                    marks=pytest.mark.skip(reason=f"Missing ground-truth TXT for {png.name}. Expecting {txt.name}."),
                 )
             )
         else:
@@ -84,9 +78,7 @@ def test_ocr_quality_dynamic_threshold(png_path: Path, gt_path: Path, capsys):
         pytest.skip("Invalid parameters for this test case.")
 
     if not LEV_AVAILABLE:
-        pytest.skip(
-            "Levenshtein implementation is not available (install rapidfuzz or python-Levenshtein)."
-        )
+        pytest.skip("Levenshtein implementation is not available (install rapidfuzz or python-Levenshtein).")
 
     img_bytes = png_path.read_bytes()
     expected_text = gt_path.read_text(encoding="utf-8", errors="ignore")
@@ -102,6 +94,5 @@ def test_ocr_quality_dynamic_threshold(png_path: Path, gt_path: Path, capsys):
     capsys.readouterr()
 
     assert dist <= allowed, (
-        f"Levenshtein distance ({dist}) exceeds allowed threshold ({allowed}) "
-        f"for file {png_path.name}"
+        f"Levenshtein distance ({dist}) exceeds allowed threshold ({allowed}) for file {png_path.name}"
     )

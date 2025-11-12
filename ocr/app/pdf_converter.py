@@ -29,7 +29,7 @@ def _pil_to_pixmap(image):
     return fitz.Pixmap(colorspace, width, height, samples, alpha)
 
 
-def initialize_pdf_with_image(image, visible_image = True):
+def initialize_pdf_with_image(image, visible_image=True):
     pdf_doc = fitz.open()
     rect = fitz.Rect(0, 0, image.width, image.height)
     page = pdf_doc.new_page(width=image.width, height=image.height)
@@ -80,13 +80,9 @@ def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False
 
     point_down = rect.bl
     point_up = rect.tl
-    point = fitz.Point(
-        point_down.x, ((min(point_down.y, point_up.y) + max(point_down.y, point_up.y)) + fs) / 2
-    )
+    point = fitz.Point(point_down.x, ((min(point_down.y, point_up.y) + max(point_down.y, point_up.y)) + fs) / 2)
 
-    page.insert_text(
-        point, text, fontsize=fs, fontname="helv", color=0, fill_opacity=1, overlay=True
-    )
+    page.insert_text(point, text, fontsize=fs, fontname="helv", color=0, fill_opacity=1, overlay=True)
 
 
 def pdf_to_bytes(pdf_doc):

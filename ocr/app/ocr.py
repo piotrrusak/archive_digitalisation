@@ -7,15 +7,16 @@ from PIL import Image
 
 # tests only. to be removed later
 try:
+    from app.module_loading import load_module_from_path
     from app.pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
     from app.segmentator import debug_save, segment
-    from app.module_loading import load_module_from_path
 except ImportError:
+    from module_loading import load_module_from_path
     from pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
     from segmentator import debug_save, segment
-    from module_loading import load_module_from_path
 
 MODEL_LIST = None
+
 
 def get_model_list():
     script_dir = Path(__file__).resolve().parents[1]
@@ -31,29 +32,33 @@ def get_model_list():
                 break
         if model_file:
             print(f"Found model: {handler_file.name} -> {model_file.name}")
-            
+
             module = load_module_from_path(handler_file)
             print(f"Loaded module: {module}")
             if not hasattr(module, "NAME") or not hasattr(module, "DESCRIPTION") or not hasattr(module, "handle"):
                 print(f"  [warning] Model module {handler_file.name} is missing NAME, DESCRIPTION or handle()")
                 continue
-            
+
             name = getattr(module, "NAME", handler_file.stem)
-            desc = getattr(module, "DESCRIPTION")
-            handle_func = getattr(module, "handle")
+            desc = module.DESCRIPTION
+            handle_func = module.handle
             print(desc)
 
-            model_files.append({"name": name,
-                                "id": count,
-                                "description": desc,
-                                "handle": handle_func,
-                                })
+            model_files.append(
+                {
+                    "name": name,
+                    "id": count,
+                    "description": desc,
+                    "handle": handle_func,
+                }
+            )
             count += 1
 
     return model_files
 
 
 def get_model_handler(id):
+    global MODEL_LIST
     if MODEL_LIST is None:
         MODEL_LIST = get_model_list()
     for model in MODEL_LIST:
@@ -64,7 +69,7 @@ def get_model_handler(id):
 OUT_DIR = Path(__file__).resolve().parent / ".." / "temp"
 
 
-def run_ocr(png_bytes, model_id):
+def run_ocr(png_bytes, model_id, image_visibility=False):
     im = Image.open(io.BytesIO(png_bytes))
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -76,10 +81,8 @@ def run_ocr(png_bytes, model_id):
     ocr_handler = get_model_handler(model_id)
     text_lines: list[str] = []
 
-    VISIBLE_IMAGE = False
-
     pdf_path = OUT_DIR / "ocr_overlay.pdf"
-    pdf_doc = initialize_pdf_with_image(im, visible_image=VISIBLE_IMAGE)
+    pdf_doc = initialize_pdf_with_image(im, visible_image=image_visibility)
 
     for item in lines:
         x0, y0, x1, y1 = item["bbox"]
@@ -89,22 +92,22 @@ def run_ocr(png_bytes, model_id):
 
         line_txt = "".join(rec.prediction + "\n" for rec in records).strip()
         text_lines.append(line_txt)
-        insert_text_at_bbox(pdf_doc, line_txt, item["bbox"], visible_image=VISIBLE_IMAGE)
+        insert_text_at_bbox(pdf_doc, line_txt, item["bbox"], visible_image=image_visibility)
 
     pdf_doc.save(pdf_path)
 
-    print("\n".join(text_lines))
+    print(f"Saved OCR overlay PDF to: {pdf_path}")
 
     return pdf_to_bytes(pdf_doc)
 
 
-def test_ocr(test_image_path):
+def test_ocr(test_image_path, model_id=1):
     print(f"Testing OCR on image: {test_image_path}")
     png_bytes = test_image_path.read_bytes()
-    run_ocr(png_bytes)
+    run_ocr(png_bytes, model_id=model_id)
 
 
 if __name__ == "__main__":
-    # test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png")
-    model_files = get_model_list()
-    print(f"Available models: {model_files}")
+    # model_files = get_model_list()
+    # print(f"Available models: {model_files}")
+    test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png", 1)

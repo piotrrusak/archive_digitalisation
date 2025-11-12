@@ -30,9 +30,7 @@ def clamp_bbox(b, w, h):
 
 def make_page_xml(image_path, img_w, img_h, lines):
     root = etree.Element("PcGts", nsmap=NSMAP)
-    page = etree.SubElement(
-        root, "Page", imageFilename=image_path, imageWidth=str(img_w), imageHeight=str(img_h)
-    )
+    page = etree.SubElement(root, "Page", imageFilename=image_path, imageWidth=str(img_w), imageHeight=str(img_h))
     region = etree.SubElement(page, "TextRegion", id="r1")
 
     xs0 = [ln["bbox"][0] for ln in lines]
