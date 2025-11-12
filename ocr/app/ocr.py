@@ -5,9 +5,6 @@ from pathlib import Path
 
 from PIL import Image
 
-from app.pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
-from app.segmentator import debug_save, segment
-
 # tests only. to be removed later
 try:
     from app.module_loading import load_module_from_path
@@ -26,7 +23,7 @@ def get_model_list():
         return MODEL_LIST
     script_dir = Path(__file__).resolve().parents[1]
     model_dir = script_dir / "models" / "ocr_models"
-    model_files = []
+    models = []
     count = 1
 
     for handler_file in model_dir.glob("*.py"):
@@ -49,7 +46,7 @@ def get_model_list():
             handle_func = module.handle
             print(desc)
 
-            model_files.append(
+            models.append(
                 {
                     "name": name,
                     "id": count,
@@ -59,7 +56,7 @@ def get_model_list():
             )
             count += 1
 
-    return model_files
+    return models
 
 
 def get_model_handler(id):
@@ -113,6 +110,4 @@ def test_ocr(test_image_path, model_id=1):
 
 
 if __name__ == "__main__":
-    # model_files = get_model_list()
-    # print(f"Available models: {model_files}")
     test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png", 1)
