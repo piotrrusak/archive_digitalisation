@@ -75,3 +75,11 @@ def handle_file(payload: IncomingFile, request: Request):
 
     logger.info("Sent OCR PDF back to backend, got response: %s", result)
     return result
+
+
+if __name__ == "__main__":
+
+    from app.ocr import test_ocr
+    from pathlib import Path
+    
+    test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png")
