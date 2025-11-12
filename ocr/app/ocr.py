@@ -5,6 +5,9 @@ from pathlib import Path
 
 from PIL import Image
 
+from app.pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
+from app.segmentator import debug_save, segment
+
 # tests only. to be removed later
 try:
     from app.module_loading import load_module_from_path

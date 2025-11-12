@@ -4,11 +4,13 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from app.backend_client import get_pdf_format, send_file
 from app.ocr import _get_model, run_ocr, test_ocr
 
+app = FastAPI(title="OCR Service", version="0.0.3")
 app = FastAPI(title="OCR Service", version="0.0.3")
 logger = logging.getLogger("uvicorn.error")
 

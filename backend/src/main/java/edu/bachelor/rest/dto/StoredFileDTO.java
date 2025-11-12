@@ -5,7 +5,12 @@ import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.model.User;
 
 public record StoredFileDTO(
-    Long ownerId, Long formatId, Integer generation, Long primaryFileId, byte[] content) {
+    Long ownerId,
+    Long formatId,
+    Integer generation,
+    Long primaryFileId,
+    byte[] content,
+    Integer processingModelId) {
 
   public static StoredFileDTO fromStoredFile(StoredFile storedFile, byte[] content) {
     StoredFile primary = storedFile.getPrimaryFile();
@@ -19,7 +24,8 @@ public record StoredFileDTO(
         storedFile.getFormat().getId(),
         storedFile.getGeneration(),
         temp,
-        content);
+        content,
+        storedFile.getProcessingModelId());
   }
 
   public static StoredFile toStoredFile(
@@ -35,6 +41,7 @@ public record StoredFileDTO(
         .generation(storedFileDTO.generation())
         .primaryFile(primary)
         .resourcePath(resourcePath)
+        .processingModelId(storedFileDTO.processingModelId())
         .build();
   }
 }

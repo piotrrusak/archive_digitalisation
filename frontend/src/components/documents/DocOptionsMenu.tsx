@@ -67,6 +67,11 @@ export const DocOptionsMenu: FC<DocOptionsMenuProps> = ({ doc, onDelete, token }
     setOpen(false)
   }
 
+  const handleView = () => {
+    setOpen(false)
+    void navigate(`/document/${doc.id}`)
+  }
+
   return (
     <div className="relative inline-block text-left" ref={ref}>
       <button
@@ -87,6 +92,12 @@ export const DocOptionsMenu: FC<DocOptionsMenuProps> = ({ doc, onDelete, token }
           />
           <div className="fixed right-0 top-0 h-full w-64 bg-white-base shadow-2xl z-50 p-4 flex flex-col">
             <ul className="flex flex-col space-y-2 text-gray-text text-sm">
+              <li
+                className="px-3 py-2 rounded-md hover:bg-gray-accent cursor-pointer"
+                onClick={handleView}
+              >
+                View Document
+              </li>
               <li
                 className="px-3 py-2 rounded-md hover:bg-gray-accent cursor-pointer"
                 onClick={() => void handleExport()}
