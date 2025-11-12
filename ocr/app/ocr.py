@@ -8,10 +8,10 @@ from kraken.lib.models import load_any
 from PIL import Image
 
 from app.pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
-
-from app.segmentator import segment, debug_save
+from app.segmentator import debug_save, segment
 
 _MODEL = None
+
 
 def _get_model():
     global _MODEL
@@ -20,7 +20,9 @@ def _get_model():
         _MODEL = load_any(str(model_path), device="cpu")
     return _MODEL
 
+
 OUT_DIR = Path(__file__).resolve().parent / ".." / "temp"
+
 
 def run_ocr(png_bytes):
     im = Image.open(io.BytesIO(png_bytes))
