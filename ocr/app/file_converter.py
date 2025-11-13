@@ -6,7 +6,6 @@ from PIL import Image
 SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_DIR = SCRIPT_DIR / ".." / "temp" / "pdf_pages"
 
-
 def _pil_to_pixmap(image):
     if image.mode == "1":
         image = image.convert("L")
@@ -87,6 +86,7 @@ def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False
 
 def pdf_to_bytes(pdf_doc):
     return pdf_doc.write()
+
 
 
 if __name__ == "__main__":

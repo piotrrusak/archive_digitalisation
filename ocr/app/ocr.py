@@ -8,12 +8,12 @@ from PIL import Image
 # tests only. to be removed later
 try:
     from app.module_loading import load_module_from_path
-    from app.pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
+    from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
     from app.segmentator import debug_save, segment
 except ImportError:
     try:
         from module_loading import load_module_from_path
-        from pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
+        from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
         from segmentator import debug_save, segment
     except ImportError as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
