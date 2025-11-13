@@ -11,11 +11,15 @@ try:
     from app.pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
     from app.segmentator import debug_save, segment
 except ImportError:
-    from module_loading import load_module_from_path
-    from pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
-    from segmentator import debug_save, segment
+    try:
+        from module_loading import load_module_from_path
+        from pdf_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
+        from segmentator import debug_save, segment
+    except ImportError as e:
+        raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
 MODEL_LIST = None
+
 
 def get_model_list():
     global MODEL_LIST

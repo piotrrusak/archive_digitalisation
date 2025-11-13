@@ -4,6 +4,7 @@ import requests
 
 API_BASE = "/api/v1"
 
+
 def get_pdf_format(backend_url, auth_token, timeout=10):
     url = f"{backend_url.rstrip('/')}{API_BASE}/formats"
     headers = {}

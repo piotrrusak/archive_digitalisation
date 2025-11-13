@@ -1,14 +1,12 @@
 import base64
 import logging
 import os
-from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from app.backend_client import get_pdf_format, send_file
-from app.ocr import get_model_list, run_ocr, test_ocr, get_model_list
+from app.ocr import get_model_list, run_ocr
 
 app = FastAPI(title="OCR Service", version="0.0.3")
 logger = logging.getLogger("uvicorn.error")
@@ -58,6 +56,11 @@ def handle_file(payload: IncomingFile, request: Request):
 
     model_id = 1
 
+    try:
+        model_id = payload.model_id
+    except AttributeError:
+        logger.info("No model_id provided, using default model ID 1")
+
     pdf_bytes = run_ocr(png_bytes, model_id=model_id)
     logger.info("OCR produced PDF bytes: %d bytes", len(pdf_bytes))
 
@@ -80,6 +83,7 @@ def handle_file(payload: IncomingFile, request: Request):
     logger.info("Sent OCR PDF back to backend, got response: %s", result)
     return result
 
+
 @app.get("/ocr/available_models")
 def available_models():
     try:
@@ -87,7 +91,3 @@ def available_models():
     except Exception as e:
         logger.error("Error listing available models: %s", e)
         raise HTTPException(status_code=500, detail="Failed to list available models") from e
-
-if __name__ == "__main__":
-    test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png")
-
