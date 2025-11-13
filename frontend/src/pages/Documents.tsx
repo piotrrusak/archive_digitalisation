@@ -129,7 +129,7 @@ export default function Documents() {
   const confirmDelete = async () => {
     if (!docToDelete) return
     try {
-      const url = `${API_BASE}/stored_files/${docToDelete.id}`
+      const url = `${API_BASE}/v1/stored_files/${docToDelete.id}`
       const res = await fetch(url, {
         method: 'DELETE',
         headers: {

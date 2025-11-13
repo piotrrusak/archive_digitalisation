@@ -31,7 +31,7 @@ export const DocOptionsMenu: FC<DocOptionsMenuProps> = ({ doc, onDelete, token }
 
   const handleExport = async () => {
     try {
-      const url = `${BACKEND_API_BASE}/stored_files/2/export`
+      const url = `${BACKEND_API_BASE}/api/v1/stored_files/${doc.id}/export`
       const res = await fetch(url, {
         method: 'GET',
         headers: {
