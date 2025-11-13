@@ -12,7 +12,7 @@ interface DocOptionsMenuProps {
 
 const BACKEND_API_BASE: string =
   (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
-  (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
+  'http://localhost:8080/api/v1'
 
 export const DocOptionsMenu: FC<DocOptionsMenuProps> = ({ doc, onDelete, token }) => {
   const [open, setOpen] = useState(false)
@@ -31,7 +31,7 @@ export const DocOptionsMenu: FC<DocOptionsMenuProps> = ({ doc, onDelete, token }
 
   const handleExport = async () => {
     try {
-      const url = `${BACKEND_API_BASE}/api/v1/stored_files/${doc.id}/export`
+      const url = `${BACKEND_API_BASE}/stored_files/${doc.id}/export`
       const res = await fetch(url, {
         method: 'GET',
         headers: {

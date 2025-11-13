@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 
 const API_BASE: string =
   (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
-  (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
+  'http://localhost:8080/api/v1'
 
 export default function DocumentView() {
   const { id } = useParams<{ id: string }>()
@@ -21,7 +21,7 @@ export default function DocumentView() {
     const fetchDocument = async () => {
       if (!id) return
       try {
-        const res = await fetch(`${API_BASE}/api/v1/stored_files/${id}/export`, {
+        const res = await fetch(`${API_BASE}/stored_files/${id}/export`, {
           method: 'GET',
           headers: {
             Accept: 'application/pdf',
