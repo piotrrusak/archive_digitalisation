@@ -34,9 +34,7 @@ def iterate_through_masks(n):
 with open(os.path.join(JSON_DIR, "dataset.json")) as f:
     json_data = json.load(f)
 
-next_record_num = (
-    int(max(json_data, key=lambda x: int(x["name"]), default={"name": -1})["name"]) + 1
-)
+next_record_num = int(max(json_data, key=lambda x: int(x["name"]), default={"name": -1})["name"]) + 1
 
 old_data = json_data.copy()
 
@@ -62,9 +60,7 @@ for record in old_data:
         image_copy = np.random.randint(250, 255, size=im_arr.shape, dtype=np.int16).astype(np.uint8)
         for line in lineset:
             bbox = line["bbox"]
-            image_copy[bbox[1] : bbox[3], bbox[0] : bbox[2]] = im_arr[
-                bbox[1] : bbox[3], bbox[0] : bbox[2]
-            ]
+            image_copy[bbox[1] : bbox[3], bbox[0] : bbox[2]] = im_arr[bbox[1] : bbox[3], bbox[0] : bbox[2]]
         name = f"{next_record_num:04d}.png"
         new_dataset_entry = {
             "name": name.split(".")[0],

@@ -24,6 +24,9 @@ public class InformationService {
   @Value("${ocr.path}")
   private String ocrPath;
 
+  @Value("${ocr.information-path}")
+  private String informationPath;
+
   @PostConstruct
   void initWebClient() {
     this.webClient = webClientBuilder.baseUrl(ocrBaseUrl).build();
@@ -33,7 +36,7 @@ public class InformationService {
   public AvailableModels getAvailableModels(HttpServletRequest request) {
     return this.webClient
         .post()
-        .uri(this.ocrPath)
+        .uri(this.informationPath)
         .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
         .contentType(MediaType.APPLICATION_JSON)
         .retrieve()

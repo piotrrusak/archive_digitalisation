@@ -2,9 +2,11 @@ import base64
 
 import requests
 
+API_BASE = "/api/v1"
+
 
 def get_pdf_format(backend_url, auth_token, timeout=10):
-    url = f"{backend_url.rstrip('/')}/api/v1/formats"
+    url = f"{backend_url.rstrip('/')}{API_BASE}/formats"
     headers = {}
     if auth_token:
         headers["Authorization"] = auth_token
@@ -39,7 +41,7 @@ def send_file(
     if not auth_token:
         raise ValueError("auth_token is required")
 
-    url = f"{backend_url.rstrip('/')}/api/v1/stored_files"
+    url = f"{backend_url.rstrip('/')}{API_BASE}/stored_files"
     headers = {
         "Authorization": auth_token,
         "Content-Type": "application/json",

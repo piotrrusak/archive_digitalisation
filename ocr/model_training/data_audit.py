@@ -61,10 +61,7 @@ def rasterize_masks(img_w, img_h, root, baseline_thickness=3):
             continue
         if any((x < 0 or x >= img_w or y < 0 or y >= img_h) for x, y in poly):
             oob_regions += 1
-        poly_i = [
-            (int(round(clamp(x, 0, img_w - 1))), int(round(clamp(y, 0, img_h - 1))))
-            for x, y in poly
-        ]
+        poly_i = [(int(round(clamp(x, 0, img_w - 1))), int(round(clamp(y, 0, img_h - 1)))) for x, y in poly]
         if len(poly_i) >= 3:
             draw.polygon(poly_i, fill=2)
 
@@ -78,9 +75,7 @@ def rasterize_masks(img_w, img_h, root, baseline_thickness=3):
             continue
         if any((x < 0 or x >= img_w or y < 0 or y >= img_h) for x, y in pts):
             oob_baselines += 1
-        pts_i = [
-            (int(round(clamp(x, 0, img_w - 1))), int(round(clamp(y, 0, img_h - 1)))) for x, y in pts
-        ]
+        pts_i = [(int(round(clamp(x, 0, img_w - 1))), int(round(clamp(y, 0, img_h - 1)))) for x, y in pts]
         draw.line(pts_i, fill=1, width=baseline_thickness)
 
     return np.array(mask_img, dtype=np.uint8), oob_regions, oob_baselines
@@ -276,14 +271,8 @@ def audit_dataset(
         try:
             root = ET.parse(xml_path).getroot()
             page = root.find(".//{*}Page")
-            xmlW = (
-                int(page.get("imageWidth")) if page is not None and page.get("imageWidth") else None
-            )
-            xmlH = (
-                int(page.get("imageHeight"))
-                if page is not None and page.get("imageHeight")
-                else None
-            )
+            xmlW = int(page.get("imageWidth")) if page is not None and page.get("imageWidth") else None
+            xmlH = int(page.get("imageHeight")) if page is not None and page.get("imageHeight") else None
             page_fn = page.get("imageFilename") if page is not None else None
         except Exception as e:
             reports.append(
@@ -335,15 +324,11 @@ def audit_dataset(
 
         heights, spacings, n_lines = compute_line_stats(root, W, H)
         if n_lines > 0:
-            hist_1d(
-                heights, f"{name}: line heights (px), n={n_lines}", "height (px)", heights_chart
-            )
+            hist_1d(heights, f"{name}: line heights (px), n={n_lines}", "height (px)", heights_chart)
         else:
             heights_chart = Path("")
         if len(spacings) > 0:
-            hist_1d(
-                spacings, f"{name}: line spacings (px)", "spacing to next line (px)", spacings_chart
-            )
+            hist_1d(spacings, f"{name}: line spacings (px)", "spacing to next line (px)", spacings_chart)
         else:
             spacings_chart = Path("")
 
