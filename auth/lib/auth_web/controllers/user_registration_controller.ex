@@ -1,70 +1,10 @@
 defmodule AuthWeb.UserRegistrationController do
   use AuthWeb, :controller
 
-  alias Auth.Accounts
-  alias Auth.Accounts.User
-
-  # Changed to raising version. If on start any of those are failing
-  # Check if everything from config/env.exs.example is present
-  # in config/env.exs
-  @backend_url Application.compile_env!(:auth, :backend_url)
-  @backend_token Application.compile_env!(:auth, :backend_authorization_token)
-
   def create(conn, user_params) do
     user_params
-    |> register_user_and_sync()
+    |> Auth.User.Register.register_user()
     |> handle_response(conn)
-  end
-
-  defp register_user_and_sync(user_params) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:user, fn _repo, _changes ->
-      Accounts.register_user(user_params)
-    end)
-    |> Ecto.Multi.run(:backend_sync, fn _repo, %{user: user} ->
-      sync_user_with_backend(user, user_params)
-    end)
-    |> Auth.Repo.transaction()
-    |> case do
-      {:ok, %{user: user}} -> {:ok, user}
-      {:error, _step, reason, _changes_so_far} -> {:error, reason}
-    end
-  end
-
-  defp sync_user_with_backend(%User{} = user, %{
-         "first_name" => first_name,
-         "last_name" => last_name
-       }) do
-    body =
-      %{
-        id: user.id,
-        mail: user.email,
-        firstName: first_name,
-        lastName: last_name
-      }
-      |> Jason.encode!()
-
-    request =
-      Finch.build(
-        :post,
-        "#{@backend_url}/api/v1/users",
-        [
-          {"content-type", "application/json"},
-          {"authorization", @backend_token}
-        ],
-        body
-      )
-
-    case Auth.BackendClient.Adapter.request(request) do
-      {:ok, %Finch.Response{status: 200}} ->
-        {:ok, user}
-
-      {:ok, %Finch.Response{status: status, body: resp_body}} ->
-        {:error, %{status: status, body: resp_body}}
-
-      {:error, reason} ->
-        {:error, %{error: reason}}
-    end
   end
 
   defp handle_response({:ok, user}, conn) do

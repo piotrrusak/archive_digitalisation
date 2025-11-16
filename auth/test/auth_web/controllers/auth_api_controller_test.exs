@@ -1,6 +1,8 @@
 defmodule AuthWeb.AuthApiControllerTest do
   use AuthWeb.ConnCase, async: true
 
+  @backend_token Application.compile_env!(:auth, :backend_authorization_token)
+
   import Mox
 
   alias AuthWeb.AuthApiController
@@ -25,7 +27,6 @@ defmodule AuthWeb.AuthApiControllerTest do
           uid: "uid123"
         })
 
-      # Mock Google token exchange (Finch)
       Auth.GoogleClientMock
       |> expect(:request, fn _req ->
         {:ok,
@@ -57,7 +58,9 @@ defmodule AuthWeb.AuthApiControllerTest do
       assert response["redirect_path"] == "http://localhost:5173/"
     end
 
-    test "returns JWT and user_created_redirect when new user logs in", %{conn: conn} do
+    test "creates backend user, returns JWT and user_created_redirect when new user logs in", %{
+      conn: conn
+    } do
       Auth.GoogleClientMock
       |> expect(:request, fn _req ->
         {:ok,
@@ -70,6 +73,28 @@ defmodule AuthWeb.AuthApiControllerTest do
       Auth.GoogleVerifierMock
       |> expect(:verify, fn "mock_id_token" ->
         {:ok, %{"email" => "newuser@example.com", "sub" => "uid999", "name" => "New User"}}
+      end)
+
+      Auth.BackendClientMock
+      |> expect(:request, fn
+        %Finch.Request{
+          scheme: :http,
+          host: "localhost",
+          port: 8080,
+          method: "POST",
+          path: "/api/v1/users",
+          headers: [
+            {"content-type", "application/json"},
+            {"authorization", @backend_token}
+          ],
+          body: body
+        } ->
+          # assert the body has correct values
+          assert body =~ ~s("mail":"newuser@example.com")
+          assert body =~ ~s("firstName":"")
+          assert body =~ ~s("lastName":"")
+
+          {:ok, %Finch.Response{status: 200, body: ""}}
       end)
 
       conn =
@@ -136,6 +161,42 @@ defmodule AuthWeb.AuthApiControllerTest do
 
       response = json_response(conn, 400)
       assert response["error"] == "Failed to exchange code"
+    end
+
+    test "rolls back if backend call fails", %{conn: conn} do
+      Auth.GoogleClientMock
+      |> expect(:request, fn _req ->
+        {:ok,
+         %Finch.Response{
+           status: 200,
+           body: Jason.encode!(%{"id_token" => "mock_id_token"})
+         }}
+      end)
+
+      Auth.GoogleVerifierMock
+      |> expect(:verify, fn "mock_id_token" ->
+        {:ok, %{"email" => "newuser@example.com", "sub" => "uid999", "name" => "New User"}}
+      end)
+
+      # Simulate backend failure
+      Auth.BackendClientMock
+      |> expect(:request, fn _req ->
+        {:ok, %Finch.Response{status: 500, body: "backend error"}}
+      end)
+
+      conn =
+        post(conn, "/api/v1/auth/google", %{
+          "code" => "mock_auth_code",
+          "redirect_uri" => "http://localhost:5173/auth/google/callback",
+          "user_found_redirect" => "http://localhost:5173/",
+          "user_created_redirect" => "http://localhost:5173/google/register"
+        })
+
+      assert json = json_response(conn, 502)
+      assert %{"errors" => errors} = json
+
+      # ensure rollback happened
+      assert errors != %{}
     end
   end
 end
