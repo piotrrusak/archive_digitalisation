@@ -71,7 +71,7 @@ defmodule AuthWeb.AuthApiController do
     case Accounts.get_user_by_email(email) do
       nil ->
         {:ok, user} =
-          Accounts.register_user_oauth(%{
+          Auth.User.Register.register_user_oauth(%{
             email: email,
             name: google_data["name"],
             provider: "google",
