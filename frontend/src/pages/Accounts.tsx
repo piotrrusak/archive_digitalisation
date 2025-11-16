@@ -113,6 +113,39 @@ async function handleChangePasswordApi(
   }
 }
 
+async function handleChangeUserName(
+  userId: number | null,
+  userToken: string | null,
+  userFirstName: string | null,
+  userLastName: string | null,
+) {
+  if (typeof userId !== 'number' || isNaN(userId) || !userToken) return
+
+  const url = `${import.meta.env.VITE_BACKEND_API_BASE_URL as string}/users/${userId.toString()}`
+
+  const body = {
+    ...(userFirstName !== null && { firstName: userFirstName }),
+    ...(userLastName !== null && { lastName: userLastName }),
+  }
+
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${userToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const data = (await res.json()) as AuthApiErrorResponse
+    throw new Error(data.message ?? 'Failed to change name')
+  }
+
+  return res
+}
+
 export default function Accounts() {
   const { userId, token, userEmail, logout } = useAuth()
   const { addFlash } = useFlash()
@@ -141,7 +174,6 @@ export default function Accounts() {
     const loadProfile = async () => {
       try {
         const data = await fetchUserProfile(userId, token)
-        console.log(data)
         setFirstName(data.firstName)
         setLastName(data.lastName)
         setInitialFirst(data.firstName)
@@ -154,14 +186,18 @@ export default function Accounts() {
     void loadProfile()
   }, [userId, token])
 
-  const handleSaveProfile = (e: React.FormEvent) => {
-    // Not yet implemented
-    // see ARC-96 (https://linear.app/archive-digitalisation/issue/ARC-96/implement-edit-first-and-last-name-on-the-account-page)
-    // for more context
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    setInitialFirst(firstName)
-    setInitialLast(lastName)
-    alert('Profile updated successfully!')
+
+    try {
+      await handleChangeUserName(userId, token, firstName, lastName)
+
+      setInitialFirst(firstName)
+      setInitialLast(lastName)
+      addFlash('success', 'Profile updated successfully!')
+    } catch (err) {
+      addFlash('error', err instanceof Error ? err.message : 'Update failed')
+    }
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -191,7 +227,10 @@ export default function Accounts() {
         </div>
         <Divider />
 
-        <form onSubmit={handleSaveProfile} className="flex flex-col items-start gap-2.5 w-[450px]">
+        <form
+          onSubmit={(e) => void handleSaveProfile(e)}
+          className="flex flex-col items-start gap-2.5 w-[450px]"
+        >
           <span className="text-gray-text font-semibold">General Information</span>
           <TextField
             label="First Name"
