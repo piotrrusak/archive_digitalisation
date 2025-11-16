@@ -1,4 +1,6 @@
 defmodule Auth.User.Register do
+  @moduledoc false
+
   alias Auth.Accounts
   alias Auth.Accounts.User
 
