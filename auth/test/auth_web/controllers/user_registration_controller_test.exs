@@ -1,6 +1,8 @@
 defmodule AuthWeb.UserRegistrationControllerTest do
   use AuthWeb.ConnCase, async: true
 
+  @backend_token Application.compile_env!(:auth, :backend_authorization_token)
+
   import Mox
 
   @valid_attrs %{
@@ -25,8 +27,25 @@ defmodule AuthWeb.UserRegistrationControllerTest do
 
   test "POST /api/v1/users/register returns 201 and token + user on success", %{conn: conn} do
     Auth.BackendClientMock
-    |> expect(:request, fn _req ->
-      {:ok, %Finch.Response{status: 200, body: ""}}
+    |> expect(:request, fn
+      %Finch.Request{
+        scheme: :http,
+        host: "localhost",
+        port: 8080,
+        method: "POST",
+        path: "/api/v1/users",
+        headers: [
+          {"content-type", "application/json"},
+          {"authorization", @backend_token}
+        ],
+        body: body
+      } ->
+        # assert the body has correct values
+        assert body =~ ~s("mail":"user@example.com")
+        assert body =~ ~s("firstName":"John")
+        assert body =~ ~s("lastName":"Doe")
+
+        {:ok, %Finch.Response{status: 200, body: ""}}
     end)
 
     conn = post(conn, "/api/v1/users/register", @valid_attrs)
