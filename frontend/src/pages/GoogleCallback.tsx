@@ -30,8 +30,8 @@ export function GoogleCallback() {
           body: JSON.stringify({
             code,
             redirect_uri: `${window.location.origin}/auth/google/callback`,
-            user_found_redirect: `${window.location.origin}/`,
-            user_created_redirect: `${window.location.origin}/`,
+            user_found_redirect: `/`,
+            user_created_redirect: `/register/auth/callback`,
           }),
         })
 
@@ -40,9 +40,10 @@ export function GoogleCallback() {
         const data = (await response.json()) as {
           token: string
           user: { id: number; email: string }
+          redirect_path: string
         }
         login(data.token, data.user.id, data.user.email)
-        void navigate('/')
+        void navigate(data.redirect_path)
       } catch (err) {
         console.error(err)
         addFlash('error', 'Google login failed')

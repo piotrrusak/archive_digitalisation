@@ -10,6 +10,7 @@ import Documents from './pages/Documents'
 import Admin from './pages/Admin'
 import { GoogleCallback } from './pages/GoogleCallback'
 import DocumentView from './pages/DocumentView'
+import RegisterAdditionalInfo from './pages/RegisterAdditionalInfo'
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
@@ -28,6 +29,10 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
+        <Route
+          path="/register/auth/callback"
+          element={isLoggedIn ? <RegisterAdditionalInfo /> : <Navigate to="/login" />}
+        />
         <Route
           path="/document/:id"
           element={isLoggedIn ? <DocumentView /> : <Navigate to="/login" />}
