@@ -36,7 +36,7 @@ public class AWSFileManager implements FileManager {
         RequestBody.fromBytes(data));
     System.out.println("File sent S3 as: " + key);
 
-    return key;
+    return key + "." + format;
   }
 
   @Override
