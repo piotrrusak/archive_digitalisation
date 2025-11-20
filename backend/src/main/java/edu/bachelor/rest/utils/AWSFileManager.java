@@ -2,7 +2,6 @@ package edu.bachelor.rest.utils;
 
 import java.io.IOException;
 import java.net.URLConnection;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
