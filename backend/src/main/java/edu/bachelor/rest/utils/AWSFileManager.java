@@ -1,6 +1,8 @@
 package edu.bachelor.rest.utils;
 
 import java.io.IOException;
+import java.net.URLConnection;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -25,11 +27,13 @@ public class AWSFileManager implements FileManager {
   private PathGenerator pathGenerator = new PathGenerator();
 
   @Override
-  public String saveFile(byte[] data) {
+  public String saveFile(byte[] data, String format) {
     String key = this.pathGenerator.generateRandomPath();
 
+    String mimeType = URLConnection.guessContentTypeFromName("example." + format);
+
     s3.putObject(
-        PutObjectRequest.builder().bucket(bucketName).key(key).contentType("text/plain").build(),
+        PutObjectRequest.builder().bucket(bucketName).key(key).contentType(mimeType).build(),
         RequestBody.fromBytes(data));
     System.out.println("File sent S3 as: " + key);
 

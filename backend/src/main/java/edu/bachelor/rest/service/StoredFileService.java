@@ -114,6 +114,12 @@ public class StoredFileService {
       throw new RuntimeException("Failed to save file content", e);
     }
 
+    StoredFile storedFile = StoredFileDTO.toStoredFile(dto, owner, format, primary, path);
+    storedFile =
+        java.util.Objects.requireNonNull(
+            storedFile, "StoredFileDTO.toStoredFile returned null for dto=" + dto);
+    StoredFile savedFile = storedFileRepository.save(storedFile);
+
     if (dto.generation() <= 1) {
 
       final MediaType json =
@@ -131,11 +137,7 @@ public class StoredFileService {
           .block();
     }
 
-    StoredFile storedFile = StoredFileDTO.toStoredFile(dto, owner, format, primary, path);
-    storedFile =
-        java.util.Objects.requireNonNull(
-            storedFile, "StoredFileDTO.toStoredFile returned null for dto=" + dto);
-    return storedFileRepository.save(storedFile);
+    return savedFile;
   }
 
   public void deleteStoredFileById(Long id) {

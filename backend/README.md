@@ -142,10 +142,10 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
 ## POST requests bodies
 
-- POST /api/v1/formats
+- POST /api/v1/formats - The name of format must be its extension: markdown -> md, pdf -> pdf, shell -> sh
 
     {
-      "format":"txt1"
+      "format":"pdf"
     }
 
 - POST /api/v1/stored_files:
@@ -176,7 +176,7 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
       -X POST "http://localhost:8080/api/v1/formats" \
       -H "Authorization: -----------" \
       -H "Content-Type: application/json" \
-      -d '{"format":"txt1"}'
+      -d '{"format":"pdf"}'
 
 - POST on /api/v1/stored_files
 
