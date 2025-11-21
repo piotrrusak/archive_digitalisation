@@ -47,3 +47,5 @@ config :auth, :google_oauth,
   client_secret: "TEST-SECRET"
 
 config :auth, :backend_url, "http://localhost:8080"
+
+config :auth, :backend_authorization_token, "agsrgbbgadfaa"

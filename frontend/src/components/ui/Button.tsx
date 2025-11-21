@@ -39,7 +39,7 @@ export function Button({
         buttonClass,
       )}
     >
-      <div className="flex gap-2.5 align-middle items-center">
+      <div className="flex gap-2.5 align-middle items-center justify-center">
         {type === 'add' && <CirclePlus size={16} />}
         <span className="uppercase">{label}</span>
       </div>

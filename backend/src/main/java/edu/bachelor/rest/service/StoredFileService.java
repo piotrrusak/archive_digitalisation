@@ -13,10 +13,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
@@ -30,7 +30,7 @@ public class StoredFileService {
   private final AWSFileManager fileManager;
   private final WebClient.Builder webClientBuilder;
   private WebClient webClient;
-  
+
   @Value("${ocr.base-url}")
   private String ocrBaseUrl;
 
@@ -38,7 +38,14 @@ public class StoredFileService {
   private String ocrPath;
 
   @PostConstruct
-  void initWebClient() {
+  void initWebClient() throws IllegalStateException {
+    if (this.ocrBaseUrl == null) {
+      throw new IllegalStateException("OCR base url is not configured");
+    }
+    if (this.ocrPath == null) {
+      throw new IllegalStateException("OCR path is not configured");
+    }
+
     this.webClient = webClientBuilder.baseUrl(ocrBaseUrl).build();
   }
 
@@ -60,6 +67,12 @@ public class StoredFileService {
   }
 
   @Transactional(readOnly = true)
+  public byte[] exportFileById(Long id) {
+    StoredFile storedFile = this.storedFileRepository.findById(id).orElse(null);
+    return this.fileManager.getFile(storedFile.getResourcePath());
+  }
+
+  @Transactional(readOnly = true)
   public List<StoredFileDTO> getStoredFilesByOwnerId(Long id) {
     return this.storedFileRepository.findAll().stream()
         .map(
@@ -72,28 +85,28 @@ public class StoredFileService {
 
   public StoredFile saveStoredFile(HttpServletRequest request, StoredFileDTO dto) {
 
+    final Long ownerId = java.util.Objects.requireNonNull(dto.ownerId(), "ownerId is null");
     User owner =
         userRepository
-            .findById(dto.ownerId())
+            .findById(ownerId)
             .orElseThrow(() -> new IllegalArgumentException("Owner not found: " + dto.ownerId()));
 
+    final Long formatId = java.util.Objects.requireNonNull(dto.formatId(), "formatId is null");
     Format format =
         formatRepository
-            .findById(dto.formatId())
+            .findById(formatId)
             .orElseThrow(() -> new IllegalArgumentException("Format not found: " + dto.formatId()));
 
     StoredFile primary = null;
-    if (dto.primaryFileId() != null) {
+    final Long primaryId = dto.primaryFileId();
+    if (primaryId != null) {
       primary =
           storedFileRepository
-              .findById(dto.primaryFileId())
+              .findById(primaryId)
               .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "Primary file not found: " + dto.primaryFileId()));
+                  () -> new IllegalArgumentException("Primary file not found: " + primaryId));
     }
 
-    
     final String path;
     try {
       path = fileManager.saveFile(dto.content());
@@ -101,21 +114,30 @@ public class StoredFileService {
       throw new RuntimeException("Failed to save file content", e);
     }
 
+    StoredFile storedFile = StoredFileDTO.toStoredFile(dto, owner, format, primary, path);
+    storedFile =
+        java.util.Objects.requireNonNull(
+            storedFile, "StoredFileDTO.toStoredFile returned null for dto=" + dto);
+    StoredFile savedFile = storedFileRepository.save(storedFile);
+
     if (dto.generation() <= 1) {
+
+      final MediaType json =
+          java.util.Objects.requireNonNull(
+              MediaType.APPLICATION_JSON, "MediaType.APPLICATION_JSON is null");
+
       this.webClient
           .post()
           .uri(this.ocrPath)
           .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-          .contentType(MediaType.APPLICATION_JSON)
+          .contentType(json)
           .bodyValue(dto)
           .retrieve()
           .bodyToMono(String.class)
           .block();
     }
 
-    StoredFile entity = new StoredFile(null, owner, path, format, dto.generation(), primary);
-
-    return storedFileRepository.save(entity);
+    return savedFile;
   }
 
   public void deleteStoredFileById(Long id) {

@@ -1,41 +1,52 @@
 import { useState } from 'react'
 import Dropzone from '../components/upload/Dropzone'
-import { uploadStoredFile } from '../lib/modelClient'
-import type { StoredFileResponse } from '../lib/modelClient'
+import { uploadStoredFiles } from '../lib/modelClient'
 import { useAuth } from '../hooks/useAuth'
 import MainLayout from '../components/MainLayout'
+import { ScanLine } from 'lucide-react'
+import ModelCarousel from '../components/upload/ModelCarousel'
+import { useFlash } from '../contexts/FlashContext'
+import { Button } from '../components/ui/Button'
 
 export default function Scan() {
   const { token, userId } = useAuth()
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [isSending, setIsSending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<StoredFileResponse | null>(null)
+  const [selectedModelIndex, setSelectedModelIndex] = useState(0)
+  const { addFlash } = useFlash()
 
-  const handleFileSelected = (f: File) => {
-    setFile(f)
-    setError(null)
-    setResult(null)
+  const models = [
+    { title: 'Base Model', description: 'Our standard production model' },
+    { title: 'Document Pro', description: 'Showcase: handles complex layouts' },
+    { title: 'Fast Lite', description: 'Showcase: optimized for speed' },
+    { title: 'Vision XL', description: 'Showcase: better image clarity' },
+    { title: 'OCR Boost', description: 'Showcase: advanced text extraction' },
+    { title: 'Archive Model', description: 'Showcase: historical document tuning' },
+    { title: 'Experimental', description: 'Showcase: AI research prototype' },
+  ]
+
+  const cleanup = () => {
+    setIsSending(false)
+    setFiles([])
   }
 
   const handleSend = async (): Promise<void> => {
-    if (!file) return
+    if (files.length === 0) return
     if (!token) {
-      setError('Invalid token - try logging in again')
+      addFlash('error', 'Invalid token - try logging in again')
       return
     }
     const ownerId = typeof userId === 'string' ? Number(userId) : userId
 
     if (ownerId == null || !Number.isFinite(ownerId)) {
-      setError('Invalid ownerId - try logging in again')
+      addFlash('error', 'Invalid ownerId - try logging in again')
       return
     }
 
     setIsSending(true)
-    setError(null)
     try {
-      const response = await uploadStoredFile(
-        file,
+      await uploadStoredFiles(
+        files,
         {
           ownerId,
           formatId: 1,
@@ -44,7 +55,8 @@ export default function Scan() {
         },
         token,
       )
-      setResult(response)
+      addFlash('success', 'Upload successful!')
+      cleanup()
     } catch (err: unknown) {
       if (err && typeof err === 'object') {
         const e = err as { message?: string; status?: number; data?: unknown }
@@ -62,42 +74,61 @@ export default function Scan() {
           .filter(Boolean)
           .join(' — ')
 
-        setError(msg || 'Upload failed')
+        addFlash('error', `Upload failed — ${msg}`)
+        cleanup()
       } else {
-        setError('Upload failed')
+        addFlash('error', 'Upload failed')
+        cleanup()
       }
-    } finally {
-      setIsSending(false)
     }
   }
 
   return (
     <MainLayout>
-      <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Send Scan</h1>
+      <div className="flex flex-col w-full h-full align-middle justify-center gap-5 p-4">
+        <div className="flex gap-2.5">
+          <span className="text-3xl font-semibold mb-4">Scan a document</span>
+          <ScanLine size={32} />
+        </div>
 
-        <Dropzone onFileSelected={handleFileSelected} />
+        <div className="bg-gray-outline h-px w-full" />
 
-        {file && (
-          <div className="mt-4">
-            <p>
-              Selected file: <strong>{file.name}</strong>
-            </p>
-            <button
-              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-              disabled={isSending}
-              onClick={() => {
-                void handleSend()
-              }}
-            >
-              {isSending ? 'Sending...' : 'Send'}
-            </button>
+        <div className="flex flex-col gap-2.5">
+          <span className="text-gray-text text-lg">Select Model</span>
+          <div className="flex justify-between">
+            <ModelCarousel
+              models={models}
+              selectedIndex={selectedModelIndex}
+              onSelect={setSelectedModelIndex}
+            />
+          </div>
+        </div>
+
+        <div className="bg-gray-outline h-px w-full" />
+
+        {!isSending && (
+          <div className="flex flex-col gap-2.5">
+            <span className="text-gray-text text-lg">Scan Documents</span>
+            <div className="flex justify-between">
+              <Dropzone className="w-full" onFilesChange={setFiles} disabled={isSending} />
+            </div>
           </div>
         )}
 
-        {error && <p className="mt-2 text-red-600 break-words">Error: {error}</p>}
+        {isSending && (
+          <div className="animate-pulse bg-gray-200 h-24 rounded-lg w-full flex items-center justify-center">
+            Uploading...
+          </div>
+        )}
 
-        <p className="mt-2 text-white-600">{result ? 'Upload successful!' : 'No result yet.'}</p>
+        <div className="flex items-center justify-center">
+          <Button
+            buttonClass="max-w-1/4"
+            label="Schedule conversion"
+            onClick={() => void handleSend()}
+            disabled={files.length === 0}
+          />
+        </div>
       </div>
     </MainLayout>
   )
