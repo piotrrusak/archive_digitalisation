@@ -49,7 +49,6 @@ export default function Scan() {
         files,
         {
           ownerId,
-          formatId: 1,
           generation: 1,
           primaryFileId: null,
         },

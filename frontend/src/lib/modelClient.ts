@@ -22,6 +22,39 @@ export function getApiBaseUrl(): string {
   return base.replace(/\/+$/, '')
 }
 
+async function fetchFormats(token: string) {
+  const res = await fetch(`${getApiBaseUrl()}/formats`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch formats: HTTP ${res.status.toString()}`)
+  }
+
+  const data = (await res.json()) as { id: number; format: string; mimeType: string }[]
+
+  return data.filter((f) => f.format.toLowerCase() !== 'pdf')
+}
+
+function detectFormatFromFilename(filename: string): string | null {
+  const ext = filename.split('.').pop()?.toLowerCase() ?? null
+  return ext
+}
+
+function getFormatIdForFile(
+  file: File,
+  availableFormats: { id: number; format: string; mimeType: string }[],
+): number | null {
+  const ext = detectFormatFromFilename(file.name)
+  if (!ext) return null
+
+  const match = availableFormats.find((f) => f.format.toLowerCase() === ext)
+  return match ? match.id : null
+}
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -130,20 +163,35 @@ export async function uploadStoredFile(
 
 export async function uploadStoredFiles(
   files: File[],
-  options: {
+  baseOptions: {
     ownerId: number
-    formatId: number
     generation: number
     primaryFileId: number | null
     endpointPath?: string
   },
   token?: string,
 ): Promise<StoredFileResponse[]> {
-  if (files.length === 0) {
-    return []
-  }
+  if (files.length === 0) return []
+  if (!token) throw new Error('Missing token')
 
-  const results = await Promise.all(files.map((file) => uploadStoredFile(file, options, token)))
+  const formats = await fetchFormats(token)
 
+  const results = await Promise.all(
+    files.map(async (file) => {
+      const formatId = getFormatIdForFile(file, formats)
+      if (!formatId) {
+        throw new Error(`Unsupported file format for file: ${file.name}`)
+      }
+
+      return uploadStoredFile(
+        file,
+        {
+          ...baseOptions,
+          formatId,
+        },
+        token,
+      )
+    }),
+  )
   return results
 }

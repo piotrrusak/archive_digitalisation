@@ -1,9 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { ACCEPTED_MIME_TYPES_AND_EXTENSIONS, MAX_FILE_SIZE_BYTES } from '../../config/upload'
+import { MAX_FILE_SIZE_BYTES } from '../../config/upload'
 import { Button } from '../ui/Button'
 import FilePreview from './FilePreview'
 import { useFlash } from '../../contexts/FlashContext'
+import { getApiBaseUrl } from '../../lib/modelClient'
+import { useAuth } from '../../hooks/useAuth'
 
 interface DropzoneProps {
   disabled?: boolean
@@ -24,9 +26,44 @@ const Dropzone: React.FC<DropzoneProps> = ({
   const [isOver, setIsOver] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const { addFlash } = useFlash()
+  const { token } = useAuth()
 
-  const effectiveAccept = (accept ?? ACCEPTED_MIME_TYPES_AND_EXTENSIONS).map((s) => s.trim())
-  const effectiveMaxSize = maxSizeBytes ?? MAX_FILE_SIZE_BYTES
+  const [availableFormats, setAvailableFormats] = useState<string[]>([])
+  const [availableMimes, setAvailableMimes] = useState<string[]>([])
+  const [dynamicMaxSize, setDynamicMaxSize] = useState<number>(maxSizeBytes ?? MAX_FILE_SIZE_BYTES)
+
+  useEffect(() => {
+    async function loadFormats() {
+      if (!token) return
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/formats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!res.ok) return
+
+        const data = (await res.json()) as { id: number; format: string; mimeType: string }[]
+
+        const filtered = data.filter((f) => f.format.toLowerCase() !== 'pdf')
+
+        setAvailableFormats(filtered.map((f) => `.${f.format.toLowerCase()}`))
+        setAvailableMimes(filtered.map((f) => f.mimeType.toLowerCase()))
+
+        if (!maxSizeBytes) {
+          setDynamicMaxSize(20 * 1024 * 1024)
+        }
+      } catch (err) {
+        console.error('Failed to load formats', err)
+      }
+    }
+
+    void loadFormats()
+  }, [maxSizeBytes, token])
+
+  const effectiveAccept = useMemo(() => {
+    return accept ?? [...availableFormats, ...availableMimes]
+  }, [accept, availableFormats, availableMimes])
+  const effectiveMaxSize = maxSizeBytes ?? dynamicMaxSize
   const describeAcceptAttr = effectiveAccept.join(',')
 
   const validateAndAdd = useCallback(
