@@ -20,4 +20,7 @@ public class Format {
 
   @Column(nullable = false, unique = true)
   private String format;
+
+  @Column(nullable = false)
+  private String mimeType;
 }
