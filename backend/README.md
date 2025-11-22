@@ -95,7 +95,8 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
     {
       "id": 0,
-      "format": "png"
+      "format": "png",
+      "mimeType": "image/png",
     }
 
 - GET /api/v1/formats
