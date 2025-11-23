@@ -37,6 +37,8 @@ iex(1)> Auth.Accounts.get_user_by_email("email@example.com") |> Auth.Accounts.se
 
 Replace email with your desired email and everything is done.
 
+*Note:* Adding admins **WILL NOT** refresh session for them, so you have to log in again to get access to admin powers
+
 ## API
 
 In dev mode the service is exposed @ `http://localhost:4000/` (tls soon).
