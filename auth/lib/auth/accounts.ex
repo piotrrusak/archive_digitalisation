@@ -114,4 +114,20 @@ defmodule Auth.Accounts do
     |> User.admin_changeset(%{admin: admin?})
     |> Repo.update()
   end
+
+  @doc """
+  Lists all users that are present admins (have account,
+    have admin flag set to true, and have deleted flag set to false)
+
+  ## Example
+
+    iex> list_admins()
+    {:ok, [%User{}, %User{}, ...]}
+  """
+  def list_admins() do
+    from(u in User)
+    |> where([u], u.deleted == false)
+    |> where([u], u.admin == true)
+    |> Repo.all()
+  end
 end
