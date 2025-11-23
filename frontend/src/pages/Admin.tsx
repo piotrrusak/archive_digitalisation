@@ -1,13 +1,11 @@
-// This is temporary admin page for component/colors testing
-// In future this will become makeshift admin page that is protected
-// see ARC-80
-
-import { useFlash } from '../contexts/FlashContext'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import MainLayout from '../components/MainLayout'
 import { TextField } from '../components/ui/TextField'
 import { Button } from '../components/ui/Button'
+import { useFlash } from '../contexts/FlashContext'
 import { Modal } from '../components/ui/Modal'
-import MainLayout from '../components/MainLayout'
+import { getApiBaseUrl } from '../lib/modelClient'
+import { useAuth } from '../hooks/useAuth'
 
 const colors = [
   { name: 'white-base', hex: '#FFFFFF' },
@@ -33,6 +31,148 @@ const colors = [
 
 export default function Admin() {
   const { addFlash } = useFlash()
+  const { token } = useAuth()
+
+  const [formats, setFormats] = useState<{ id: number; format: string; mimeType: string }[]>([])
+  const [newFormat, setNewFormat] = useState<{ format: string; mimeType: string }>({
+    format: '',
+    mimeType: '',
+  })
+
+  useEffect(() => {
+    async function loadFormats() {
+      if (!token) return
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/formats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!res.ok) return
+
+        const data = (await res.json()) as { id: number; format: string; mimeType: string }[]
+        setFormats(data)
+      } catch (err) {
+        addFlash('error', `Failed to load formats`)
+        console.log(err)
+      }
+    }
+
+    void loadFormats()
+  }, [token, addFlash])
+
+  async function addNewFormat() {
+    if (!newFormat.format || !newFormat.mimeType) return
+    if (!token) return
+
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/formats`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newFormat),
+      })
+
+      if (!res.ok) return
+
+      const created = (await res.json()) as { id: number; format: string; mimeType: string }
+      setFormats((prev) => [...prev, created])
+      setNewFormat({ format: '', mimeType: '' })
+    } catch (err) {
+      console.error('Failed to add format', err)
+    }
+  }
+
+  async function deleteFormat(id: number) {
+    if (!token) return
+
+    try {
+      await fetch(`${getApiBaseUrl()}/formats/${id.toString()}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      setFormats((prev) => prev.filter((f) => f.id !== id))
+    } catch (err) {
+      console.error('Failed to delete format', err)
+    }
+  }
+
+  /* -------------------------------------------------
+   * ADMIN MANAGEMENT
+   * ------------------------------------------------*/
+  const ADMIN_API = `${import.meta.env.VITE_AUTH_API_BASE_URL}/admins`
+
+  const [admins, setAdmins] = useState<{ id: number; email: string }[]>([])
+  const [newAdminEmail, setNewAdminEmail] = useState('')
+
+  const loadAdmins = useCallback(async () => {
+    if (!token) return
+    try {
+      const res = await fetch(ADMIN_API, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) return
+
+      const data = (await res.json()) as { admins: { id: number; email: string }[] }
+      setAdmins(data.admins)
+    } catch (err) {
+      console.error('Failed to load admins', err)
+    }
+  }, [token, ADMIN_API])
+
+  useEffect(() => {
+    void loadAdmins()
+  }, [loadAdmins])
+
+  async function addAdmin() {
+    if (!newAdminEmail) return
+    if (!token) return
+
+    try {
+      const res = await fetch(ADMIN_API, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email: newAdminEmail, is_admin: true }),
+      })
+
+      if (!res.ok) return
+
+      setNewAdminEmail('')
+      void loadAdmins()
+    } catch (err) {
+      console.error('Failed to add admin', err)
+    }
+  }
+
+  async function removeAdmin(email: string) {
+    if (!token) return
+    try {
+      const res = await fetch(ADMIN_API, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email, is_admin: false }),
+      })
+
+      if (!res.ok) return
+
+      void loadAdmins()
+    } catch (err) {
+      console.error('Failed to remove admin', err)
+    }
+  }
 
   const handleTestFlash = (type: 'success' | 'error' | 'info' | 'warning') => {
     const messages: Record<typeof type, string> = {
@@ -71,9 +211,101 @@ export default function Admin() {
   const closeModal = (key: keyof typeof modals) => {
     setModals((prev) => ({ ...prev, [key]: false }))
   }
+
   return (
     <MainLayout>
-      {/* hack to render everything, definitely remove this in the future*/}
+      <h1 className="text-4xl font-bold mb-12 text-center">🛠 Admin Panel</h1>
+      <section className="mb-20">
+        <h2 className="text-3xl font-bold mb-6 text-center">🧾 Format Control</h2>
+
+        <table className="w-full max-w-2xl mx-auto border border-gray-outline rounded-lg">
+          <thead>
+            <tr className="bg-gray-accent">
+              <th className="p-3 text-left">ID</th>
+              <th className="p-3 text-left">Format</th>
+              <th className="p-3 text-left">MIME Type</th>
+              <th className="p-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {formats.map((f) => (
+              <tr key={f.id} className="border-t">
+                <td className="p-3">{f.id}</td>
+                <td className="p-3">{f.format}</td>
+                <td className="p-3">{f.mimeType}</td>
+                <td className="p-3 text-center">
+                  <Button label="DELETE" variant="danger" onClick={() => void deleteFormat(f.id)} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Add new format */}
+        <div className="max-w-2xl mx-auto mt-8 flex gap-4">
+          <TextField
+            label="Format"
+            value={newFormat.format}
+            onChange={(v) => {
+              setNewFormat((p) => ({ ...p, format: v }))
+            }}
+            placeholder="e.g. docx"
+          />
+          <TextField
+            label="MIME"
+            value={newFormat.mimeType}
+            onChange={(v) => {
+              setNewFormat((p) => ({ ...p, mimeType: v }))
+            }}
+            placeholder="application/vnd..."
+          />
+          <Button label="ADD" type="add" onClick={() => void addNewFormat()} />
+        </div>
+      </section>
+
+      {/* -------------------------------------------------
+        ADMIN TABLE
+      -------------------------------------------------- */}
+      <section className="mb-20">
+        <h2 className="text-3xl font-bold mb-6 text-center">👤 Admin Management</h2>
+
+        <table className="w-full max-w-2xl mx-auto border border-gray-outline rounded-lg">
+          <thead>
+            <tr className="bg-gray-accent">
+              <th className="p-3 text-left">ID</th>
+              <th className="p-3 text-left">Email</th>
+              <th className="p-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {admins.map((a) => (
+              <tr key={a.id} className="border-t">
+                <td className="p-3">{a.id}</td>
+                <td className="p-3">{a.email}</td>
+                <td className="p-3 text-center">
+                  <Button
+                    label="REMOVE"
+                    variant="danger"
+                    onClick={() => void removeAdmin(a.email)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Add new admin */}
+        <div className="max-w-2xl mx-auto mt-8 flex gap-4">
+          <TextField
+            label="Email"
+            value={newAdminEmail}
+            onChange={setNewAdminEmail}
+            placeholder="email@example.com"
+          />
+          <Button label="ADD" type="add" onClick={() => void addAdmin()} />
+        </div>
+      </section>
+
       <div
         className="hidden
         bg-white-base bg-black-base bg-gray-base bg-gray-accent bg-gray-outline bg-gray-text
