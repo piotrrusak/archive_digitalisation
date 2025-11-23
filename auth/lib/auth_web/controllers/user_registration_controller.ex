@@ -15,7 +15,7 @@ defmodule AuthWeb.UserRegistrationController do
     |> json(%{
       message: "User created successfully",
       token: token,
-      user: %{id: user.id, email: user.email}
+      user: %{id: user.id, email: user.email, is_admin: user.admin}
     })
   end
 
