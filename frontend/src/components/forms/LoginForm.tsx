@@ -16,6 +16,7 @@ interface LoginResponse {
   user: {
     id: number
     email: string
+    is_admin: boolean
   }
   token: string
 }
@@ -82,7 +83,7 @@ const LoginForm: React.FC = () => {
 
     try {
       const data = await attemptToLogIn(email, password)
-      login(data.token, data.user.id, data.user.email)
+      login(data.token, data.user.id, data.user.email, data.user.is_admin)
       addFlash('success', data.message)
       void navigate('/')
     } catch (err: unknown) {

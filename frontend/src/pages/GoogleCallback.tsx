@@ -39,10 +39,10 @@ export function GoogleCallback() {
 
         const data = (await response.json()) as {
           token: string
-          user: { id: number; email: string }
+          user: { id: number; email: string; is_admin: boolean }
           redirect_path: string
         }
-        login(data.token, data.user.id, data.user.email)
+        login(data.token, data.user.id, data.user.email, data.user.is_admin)
         void navigate(data.redirect_path)
       } catch (err) {
         console.error(err)

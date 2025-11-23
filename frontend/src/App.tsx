@@ -14,6 +14,7 @@ import RegisterAdditionalInfo from './pages/RegisterAdditionalInfo'
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
+  const isAdmin = useAuth().isAdmin
 
   return (
     <BrowserRouter>
@@ -27,7 +28,12 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/scan" element={isLoggedIn ? <Scan /> : <Navigate to="/login" />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route
+          path="/admin"
+          element={
+            isLoggedIn ? isAdmin ? <Admin /> : <Navigate to="/" /> : <Navigate to="/login" />
+          }
+        />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route
           path="/register/auth/callback"
