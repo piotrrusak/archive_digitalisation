@@ -32,16 +32,25 @@ defmodule AuthWeb.AdminsController do
     })
   end
 
+  @doc """
+  Updates given email's user admin value
+
+  Inputs:
+  - User updating it must be an admin
+  - email: email of user we want to update
+  - is_admin: boolean value to update user status (either true for set to admin or false to unset admin)
+  """
   def set_admin(conn, %{"email" => email, "is_admin" => admin?}) do
-    if conn.current_user.admin do
+    # IO.inspect(conn.assigns.current_user)
+    if conn.assigns.current_user.admin do
       case Accounts.get_user_by_email(email) do
         nil ->
           conn
           |> put_status(:not_found)
           |> json(%{error: "User with given email not found"})
 
-        %User{} = user ->
-          new_user = Accounts.set_user_admin(user, admin?)
+        %Accounts.User{} = user ->
+          {:ok, new_user} = Accounts.set_user_admin(user, admin?)
 
           conn
           |> put_status(:ok)
