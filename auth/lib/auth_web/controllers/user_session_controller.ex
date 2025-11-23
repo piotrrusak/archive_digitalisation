@@ -19,7 +19,7 @@ defmodule AuthWeb.UserSessionController do
         |> json(%{
           message: "Login successful",
           token: token,
-          user: %{id: user.id, email: user.email}
+          user: %{id: user.id, email: user.email, is_admin: user.admin}
         })
     end
   end
