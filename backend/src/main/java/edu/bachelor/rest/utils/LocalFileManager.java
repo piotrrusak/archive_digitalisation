@@ -17,13 +17,13 @@ public class LocalFileManager {
     this.pathGenerator = new PathGenerator();
   }
 
-  public String saveFile(byte[] data) throws IOException {
+  public String saveFile(byte[] data, String format) throws IOException {
 
     if (!Files.exists(BASE_DIR)) {
       Files.createDirectories(BASE_DIR);
     }
 
-    Path path = BASE_DIR.resolve(this.pathGenerator.generateRandomPath());
+    Path path = BASE_DIR.resolve(this.pathGenerator.generateRandomPath() + "." + format);
     Files.write(path, data);
 
     return path.toAbsolutePath().toString();

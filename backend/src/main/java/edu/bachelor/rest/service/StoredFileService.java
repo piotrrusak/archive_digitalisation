@@ -109,7 +109,7 @@ public class StoredFileService {
 
     final String path;
     try {
-      path = fileManager.saveFile(dto.content());
+      path = fileManager.saveFile(dto.content(), format.getFormat());
     } catch (Exception e) {
       throw new RuntimeException("Failed to save file content", e);
     }
