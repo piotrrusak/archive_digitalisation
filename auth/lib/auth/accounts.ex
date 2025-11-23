@@ -97,4 +97,21 @@ defmodule Auth.Accounts do
     )
     |> Repo.update()
   end
+
+  @doc """
+  Changes a user's state of admin role.
+
+  ## Examples
+
+      iex> set_user_admin(user, true)
+      {:ok, %User{admin: true}}
+
+      iex> set_user_admin(user, false)
+      {:ok, %User{admin: false}}
+  """
+  def set_user_admin(user, admin?) do
+    user
+    |> User.admin_changeset(%{admin: admin?})
+    |> Repo.update()
+  end
 end
