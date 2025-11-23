@@ -99,9 +99,6 @@ export default function Admin() {
     }
   }
 
-  /* -------------------------------------------------
-   * ADMIN MANAGEMENT
-   * ------------------------------------------------*/
   const ADMIN_API = `${import.meta.env.VITE_AUTH_API_BASE_URL}/admins`
 
   const [admins, setAdmins] = useState<{ id: number; email: string }[]>([])
@@ -241,7 +238,6 @@ export default function Admin() {
           </tbody>
         </table>
 
-        {/* Add new format */}
         <div className="max-w-2xl mx-auto mt-8 flex gap-4">
           <TextField
             label="Format"
@@ -263,9 +259,6 @@ export default function Admin() {
         </div>
       </section>
 
-      {/* -------------------------------------------------
-        ADMIN TABLE
-      -------------------------------------------------- */}
       <section className="mb-20">
         <h2 className="text-3xl font-bold mb-6 text-center">👤 Admin Management</h2>
 
@@ -294,7 +287,6 @@ export default function Admin() {
           </tbody>
         </table>
 
-        {/* Add new admin */}
         <div className="max-w-2xl mx-auto mt-8 flex gap-4">
           <TextField
             label="Email"
