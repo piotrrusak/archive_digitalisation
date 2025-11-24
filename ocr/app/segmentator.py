@@ -9,6 +9,15 @@ from kraken import blla
 from kraken.lib import vgsl
 from PIL import Image
 
+try:
+    from app.utils import get_frontline
+except ImportError:
+    try:
+        from utils import get_frontline
+    except ImportError as e:
+        raise ImportError("Failed to import get_frontline from utils module.") from e
+
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel"
 _SEG_MODEL = None
@@ -104,11 +113,25 @@ def segment_lines_from_image(
 
         crop = im.crop((x0, y0, x1, y1))
 
+        base = getattr(line, "baseline", None)
+        bound = getattr(line, "boundary", None)
+
+
+        if base is not None:
+            crop_baseline = [(px - x0, py - y0) for px, py in base]
+        else:
+            crop_baseline = None
+
+        if bound:
+            crop_boundary = [(px - x0, py - y0) for px, py in bound]
+        else:
+            crop_boundary = None
+
         item = {
             "index": idx,
             "bbox": (x0, y0, x1, y1),
-            "baseline": getattr(line, "baseline", None),
-            "boundary": getattr(line, "boundary", None),
+            "baseline": crop_baseline,
+            "boundary": crop_boundary,
             "type": getattr(line, "type", None),
             "tags": list(getattr(line, "tags", []) or []),
             "regions": list(getattr(line, "regions", []) or []),
@@ -121,8 +144,10 @@ def segment_lines_from_image(
     return results
 
 
-def segment(im):
-    print("[DEBUG] Starting segmentation...")
+def segment(im, debug=False, debug_indent=0):
+
+    if debug:
+        print(get_frontline(debug_indent) + "Starting segmentation...")
     lines = segment_lines_from_image(
         im,
         text_direction=TEXT_DIRECTION,
@@ -133,10 +158,10 @@ def segment(im):
     return lines
 
 
-def debug_save(im, lines, save_dir=SAVE_DIR):
+def debug_save(im, lines, save_dir=SAVE_DIR, debug_indent=0):
     img_arr = np.array(im.convert("RGB"))
 
-    print(f"Found {len(lines)} lines:")
+    print(get_frontline(debug_indent) + f"Found {len(lines)} lines:")
     save_dir.mkdir(parents=True, exist_ok=True)
     for item in lines:
         bbox = item["bbox"]
@@ -162,10 +187,46 @@ def debug_save(im, lines, save_dir=SAVE_DIR):
             0,
         )
 
+        baseline = item.get("baseline")
+        if baseline :
+            for (bx0, by0), (bx1, by1) in zip(baseline, baseline[1:]) :
+                
+                gx0, gy0 = int(bx0 + x0), int(by0 + y0)
+                gx1, gy1 = int(bx1 + x0), int(by1 + y0)
+
+
+                steps = max(abs(gx1 - gx0), abs(gy1 - gy0)) + 1
+                xs = np.linspace(gx0, gx1, steps).astype(int)
+                ys = np.linspace(gy0, gy1, steps).astype(int)
+
+                for xx, yy in zip(xs, ys) :
+                    if 0 <= yy < img_arr.shape[0] and 0 <= xx < img_arr.shape[1] :
+                        for w_x in range(xx - BBOX_LINE_WIDTH, xx + BBOX_LINE_WIDTH + 1) :
+                            for w_y in range(yy - BBOX_LINE_WIDTH, yy + BBOX_LINE_WIDTH + 1) :
+                                if 0 <= w_y < img_arr.shape[0] and 0 <= w_x < img_arr.shape[1] :
+                                    img_arr[w_y, w_x] = (0, 255, 0)
+                                    
+        boundary = item.get("boundary")
+        if boundary and len(boundary) > 1 :
+            for (bx0, by0), (bx1, by1) in zip(boundary, boundary[1:]) :
+                gx0, gy0 = int(bx0 + x0), int(by0 + y0)
+                gx1, gy1 = int(bx1 + x0), int(by1 + y0)
+
+                steps = max(abs(gx1 - gx0), abs(gy1 - gy0)) + 1
+                xs = np.linspace(gx0, gx1, steps).astype(int)
+                ys = np.linspace(gy0, gy1, steps).astype(int)
+
+                for xx, yy in zip(xs, ys) :
+                    if 0 <= yy < img_arr.shape[0] and 0 <= xx < img_arr.shape[1] :
+                        for w_x in range(xx - BBOX_LINE_WIDTH, xx + BBOX_LINE_WIDTH + 1) :
+                            for w_y in range(yy - BBOX_LINE_WIDTH, yy + BBOX_LINE_WIDTH + 1) :
+                                if 0 <= w_y < img_arr.shape[0] and 0 <= w_x < img_arr.shape[1] :
+                                    img_arr[w_y, w_x] = (0, 0, 255)
+
     im_out = Image.fromarray(img_arr)
     im_out.save(save_dir / "segmented_image.png")
 
-    print(f"Saved lines to directory: {save_dir.resolve()}")
+    print(get_frontline(debug_indent) + f"Saved lines to directory: {save_dir.resolve()}")
 
 
 if __name__ == "__main__":

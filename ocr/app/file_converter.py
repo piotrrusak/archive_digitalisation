@@ -7,7 +7,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_DIR = SCRIPT_DIR / ".." / "temp" / "pdf_pages"
 
 
-def _pil_to_pixmap(image):
+def pil_to_pixmap(image):
     if image.mode == "1":
         image = image.convert("L")
 
@@ -34,7 +34,7 @@ def initialize_pdf_with_image(image, visible_image=True):
     rect = fitz.Rect(0, 0, image.width, image.height)
     page = pdf_doc.new_page(width=image.width, height=image.height)
     if visible_image:
-        pix = _pil_to_pixmap(image)
+        pix = pil_to_pixmap(image)
         page.insert_image(rect, pixmap=pix)
     return pdf_doc
 
