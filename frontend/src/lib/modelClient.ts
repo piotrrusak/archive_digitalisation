@@ -160,8 +160,6 @@ export async function uploadStoredFile(
     content,
   }
 
-  console.log(payload)
-
   const url = `${apiBase}/${options.endpointPath ?? 'stored_files'}`
   return postJson<StoredFileResponse>(url, payload, { timeoutMs: 30_000, token })
 }

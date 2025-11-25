@@ -53,7 +53,6 @@ export default function Admin() {
         setFormats(data)
       } catch (err) {
         addFlash('error', `Failed to load formats`)
-        console.log(err)
       }
     }
 
