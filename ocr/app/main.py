@@ -87,7 +87,7 @@ def handle_file(payload: IncomingFile, request: Request):
 @app.get("/ocr/available_models")
 def available_models():
     try:
-        return {"models": [{k: v for k, v in model.items() if k != "handle"} for model in get_model_list()]}
+        return [{k: v for k, v in model.items() if k != "handle"} for model in get_model_list()]
     except Exception as e:
         logger.error("Error listing available models: %s", e)
         raise HTTPException(status_code=500, detail="Failed to list available models") from e
