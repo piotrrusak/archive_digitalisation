@@ -8,10 +8,12 @@ from pydantic import BaseModel, Field, field_validator
 try:
     from app.backend_client import get_format, send_file
     from app.ocr import get_model_list, run_ocr
+    from app.file_converter import convert_to_png_bytes
 except ImportError:
     try:
         from backend_client import get_format, send_file
         from ocr import get_model_list, run_ocr
+        from file_converter import convert_to_png_bytes
     except ImportError as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
@@ -63,22 +65,25 @@ def handle_file(payload: IncomingFile, request: Request):
     except Exception as err:
         raise HTTPException(status_code=400, detail="Invalid base64 in 'content'") from err
 
-    docx_bytes = run_ocr(png_bytes, model_id=payload.model_id, debug=True, debug_indent=1)
-    logger.info("OCR produced DOCX bytes: %d bytes", len(docx_bytes))
+    in_bytes = convert_to_png_bytes(payload.content, get_format(backend_base_url, auth_header, format_id=payload.formatId), debug=True, debug_indent=1)
+
+    out_bytes = run_ocr(in_bytes, model_id=payload.model_id, debug=True, debug_indent=1)
+    logger.info("OCR produced output bytes: %d bytes", len(out_bytes))
 
     backend_base_url = os.getenv("BACKEND_BASE_URL")
     auth_header = request.headers.get("authorization")
 
-    docx_format = get_format(backend_base_url, auth_header, "docx")
-    logger.info("Using backend DOCX format: %s", docx_format)
+    # out_format = get_format(backend_base_url, auth_header, format_name="docx")
+    out_format = get_format(backend_base_url, auth_header, format_name="pdf")
+    logger.info("Using backend out format: %s", out_format)
 
     result = send_file(
         backend_url=backend_base_url,
         auth_token=auth_header,
         owner_id=payload.ownerId,
-        format_id=docx_format["id"],
+        format_id=out_format["id"],
         generation=payload.generation,
-        content_bytes=docx_bytes,
+        content_bytes=out_bytes,
         primary_file_id=payload.primaryFileId,
     )
 
