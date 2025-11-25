@@ -41,8 +41,9 @@ def load_dataset(json_path : Path = JSON_PATH) :
         data = json.load(f)
     return data
 
-def segmentation_metric(gt_lines, pred_lines, image, item_meta) :
 
+def segmentation_metric(gt_lines, pred_lines, image) :
+    
     h, w = image.size[1], image.size[0]
     gt_mask = np.zeros((h, w), dtype=np.uint8)
     pred_mask = np.zeros((h, w), dtype=np.uint8)

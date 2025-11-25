@@ -6,16 +6,16 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 try:
-    from app.backend_client import get_pdf_format, send_file
+    from app.backend_client import get_format, send_file
     from app.ocr import get_model_list, run_ocr
 except ImportError:
     try:
-        from backend_client import get_pdf_format, send_file
+        from backend_client import get_format, send_file
         from ocr import get_model_list, run_ocr
     except ImportError as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
-app = FastAPI(title="OCR Service", version="0.1.4") # I forgor to update versions, but this is correct one
+app = FastAPI(title="OCR Service", version="1.0.4") # I forgor to update versions, but this is correct one
 logger = logging.getLogger("uvicorn.error")
 
 
@@ -24,6 +24,7 @@ class IncomingFile(BaseModel):
     formatId: int = Field(ge=1)
     generation: int = Field(ge=0)
     primaryFileId: int | None = None
+    model_id: int = 1
     content: str
 
     @field_validator("content")
@@ -48,11 +49,12 @@ def health():
 @app.post("/ocr/process")
 def handle_file(payload: IncomingFile, request: Request):
     logger.info(
-        "Received file: ownerId=%s formatId=%s generation=%s primaryFileId=%s size_b64=%d",
+        "Received file: ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
         payload.ownerId,
         payload.formatId,
         payload.generation,
         payload.primaryFileId,
+        payload.model_id,
         len(payload.content),
     )
 
@@ -61,34 +63,26 @@ def handle_file(payload: IncomingFile, request: Request):
     except Exception as err:
         raise HTTPException(status_code=400, detail="Invalid base64 in 'content'") from err
 
-
-    model_id = 1
-
-    try:
-        model_id = payload.model_id
-    except AttributeError:
-        logger.info("No model_id provided, using default model ID 1")
-
-    pdf_bytes = run_ocr(png_bytes, model_id=model_id)
-    logger.info("OCR produced PDF bytes: %d bytes", len(pdf_bytes))
+    docx_bytes = run_ocr(png_bytes, model_id=payload.model_id, debug=True, debug_indent=1)
+    logger.info("OCR produced DOCX bytes: %d bytes", len(docx_bytes))
 
     backend_base_url = os.getenv("BACKEND_BASE_URL")
     auth_header = request.headers.get("authorization")
 
-    pdf_format = get_pdf_format(backend_base_url, auth_header)
-    logger.info("Using backend PDF format: %s", pdf_format)
+    docx_format = get_format(backend_base_url, auth_header, "docx")
+    logger.info("Using backend DOCX format: %s", docx_format)
 
     result = send_file(
         backend_url=backend_base_url,
         auth_token=auth_header,
         owner_id=payload.ownerId,
-        format_id=pdf_format["id"],
+        format_id=docx_format["id"],
         generation=payload.generation,
-        content_bytes=pdf_bytes,
+        content_bytes=docx_bytes,
         primary_file_id=payload.primaryFileId,
     )
 
-    logger.info("Sent OCR PDF back to backend, got response: %s", result)
+    logger.info("Sent OCR DOCX back to backend, got response: %s", result)
     return result
 
 

@@ -81,54 +81,6 @@ def _bbox_from_line(line, im_w, im_h):
         y0, y1 = max(0, y0 - 1), min(im_h, y1 + 1)
     return int(x0), int(y0), int(x1), int(y1)
 
-import numpy as np
-
-
-def segmentation_metric(gt_lines, pred_lines, image, item_meta) :
-    """
-    gt_lines   : list of dicts from dataset.json, each with at least 'bbox' and 'text'
-    pred_lines : list of dicts returned by the segmentor, each with at least 'bbox'
-    image      : PIL.Image for this page
-    item_meta  : full dict from dataset.json for this page (filepath, name, lines, ...)
-
-    Returns a float score in [0, 1], higher = better, strongly penalizing
-    both missed GT regions and excessive predicted area.
-    """
-    h, w = image.size[1], image.size[0]
-    gt_mask = np.zeros((h, w), dtype=np.uint8)
-    pred_mask = np.zeros((h, w), dtype=np.uint8)
-
-    for line in gt_lines :
-        x1, y1, x2, y2 = line["bbox"]
-        x1, y1 = max(0, x1), max(0, y1)
-        x2, y2 = min(w, x2), min(h, y2)
-        if x2 > x1 and y2 > y1 :
-            gt_mask[y1:y2, x1:x2] = 1
-
-    for line in pred_lines :
-        x1, y1, x2, y2 = line["bbox"]
-        x1, y1 = max(0, x1), max(0, y1)
-        x2, y2 = min(w, x2), min(h, y2)
-        if x2 > x1 and y2 > y1 :
-            pred_mask[y1:y2, x1:x2] = 1
-
-    inter = np.logical_and(gt_mask, pred_mask).sum()
-    gt_sum = gt_mask.sum()
-    pred_sum = pred_mask.sum()
-
-    if gt_sum == 0 and pred_sum == 0 :
-        return 1.0
-    if gt_sum == 0 and pred_sum > 0 :
-        return 0.0
-    if gt_sum > 0 and pred_sum == 0 :
-        return 0.0
-    if inter == 0 :
-        return 0.0
-
-    recall = inter / gt_sum
-    precision = inter / pred_sum
-
-    return recall * precision
 
 def segment_lines_from_image(
     img,

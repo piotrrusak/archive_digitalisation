@@ -5,9 +5,8 @@ from pathlib import Path
 
 from PIL import Image
 
-# tests only. to be removed later
 try:
-    from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
+    from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_docx_bytes, pdf_to_bytes
     from app.module_loading import load_module_from_path
     from app.segmentator import debug_save, segment
     from app.utils import get_frontline
@@ -16,7 +15,7 @@ except ImportError:
         from module_loading import load_module_from_path
         from segmentator import debug_save, segment
 
-        from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes
+        from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_docx_bytes, pdf_to_bytes
         from utils import get_frontline
     except ImportError as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
@@ -59,15 +58,21 @@ def get_model_list():
 
 def get_model_handler(id, debug = False, debug_indent = 0):
     global MODEL_LIST
-    print(get_frontline(debug_indent) + f"Retrieving handler for model ID: {id}")
+    if debug : print(get_frontline(debug_indent) + f"Retrieving handler for model ID: {id}")
     if MODEL_LIST is None:
-        print(get_frontline(debug_indent) + "Loading model list...")
+        if debug : print(get_frontline(debug_indent) + "Loading model list...")
         MODEL_LIST = get_model_list()
-        print(get_frontline(debug_indent) + f"Loaded {len(MODEL_LIST)} models.")
+        if debug : print(get_frontline(debug_indent) + f"Loaded {len(MODEL_LIST)} models.")
+    default_handler = None
     for model in MODEL_LIST:
         if model["id"] == id:
-            print(get_frontline(debug_indent) + f"Found handler for model ID: {id}")
+            if debug : print(get_frontline(debug_indent) + f"Found handler for model ID: {id}")
             return model["handle"]
+        if model["id"] == 1:
+            default_handler = model["handle"]
+    if debug : print(get_frontline(debug_indent) + f"Model ID: {id} not found, using default model ID: 1")
+    return default_handler
+
 
 def run_ocr(png_bytes, model_id, image_visibility = False, one_liner = False, debug = False, debug_indent = 0):
     if debug:
@@ -117,7 +122,12 @@ def run_ocr(png_bytes, model_id, image_visibility = False, one_liner = False, de
         pdf_doc.save(pdf_path)
         print(get_frontline(debug_indent) + f"Saved OCR overlay PDF to: {pdf_path}")
 
-    return pdf_to_bytes(pdf_doc)
+    # temporary fix until future of docx design in decided
+
+    pdf_bytes = pdf_to_bytes(pdf_doc)
+    return pdf_bytes
+    docx_bytes = pdf_to_docx_bytes(pdf_doc)
+    return docx_bytes
 
 
 def test_ocr(test_image_path, model_id=1, one_liner=False, debug=True, debug_indent=0):

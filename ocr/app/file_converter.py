@@ -90,9 +90,8 @@ def pdf_to_bytes(pdf_doc):
     return pdf_doc.write()
 
 
-# to be used maybe?
-def pdf_fitz_to_docx_bytes (pdf_doc) :
-    pdf_bytes = pdf_bytes = pdf_doc.write()
+def pdf_to_docx_bytes(pdf_doc) :
+    pdf_bytes = pdf_to_bytes(pdf_doc)
 
     p1 = subprocess.run(
         ["pdftotext", "-layout", "-", "-"],

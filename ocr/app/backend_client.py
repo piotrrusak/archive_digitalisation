@@ -5,7 +5,7 @@ import requests
 API_BASE = "/api/v1"
 
 
-def get_pdf_format(backend_url, auth_token, timeout=10):
+def get_format(backend_url, auth_token, format_name, timeout=10):
     url = f"{backend_url.rstrip('/')}{API_BASE}/formats"
     headers = {}
     if auth_token:
@@ -19,10 +19,10 @@ def get_pdf_format(backend_url, auth_token, timeout=10):
         raise ValueError("Unexpected formats response payload (expected a list)")
 
     for item in data:
-        if isinstance(item, dict) and str(item.get("format", "")).lower() == "pdf":
+        if isinstance(item, dict) and str(item.get("format", "")).lower() == format_name.lower():
             return item
 
-    raise ValueError("PDF format not found in backend formats list")
+    raise ValueError(f"{format_name} format not found in backend formats list")
 
 
 def send_file(
