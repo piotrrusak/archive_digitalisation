@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import ModelPreview from './ModelPreview'
-
-interface Model {
-  title: string
-  description: string
-}
+import type Model from '../../types/models'
 
 interface ModelCarouselProps {
   models: Model[]
@@ -14,7 +10,7 @@ interface ModelCarouselProps {
 }
 
 const ModelCarousel: React.FC<ModelCarouselProps> = ({ models, selectedIndex, onSelect }) => {
-  const visibleCount = 4
+  const visibleCount = Math.min(4, models.length)
   const [offset, setOffset] = useState(0)
 
   const prev = () => {
@@ -50,7 +46,7 @@ const ModelCarousel: React.FC<ModelCarouselProps> = ({ models, selectedIndex, on
           return (
             <ModelPreview
               key={globalIndex}
-              modelTitle={model.title}
+              modelName={model.name}
               modelDescription={model.description}
               selected={selectedIndex === globalIndex}
               onClick={() => {
