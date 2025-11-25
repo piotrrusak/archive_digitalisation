@@ -24,6 +24,21 @@ For example:
 Auth.Accounts.register_user(%{email: "test.email@dev.com", password: "test_password_123"})
 ```
 
+## Admin/Dev mode
+
+Our app allows for the dev mode (this allows to access the admin panel to set some data without the need to access database directly). Next accounts can be set in frontend but initial account must be set using `iex`. 
+
+The command is simple
+1. Get user you want
+2. Set him to be admin
+```elixir
+iex(1)> Auth.Accounts.get_user_by_email("email@example.com") |> Auth.Accounts.set_user_admin(true)
+```
+
+Replace email with your desired email and everything is done.
+
+*Note:* Adding admins **WILL NOT** refresh session for them, so you have to log in again to get access to admin powers
+
 ## API
 
 In dev mode the service is exposed @ `http://localhost:4000/` (tls soon).

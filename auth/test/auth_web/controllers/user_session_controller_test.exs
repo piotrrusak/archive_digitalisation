@@ -25,10 +25,38 @@ defmodule AuthWeb.UserSessionControllerTest do
   } do
     conn = post(conn, "/api/v1/users/login", %{"email" => email, "password" => password})
     assert json = json_response(conn, 200)
-    assert %{"token" => token, "user" => %{"id" => id, "email" => returned_email}} = json
+
+    assert %{
+             "token" => token,
+             "user" => %{"id" => id, "email" => returned_email, "is_admin" => admin?}
+           } = json
+
     assert returned_email == email
     assert is_binary(token)
     assert is_integer(id)
+    refute admin?
+  end
+
+  test "POST /api/v1/users/login returns 200 with correct is_admin field value when user is admin",
+       %{
+         conn: conn,
+         email: email,
+         password: password,
+         user: user
+       } do
+    {:ok, user} = Accounts.set_user_admin(user, true)
+
+    conn = post(conn, "/api/v1/users/login", %{"email" => email, "password" => password})
+    assert json = json_response(conn, 200)
+
+    assert %{"user" => %{"is_admin" => true}} = json
+
+    {:ok, _user} = Accounts.set_user_admin(user, false)
+
+    conn = post(conn, "/api/v1/users/login", %{"email" => email, "password" => password})
+    assert json = json_response(conn, 200)
+
+    assert %{"user" => %{"is_admin" => false}} = json
   end
 
   test "POST /api/v1/users/login returns 401 on invalid credentials", %{conn: conn} do

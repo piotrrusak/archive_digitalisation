@@ -28,4 +28,11 @@ defmodule AuthWeb.Router do
     put "/users/update_password", ChangePasswordController, :change_password
     delete "/users/delete_account", DeleteAccountController, :delete_account
   end
+
+  scope "/api/v1/admins", AuthWeb do
+    pipe_through(:auth_api)
+
+    get "/", AdminsController, :list_admins
+    put "/", AdminsController, :set_admin
+  end
 end

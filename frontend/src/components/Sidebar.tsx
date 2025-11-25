@@ -5,7 +5,7 @@ import { Home, FileText, ScanLine, User, LogOut, UserStar } from 'lucide-react'
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { logout } = useAuth()
+  const { logout, isAdmin } = useAuth()
 
   function handleLogout() {
     logout()
@@ -62,13 +62,15 @@ export default function Sidebar() {
       </div>
 
       <div className="flex flex-col-reverse mt-4 gap-7 w-[200px] py-4">
-        <button
-          onClick={() => void navigate('/admin')}
-          className={`${baseClasses} ${isActive('/admin') ? activeClasses : inactiveClasses} order-2`}
-        >
-          <UserStar className="mr-2.5" size={24} />
-          Admin Panel
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => void navigate('/admin')}
+            className={`${baseClasses} ${isActive('/admin') ? activeClasses : inactiveClasses} order-2`}
+          >
+            <UserStar className="mr-2.5" size={24} />
+            Admin Panel
+          </button>
+        )}
 
         <button onClick={handleLogout} className={`${baseClasses} ${inactiveClasses} order-1`}>
           <LogOut className="mr-2.5" size={24} />

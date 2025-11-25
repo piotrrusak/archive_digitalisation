@@ -19,6 +19,7 @@ interface RegisterResponse {
   user: {
     id: number
     email: string
+    is_admin: boolean
   }
   token: string
 }
@@ -84,7 +85,7 @@ const RegisterForm: React.FC = () => {
 
     try {
       const data = await attemptToRegister()
-      login(data.token, data.user.id, data.user.email)
+      login(data.token, data.user.id, data.user.email, data.user.is_admin)
       addFlash('success', data.message)
       void navigate('/')
     } catch (err: unknown) {

@@ -97,4 +97,37 @@ defmodule Auth.Accounts do
     )
     |> Repo.update()
   end
+
+  @doc """
+  Changes a user's state of admin role.
+
+  ## Examples
+
+      iex> set_user_admin(user, true)
+      {:ok, %User{admin: true}}
+
+      iex> set_user_admin(user, false)
+      {:ok, %User{admin: false}}
+  """
+  def set_user_admin(user, admin?) do
+    user
+    |> User.admin_changeset(%{admin: admin?})
+    |> Repo.update()
+  end
+
+  @doc """
+  Lists all users that are present admins (have account,
+    have admin flag set to true, and have deleted flag set to false)
+
+  ## Example
+
+    iex> list_admins()
+    {:ok, [%User{}, %User{}, ...]}
+  """
+  def list_admins() do
+    from(u in User)
+    |> where([u], u.deleted == false)
+    |> where([u], u.admin == true)
+    |> Repo.all()
+  end
 end

@@ -66,10 +66,12 @@ defmodule AuthWeb.AuthApiController do
         redirect_path =
           determine_redirect_path(new_user?, user_created_redirect, user_found_redirect)
 
-        json(conn, %{
+        conn
+        |> put_status(:ok)
+        |> json(%{
           message: "Authenticated",
           token: token,
-          user: %{id: user.id, email: user.email},
+          user: %{id: user.id, email: user.email, is_admin: user.admin},
           redirect_path: redirect_path
         })
 

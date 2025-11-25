@@ -51,7 +51,10 @@ defmodule AuthWeb.UserRegistrationControllerTest do
     conn = post(conn, "/api/v1/users/register", @valid_attrs)
 
     assert json = json_response(conn, 201)
-    assert %{"token" => token, "user" => %{"id" => id, "email" => email}} = json
+
+    assert %{"token" => token, "user" => %{"id" => id, "email" => email, "is_admin" => false}} =
+             json
+
     assert email == "user@example.com"
     assert is_binary(token)
     assert is_integer(id)

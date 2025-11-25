@@ -4,15 +4,17 @@ defmodule Auth.Accounts.User do
   import Ecto.Changeset
 
   schema "users" do
-    field(:email, :string)
-    field(:password, :string, virtual: true, redact: true)
-    field(:hashed_password, :string, redact: true)
-    field(:current_password, :string, virtual: true, redact: true)
-    field(:confirmed_at, :utc_datetime)
+    field :email, :string
+    field :password, :string, virtual: true, redact: true
+    field :hashed_password, :string, redact: true
+    field :current_password, :string, virtual: true, redact: true
+    field :confirmed_at, :utc_datetime
     field :provider, :string
     # The provider user ID
     field :uid, :string
     field :deleted, :boolean, default: false
+
+    field :admin, :boolean, default: false
 
     timestamps(type: :utc_datetime)
   end
@@ -179,5 +181,11 @@ defmodule Auth.Accounts.User do
 
     user
     |> change(%{deleted: true, email: new_email})
+  end
+
+  def admin_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:admin])
+    |> change()
   end
 end

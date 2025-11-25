@@ -55,6 +55,7 @@ defmodule AuthWeb.AuthApiControllerTest do
       assert response["token"]
       assert response["message"] == "Authenticated"
       assert response["user"]["email"] == "existing@example.com"
+      refute response["user"]["is_admin"]
       assert response["redirect_path"] == "http://localhost:5173/"
     end
 
@@ -110,6 +111,7 @@ defmodule AuthWeb.AuthApiControllerTest do
       assert response["token"]
       assert response["message"] == "Authenticated"
       assert response["user"]["email"] == "newuser@example.com"
+      refute response["user"]["is_admin"]
       assert response["redirect_path"] == "http://localhost:5173/google/register"
 
       # Ensure the user was persisted
