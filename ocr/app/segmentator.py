@@ -8,18 +8,12 @@ import torch
 from kraken import blla
 from kraken.lib import vgsl
 from PIL import Image
+import logging
 
-try:
-    from app.utils import get_frontline
-except ImportError:
-    try:
-        from utils import get_frontline
-    except ImportError as e:
-        raise ImportError("Failed to import get_frontline from utils module.") from e
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel"
+MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel"
 _SEG_MODEL = None
 
 TEXT_DIRECTION = "horizontal-lr"
@@ -27,6 +21,15 @@ PAD = 2
 SAVE_DIR = SCRIPT_DIR / ".." / "temp" / "seg_lines"
 BBOX_LINE_WIDTH = 5
 
+def silence_segmentation_logs() :
+
+    logging.getLogger("kraken.blla").setLevel(logging.ERROR)
+    logging.getLogger("kraken").setLevel(logging.ERROR)
+
+    logging.getLogger("shapely").setLevel(logging.ERROR)
+    logging.getLogger("shapely.geos").setLevel(logging.ERROR)
+
+    logging.getLogger("geos").setLevel(logging.ERROR)
 
 def _ensure_pil_image(img):
     if isinstance(img, Image.Image):
@@ -36,12 +39,12 @@ def _ensure_pil_image(img):
     raise TypeError("img must be a PIL.Image.Image or bytes")
 
 
-def _load_seg_model(device):
+def _load_seg_model(device, seg_model_path=MODEL_PATH):
     global _SEG_MODEL
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
     if _SEG_MODEL is None:
-        m = vgsl.TorchVGSLModel.load_model(str(MODEL_PATH))
+        m = vgsl.TorchVGSLModel.load_model(str(seg_model_path))
         m.nn.to(device)
         m.nn.eval()
         _SEG_MODEL = m
@@ -78,6 +81,54 @@ def _bbox_from_line(line, im_w, im_h):
         y0, y1 = max(0, y0 - 1), min(im_h, y1 + 1)
     return int(x0), int(y0), int(x1), int(y1)
 
+import numpy as np
+
+
+def segmentation_metric(gt_lines, pred_lines, image, item_meta) :
+    """
+    gt_lines   : list of dicts from dataset.json, each with at least 'bbox' and 'text'
+    pred_lines : list of dicts returned by the segmentor, each with at least 'bbox'
+    image      : PIL.Image for this page
+    item_meta  : full dict from dataset.json for this page (filepath, name, lines, ...)
+
+    Returns a float score in [0, 1], higher = better, strongly penalizing
+    both missed GT regions and excessive predicted area.
+    """
+    h, w = image.size[1], image.size[0]
+    gt_mask = np.zeros((h, w), dtype=np.uint8)
+    pred_mask = np.zeros((h, w), dtype=np.uint8)
+
+    for line in gt_lines :
+        x1, y1, x2, y2 = line["bbox"]
+        x1, y1 = max(0, x1), max(0, y1)
+        x2, y2 = min(w, x2), min(h, y2)
+        if x2 > x1 and y2 > y1 :
+            gt_mask[y1:y2, x1:x2] = 1
+
+    for line in pred_lines :
+        x1, y1, x2, y2 = line["bbox"]
+        x1, y1 = max(0, x1), max(0, y1)
+        x2, y2 = min(w, x2), min(h, y2)
+        if x2 > x1 and y2 > y1 :
+            pred_mask[y1:y2, x1:x2] = 1
+
+    inter = np.logical_and(gt_mask, pred_mask).sum()
+    gt_sum = gt_mask.sum()
+    pred_sum = pred_mask.sum()
+
+    if gt_sum == 0 and pred_sum == 0 :
+        return 1.0
+    if gt_sum == 0 and pred_sum > 0 :
+        return 0.0
+    if gt_sum > 0 and pred_sum == 0 :
+        return 0.0
+    if inter == 0 :
+        return 0.0
+
+    recall = inter / gt_sum
+    precision = inter / pred_sum
+
+    return recall * precision
 
 def segment_lines_from_image(
     img,
@@ -86,12 +137,13 @@ def segment_lines_from_image(
     text_direction="horizontal-lr",
     pad=0,
     return_mode="pil",
+    seg_model_path=MODEL_PATH,
 ):
     im = _ensure_pil_image(img).convert("RGB")
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    seg_model = _load_seg_model(device=device)
+    
+    seg_model = _load_seg_model(device=device, seg_model_path=seg_model_path)
 
     with torch.inference_mode():
         bounds = blla.segment(
@@ -144,24 +196,28 @@ def segment_lines_from_image(
     return results
 
 
-def segment(im, debug=False, debug_indent=0):
+def segment(im, seg_model_path=MODEL_PATH, filter_warnings = False, debug=False, frontline=""):
+
+    if filter_warnings :
+        silence_segmentation_logs()
 
     if debug:
-        print(get_frontline(debug_indent) + "Starting segmentation...")
+        print(frontline + "Starting segmentation...")
     lines = segment_lines_from_image(
         im,
         text_direction=TEXT_DIRECTION,
         pad=PAD,
         return_mode="pil",
+        seg_model_path=seg_model_path,
     )
 
     return lines
 
 
-def debug_save(im, lines, save_dir=SAVE_DIR, debug_indent=0):
+def debug_save(im, lines, save_dir=SAVE_DIR, frontline=""):
     img_arr = np.array(im.convert("RGB"))
 
-    print(get_frontline(debug_indent) + f"Found {len(lines)} lines:")
+    print(frontline + f"Found {len(lines)} lines:")
     save_dir.mkdir(parents=True, exist_ok=True)
     for item in lines:
         bbox = item["bbox"]
@@ -226,7 +282,7 @@ def debug_save(im, lines, save_dir=SAVE_DIR, debug_indent=0):
     im_out = Image.fromarray(img_arr)
     im_out.save(save_dir / "segmented_image.png")
 
-    print(get_frontline(debug_indent) + f"Saved lines to directory: {save_dir.resolve()}")
+    print(frontline + f"Saved lines to directory: {save_dir.resolve()}")
 
 
 if __name__ == "__main__":

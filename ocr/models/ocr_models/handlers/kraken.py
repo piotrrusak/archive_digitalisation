@@ -44,7 +44,6 @@ def handle(image, seg_info = None, debug = False, frontline = "", filter_warning
     output = ""
     try :
         output = "".join(rec.prediction for rec in list(rpred.rpred(MODEL, bin_im, pageseg.segment(bin_im))))
-        if seg_info is not None : output = ""
         if len(output) == 0 :
             raise Exception("Empty output from automatic segmentation")
         else:

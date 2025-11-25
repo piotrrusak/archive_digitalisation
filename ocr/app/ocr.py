@@ -23,7 +23,7 @@ except ImportError:
 
 MODEL_LIST = None
 OUT_DIR = Path(__file__).resolve().parent / ".." / "temp"
-
+INVERT_THRESHOLD = 0.3
 
 def get_model_list():
     global MODEL_LIST
@@ -69,18 +69,30 @@ def get_model_handler(id, debug = False, debug_indent = 0):
             print(get_frontline(debug_indent) + f"Found handler for model ID: {id}")
             return model["handle"]
 
-def run_ocr(png_bytes, model_id, image_visibility = False, debug = False, debug_indent = 0):
+def run_ocr(png_bytes, model_id, image_visibility = False, one_liner = False, debug = False, debug_indent = 0):
     if debug:
         print(get_frontline(debug_indent) + f"Starting OCR with model ID: {model_id}")
     im = Image.open(io.BytesIO(png_bytes))
+    
+    histogram = im.convert("L").histogram()
+    dark_ratio = sum(histogram[:128]) / sum(histogram)
+
+    if dark_ratio > INVERT_THRESHOLD:
+        if debug :
+            print(get_frontline(debug_indent) + f"Inverting image (dark ratio: {dark_ratio:.2f})")
+        im = Image.eval(im, lambda x: 255 - x)
+
     if debug:
         OUT_DIR.mkdir(parents=True, exist_ok=True)
         (OUT_DIR / "debug_input.png").write_bytes(png_bytes)
 
-    lines = segment(im, debug=debug, debug_indent=debug_indent + 1)
-    if debug:
-        debug_save(im, lines, save_dir=OUT_DIR, debug_indent=debug_indent + 2)
-        print(get_frontline(debug_indent + 1) + "Segmentation finished")
+    if not one_liner:
+        lines = segment(im, debug=debug, frontline =get_frontline(debug_indent + 1))
+        if debug:
+            debug_save(im, lines, save_dir=OUT_DIR, frontline=get_frontline(debug_indent + 2))
+            print(get_frontline(debug_indent + 1) + "Segmentation finished")
+    else:
+        lines = [{"bbox": (0, 0, im.width, im.height)}]
 
     ocr_handler = get_model_handler(model_id, debug=debug, debug_indent=debug_indent + 1)
     text_lines: list[str] = []
@@ -108,11 +120,15 @@ def run_ocr(png_bytes, model_id, image_visibility = False, debug = False, debug_
     return pdf_to_bytes(pdf_doc)
 
 
-def test_ocr(test_image_path, model_id=1, debug=True, debug_indent=0):
+def test_ocr(test_image_path, model_id=1, one_liner=False, debug=True, debug_indent=0):
     if debug: print(get_frontline(debug_indent) + f"Testing OCR on image: {test_image_path}")
     png_bytes = test_image_path.read_bytes()
-    run_ocr(png_bytes, model_id=model_id, debug=debug, debug_indent=debug_indent + 1)
+    run_ocr(png_bytes, model_id=model_id, one_liner=one_liner, debug=debug, debug_indent=debug_indent + 1)
 
 
 if __name__ == "__main__":
-    test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png", 1, True)
+    # test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png", 1, True)
+    test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png",
+             model_id=1,
+            #  one_liner=True,
+             debug=True)

@@ -37,13 +37,17 @@ JSON_PATH = Path(__file__).resolve().parent / "input" / "dataset.json"
 def normalize_text(text) :
     return " ".join((text or "").split()).strip()
 
-def test_model(model_path = MODEL_PATH, model_handler = MODEL_HANDLER_PATH, tests = 100, concurrently = False) :
+def load_dataset(json_path : Path = JSON_PATH) :
+    with JSON_PATH.open("r", encoding="utf-8") as f :
+        dataset_info = json.load(f)
+    return dataset_info
+
+def test_model(model_path = MODEL_PATH, model_handler = MODEL_HANDLER_PATH, tests = 100, concurrently = False, dataset_info = None) :
     module = load_module_from_path(model_handler)
     module.load(model_path)
     handle_func = module.handle
-
-    with JSON_PATH.open("r", encoding="utf-8") as f :
-        dataset_info = json.load(f)
+    if dataset_info is None :
+        dataset_info = load_dataset(JSON_PATH)
 
     counter = 0
     score = 0
@@ -65,11 +69,7 @@ def test_model(model_path = MODEL_PATH, model_handler = MODEL_HANDLER_PATH, test
 
             lev_distance = float(Levenshtein.distance(expected, got))
             score += 1 - (lev_distance / max(1, len(expected)))
-            # print(" " * log_length, end = "\r")
-            # print(f"Expected: '{expected}'")
-            # print(f"Got:      '{got}'")
-            # print(f"Score:    {1 - (lev_distance / max(1, len(expected))):.4f}")
-            # print()
+            
             log = f"   Test {counter + 1}, current model score: {score / (counter + 1):.4f}"
             log_length = max(log_length, len(log))
             if not concurrently :
@@ -102,8 +102,13 @@ def _run_model_in_process(model_path, model_handler, tests, queue):
 def test_models_concurrently(model_paths, tests_per_model=2, one_line=True):
 
     model_paths.sort(key=lambda p: len(p[0].name), reverse=True)
-    column_length = len(model_paths[0][0].name)
+    column_length = len(model_paths[0][0].name) if model_paths else 10
 
+    dataset_info = load_dataset(JSON_PATH)
+    lines_num = sum(len(record["lines"]) for record in dataset_info)
+    if tests_per_model is None or tests_per_model > lines_num :
+        tests_per_model = lines_num
+    
     print("Starting concurrent model tests...")
     frontline = " " * 6
     header = frontline
@@ -150,11 +155,11 @@ def test_models_concurrently(model_paths, tests_per_model=2, one_line=True):
         for value in row:
             result_str = f"{value:.4f}"
             line += "| " + " " * ((column_length - len(result_str)) // 2) + result_str + " " * ((column_length - len(result_str)) // 2) + " "
-        print(line + f"| {counter}", end="\r" if one_line else "\n")
+        print(line + f"| {counter} / {tests_per_model + 1}", end="\r" if one_line else "\n")
 
     for p in processes:
         p.join()
-    print(line + f"| {counter}")
+    print(line + f"| {counter} / {tests_per_model + 1}")
 
 if __name__ == "__main__" :
     
@@ -162,4 +167,6 @@ if __name__ == "__main__" :
                               (Path(__file__).resolve().parent / ".." / "models" / "en_best.mlmodel", MODEL_HANDLER_PATH),
                             #   (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best_ketos_submitted.mlmodel", MODEL_HANDLER_PATH),
                               (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "kraken.mlmodel", MODEL_HANDLER_PATH)
-             ], 1000)
+             ],
+             tests_per_model=1000,
+             one_line=True)

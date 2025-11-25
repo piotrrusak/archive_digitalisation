@@ -2,6 +2,7 @@ from pathlib import Path
 
 import fitz
 from PIL import Image
+import subprocess
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_DIR = SCRIPT_DIR / ".." / "temp" / "pdf_pages"
@@ -87,6 +88,36 @@ def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False
 
 def pdf_to_bytes(pdf_doc):
     return pdf_doc.write()
+
+
+# to be used maybe?
+def pdf_fitz_to_docx_bytes (pdf_doc) :
+    pdf_bytes = pdf_bytes = pdf_doc.write()
+
+    p1 = subprocess.run(
+        ["pdftotext", "-layout", "-", "-"],
+        input = pdf_bytes,
+        stdout = subprocess.PIPE,
+        check = True,
+    )
+
+    p2 = subprocess.run(
+        [
+            "pandoc",
+            "--wrap=none",
+            "-f",
+            "markdown+hard_line_breaks",
+            "-t",
+            "docx",
+            "-o",
+            "-",
+        ],
+        input = p1.stdout,
+        stdout = subprocess.PIPE,
+        check = True,
+    )
+
+    return p2.stdout
 
 
 if __name__ == "__main__":
