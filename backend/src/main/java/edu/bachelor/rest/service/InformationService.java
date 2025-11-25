@@ -1,10 +1,12 @@
 package edu.bachelor.rest.service;
 
-import edu.bachelor.rest.dto.AvailableModels;
+import edu.bachelor.rest.dto.AvailableModel;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -33,14 +35,14 @@ public class InformationService {
   }
 
   @Transactional
-  public AvailableModels getAvailableModels(HttpServletRequest request) {
+  public List<AvailableModel> getAvailableModels(HttpServletRequest request) {
     return this.webClient
-        .post()
+        .get()
         .uri(this.informationPath)
         .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON)
         .retrieve()
-        .bodyToMono(AvailableModels.class)
+        .bodyToMono(new ParameterizedTypeReference<List<AvailableModel>>() {})
         .block();
   }
 }
