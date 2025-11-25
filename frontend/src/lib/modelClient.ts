@@ -6,6 +6,7 @@ export interface SendFilePayload {
   generation: number
   primaryFileId: number | null
   content: string
+  processingModelId: number
 }
 
 export type StoredFileResponse = Dict
@@ -137,6 +138,7 @@ export async function uploadStoredFile(
     generation: number
     primaryFileId: number | null
     endpointPath?: string
+    processingModelId: number
   },
   token?: string,
 ): Promise<StoredFileResponse> {
@@ -154,8 +156,11 @@ export async function uploadStoredFile(
     formatId: options.formatId,
     generation: options.generation,
     primaryFileId: options.primaryFileId,
+    processingModelId: options.processingModelId,
     content,
   }
+
+  console.log(payload)
 
   const url = `${apiBase}/${options.endpointPath ?? 'stored_files'}`
   return postJson<StoredFileResponse>(url, payload, { timeoutMs: 30_000, token })
@@ -168,6 +173,7 @@ export async function uploadStoredFiles(
     generation: number
     primaryFileId: number | null
     endpointPath?: string
+    processingModelId: number
   },
   token?: string,
 ): Promise<StoredFileResponse[]> {
