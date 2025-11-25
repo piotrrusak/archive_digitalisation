@@ -18,6 +18,7 @@ class IncomingFile(BaseModel):
     generation: int = Field(ge=0)
     primaryFileId: int | None = None
     content: str
+    processingModelId: int | None
 
     @field_validator("content")
     @classmethod
@@ -41,11 +42,12 @@ def health():
 @app.post("/ocr/process")
 def handle_file(payload: IncomingFile, request: Request):
     logger.info(
-        "Received file: ownerId=%s formatId=%s generation=%s primaryFileId=%s size_b64=%d",
+        "Received file: ownerId=%s formatId=%s generation=%s primaryFileId=%s processingModelId=%d size_b64=%d",
         payload.ownerId,
         payload.formatId,
         payload.generation,
         payload.primaryFileId,
+        payload.processingModelId,
         len(payload.content),
     )
 
@@ -57,7 +59,7 @@ def handle_file(payload: IncomingFile, request: Request):
     model_id = 1
 
     try:
-        model_id = payload.model_id
+        model_id = payload.processingModelId
     except AttributeError:
         logger.info("No model_id provided, using default model ID 1")
 
