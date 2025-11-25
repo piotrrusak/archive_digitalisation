@@ -5,10 +5,17 @@ import os
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
-from app.backend_client import get_pdf_format, send_file
-from app.ocr import get_model_list, run_ocr
+try:
+    from app.backend_client import get_pdf_format, send_file
+    from app.ocr import get_model_list, run_ocr
+except ImportError:
+    try:
+        from backend_client import get_pdf_format, send_file
+        from ocr import get_model_list, run_ocr
+    except ImportError as e:
+        raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
-app = FastAPI(title="OCR Service", version="0.0.3")
+app = FastAPI(title="OCR Service", version="0.1.4") # I forgor to update versions, but this is correct one
 logger = logging.getLogger("uvicorn.error")
 
 
@@ -54,6 +61,7 @@ def handle_file(payload: IncomingFile, request: Request):
     except Exception as err:
         raise HTTPException(status_code=400, detail="Invalid base64 in 'content'") from err
 
+
     model_id = 1
 
     try:
@@ -87,7 +95,10 @@ def handle_file(payload: IncomingFile, request: Request):
 @app.get("/ocr/available_models")
 def available_models():
     try:
-        return {"models": [{k: v for k, v in model.items() if k != "handle"} for model in get_model_list()]}
+        return [
+                {k: v for k, v in model.items() if k != "handle"} 
+                for model in get_model_list()
+            ]
     except Exception as e:
         logger.error("Error listing available models: %s", e)
         raise HTTPException(status_code=500, detail="Failed to list available models") from e

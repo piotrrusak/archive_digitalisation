@@ -1,6 +1,8 @@
 # **/models/
 
-**.mlmodel
+*.mlmodel
+
+!*_submitted.mlmodel
 
 .env
 
