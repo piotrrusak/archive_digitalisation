@@ -34,8 +34,6 @@ services:
       - "8000:8000"
     environment:
       BACKEND_BASE_URL: ${BACKEND_BASE_URL}
-      BACKEND_AUTH_BEARER: ${BACKEND_AUTH_BEARER}
-      TXT_FORMAT_ID: ${TXT_FORMAT_ID}
     extra_hosts:
       - "host.docker.internal:host-gateway" # T_T Please return backend to Docker pleeease, we can make it work, I hate using host.docker.internal T_T
     healthcheck:
