@@ -1,3 +1,4 @@
+// src/pages/SyncfusionEditor.tsx
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import MainLayout from '../components/MainLayout'
@@ -8,40 +9,28 @@ import {
   Toolbar,
 } from '@syncfusion/ej2-react-documenteditor'
 
+// Typy z tej biblioteki są oznaczone jako `any/error`,
+// więc lokalnie wyłączamy ostrzeżenia dla Inject:
+ // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 DocumentEditorContainerComponent.Inject(Toolbar)
 
 const BACKEND_API_BASE: string =
   (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
   'http://localhost:8080/api/v1'
 
-interface SyncfusionEditorInstance {
-  open: (sfdt: string) => void
-  serialize: () => string
-}
-
-interface SyncfusionContainerRefShape {
-  documentEditor?: SyncfusionEditorInstance
-}
-
-function getDocumentEditorFromRef(ref: unknown): SyncfusionEditorInstance | null {
-  if (!ref || typeof ref !== 'object') return null
-  if (!('documentEditor' in ref)) return null
-
-  const maybe = (ref as SyncfusionContainerRefShape).documentEditor
-  if (!maybe) return null
-  if (typeof maybe.open !== 'function') return null
-  if (typeof maybe.serialize !== 'function') return null
-
-  return maybe
-}
-
 export default function SyncfusionEditor() {
   const { id: rawId } = useParams<{ id: string }>()
   const id = rawId ?? ''
   const { token } = useAuth()
+
+  // DocumentEditorContainerComponent ma typ `any/error`, więc union z null
+  // wygląda dla linta na redundantny – wyłączamy tylko tę regułę na tej linii.
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
+
   const [saving, setSaving] = useState(false)
 
+  // ŁADOWANIE
   useEffect(() => {
     if (!id) return
 
@@ -63,9 +52,9 @@ export default function SyncfusionEditor() {
         }
 
         const sfdt = await res.text()
-        const editor = getDocumentEditorFromRef(containerRef.current)
-        if (editor) {
-          editor.open(sfdt)
+
+        if (containerRef.current) {
+          containerRef.current.documentEditor.open(sfdt)
         }
       } catch (err) {
         console.error('Failed to load document for Syncfusion editor', err)
@@ -75,13 +64,14 @@ export default function SyncfusionEditor() {
     void loadDocument()
   }, [id, token])
 
+  // ZAPIS
   const handleSave = async () => {
     if (!id) return
+    if (!containerRef.current) return
 
-    const editor = getDocumentEditorFromRef(containerRef.current)
-    if (!editor) return
-
+    const editor = containerRef.current.documentEditor
     setSaving(true)
+
     try {
       const sfdt = editor.serialize()
 
