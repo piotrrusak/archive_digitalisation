@@ -128,19 +128,18 @@ public class StoredFileService {
 
       try {
         this.webClient
-        .post()
-        .uri(this.ocrPath)
-        .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-        .contentType(json)
-        .bodyValue(StoredFileDTO.fromStoredFile(savedFile, dto.content()))
-        .retrieve()
-        .bodyToMono(Void.class)
-        .subscribe(
-            v -> { },
-            e -> {
-                System.out.println("OCR error: " + e.getMessage());
-            }
-        );
+            .post()
+            .uri(this.ocrPath)
+            .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+            .contentType(json)
+            .bodyValue(StoredFileDTO.fromStoredFile(savedFile, dto.content()))
+            .retrieve()
+            .bodyToMono(Void.class)
+            .subscribe(
+                v -> {},
+                e -> {
+                  System.out.println("OCR error: " + e.getMessage());
+                });
       } catch (Exception e) {
         System.out.println(e.getMessage());
       }

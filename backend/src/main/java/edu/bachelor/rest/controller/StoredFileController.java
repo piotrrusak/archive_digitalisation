@@ -3,7 +3,6 @@ package edu.bachelor.rest.controller;
 import com.syncfusion.ej2.wordprocessor.FormatType;
 import com.syncfusion.ej2.wordprocessor.WordProcessorHelper;
 import edu.bachelor.rest.dto.StoredFileDTO;
-import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.service.StoredFileService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;

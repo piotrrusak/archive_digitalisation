@@ -27,23 +27,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  ocr:
-    build:
-      context: ../ocr
-    ports:
-      - "8000:8000"
-    environment:
-      BACKEND_BASE_URL: ${BACKEND_BASE_URL}
-      BACKEND_AUTH_BEARER: ${BACKEND_AUTH_BEARER}
-      TXT_FORMAT_ID: ${TXT_FORMAT_ID}
-    extra_hosts:
-      - "host.docker.internal:host-gateway" # T_T Please return backend to Docker pleeease, we can make it work, I hate using host.docker.internal T_T
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
+  # ocr:
+  #   build:
+  #     context: ../ocr
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     BACKEND_BASE_URL: ${BACKEND_BASE_URL}
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway" # T_T Please return backend to Docker pleeease, we can make it work, I hate using host.docker.internal T_T
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 5
+  #     start_period: 10s
 
 volumes:
   db_auth:
