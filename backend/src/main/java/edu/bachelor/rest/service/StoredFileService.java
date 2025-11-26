@@ -8,26 +8,17 @@ import edu.bachelor.rest.repository.FormatRepository;
 import edu.bachelor.rest.repository.StoredFileRepository;
 import edu.bachelor.rest.repository.UserRepository;
 import edu.bachelor.rest.utils.AWSFileManager;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -90,38 +81,39 @@ public class StoredFileService {
 
   @Transactional(readOnly = true)
   public byte[] exportStoredFileAsPdfById(Long id) throws Exception {
-      // 1. Pobieramy DTO pliku
-      StoredFileDTO fileDto = this.getFileById(id);
+    // 1. Pobieramy DTO pliku
+    StoredFileDTO fileDto = this.getFileById(id);
 
-      // 2. Pobieramy Format po formatId z DTO
-      Format format = this.formatRepository.findById(fileDto.formatId())
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Unknown file format id: " + fileDto.formatId()
-          ));
+    // 2. Pobieramy Format po formatId z DTO
+    Format format =
+        this.formatRepository
+            .findById(fileDto.formatId())
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException("Unknown file format id: " + fileDto.formatId()));
 
-      // 3. Sprawdzamy MIME type – tylko DOCX
-      if (!"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              .equals(format.getMimeType())) {
-          throw new IllegalArgumentException("File format is not supported for PDF export");
-      }
+    // 3. Sprawdzamy MIME type – tylko DOCX
+    if (!"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        .equals(format.getMimeType())) {
+      throw new IllegalArgumentException("File format is not supported for PDF export");
+    }
 
-      // 4. Pobieramy StoredFile (z resourcePath)
-      StoredFile storedFile = this.storedFileRepository.findById(id)
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Stored file not found: " + id
-          ));
+    // 4. Pobieramy StoredFile (z resourcePath)
+    StoredFile storedFile =
+        this.storedFileRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Stored file not found: " + id));
 
-      // 5. Wczytujemy bajty DOCX
-      byte[] docxBytes = this.fileManager.getFile(storedFile.getResourcePath());
+    // 5. Wczytujemy bajty DOCX
+    byte[] docxBytes = this.fileManager.getFile(storedFile.getResourcePath());
 
-      // 6. Konwersja DOCX -> PDF (tu możesz podstawić swoją wersję z LibreOffice)
-      byte[] outputPdfBytes = convertDocxToPdfBytesUsingLibreOffice(docxBytes);
-      // lub:
-      // byte[] outputPdfBytes = convertDocxToPdfBytesUsingLibreOffice(docxBytes);
+    // 6. Konwersja DOCX -> PDF (tu możesz podstawić swoją wersję z LibreOffice)
+    byte[] outputPdfBytes = convertDocxToPdfBytesUsingLibreOffice(docxBytes);
+    // lub:
+    // byte[] outputPdfBytes = convertDocxToPdfBytesUsingLibreOffice(docxBytes);
 
-      return outputPdfBytes;
+    return outputPdfBytes;
   }
-
 
   @Transactional(readOnly = true)
   public List<StoredFileDTO> getStoredFilesByOwnerId(Long id) {
@@ -259,52 +251,53 @@ public class StoredFileService {
   }
 
   public byte[] convertDocxToPdfBytesUsingLibreOffice(byte[] docxBytes)
-          throws IOException, InterruptedException {
+      throws IOException, InterruptedException {
 
-      Path tempDir = Files.createTempDirectory("docx2pdf-");
-      Path docxPath = tempDir.resolve(UUID.randomUUID() + ".docx");
-      Path pdfPath  = tempDir.resolve(docxPath.getFileName().toString().replace(".docx", ".pdf"));
+    Path tempDir = Files.createTempDirectory("docx2pdf-");
+    Path docxPath = tempDir.resolve(UUID.randomUUID() + ".docx");
+    Path pdfPath = tempDir.resolve(docxPath.getFileName().toString().replace(".docx", ".pdf"));
 
-      Files.write(docxPath, docxBytes);
+    Files.write(docxPath, docxBytes);
 
-      ProcessBuilder pb = new ProcessBuilder(
-              "soffice",
-              "--headless",
-              "--nologo",
-              "--nofirststartwizard",
-              "--convert-to", "pdf",
-              "--outdir", tempDir.toAbsolutePath().toString(),
-              docxPath.toAbsolutePath().toString()
-      );
+    ProcessBuilder pb =
+        new ProcessBuilder(
+            "soffice",
+            "--headless",
+            "--nologo",
+            "--nofirststartwizard",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            tempDir.toAbsolutePath().toString(),
+            docxPath.toAbsolutePath().toString());
 
-      pb.redirectErrorStream(true);
-      Process process = pb.start();
+    pb.redirectErrorStream(true);
+    Process process = pb.start();
 
-      // Czytamy output (ważne – libreoffice potrafi się zawiesić bez tego)
-      try (BufferedReader reader = new BufferedReader(
-              new InputStreamReader(process.getInputStream()))) {
-          while (reader.readLine() != null) {
-              // można logować
-          }
+    // Czytamy output (ważne – libreoffice potrafi się zawiesić bez tego)
+    try (BufferedReader reader =
+        new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+      while (reader.readLine() != null) {
+        // można logować
       }
+    }
 
-      int exitCode = process.waitFor();
-      if (exitCode != 0) {
-          throw new RuntimeException("LibreOffice failed with exit code " + exitCode);
-      }
+    int exitCode = process.waitFor();
+    if (exitCode != 0) {
+      throw new RuntimeException("LibreOffice failed with exit code " + exitCode);
+    }
 
-      if (!Files.exists(pdfPath)) {
-          throw new FileNotFoundException("PDF was not generated by LibreOffice");
-      }
+    if (!Files.exists(pdfPath)) {
+      throw new FileNotFoundException("PDF was not generated by LibreOffice");
+    }
 
-      byte[] pdfBytes = Files.readAllBytes(pdfPath);
+    byte[] pdfBytes = Files.readAllBytes(pdfPath);
 
-      // cleanup
-      Files.deleteIfExists(docxPath);
-      Files.deleteIfExists(pdfPath);
-      Files.deleteIfExists(tempDir);
+    // cleanup
+    Files.deleteIfExists(docxPath);
+    Files.deleteIfExists(pdfPath);
+    Files.deleteIfExists(tempDir);
 
-      return pdfBytes;
+    return pdfBytes;
   }
-
 }
