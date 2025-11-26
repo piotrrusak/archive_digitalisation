@@ -39,7 +39,7 @@ export default function SyncfusionEditor() {
   const { id: rawId } = useParams<{ id: string }>()
   const id = rawId ?? ''
   const { token } = useAuth()
-  const containerRef = useRef<unknown>(null)
+  const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
