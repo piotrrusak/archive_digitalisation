@@ -124,8 +124,8 @@ def run_ocr(png_bytes, model_id, image_visibility = False, one_liner = False, de
 
     # temporary fix until future of docx design in decided
 
-    pdf_bytes = pdf_to_bytes(pdf_doc)
-    return pdf_bytes
+    # pdf_bytes = pdf_to_bytes(pdf_doc)
+    # return pdf_bytes
     docx_bytes = pdf_to_docx_bytes(pdf_doc)
     return docx_bytes
 

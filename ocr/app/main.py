@@ -26,7 +26,7 @@ class IncomingFile(BaseModel):
     formatId: int = Field(ge=1)
     generation: int = Field(ge=0)
     primaryFileId: int | None = None
-    model_id: int = 1
+    processingModelId: int | None
     content: str
 
     @field_validator("content")
@@ -56,25 +56,33 @@ def handle_file(payload: IncomingFile, request: Request):
         payload.formatId,
         payload.generation,
         payload.primaryFileId,
-        payload.model_id,
+        payload.processingModelId,
         len(payload.content),
     )
-
-    try:
-        png_bytes = base64.b64decode(payload.content, validate=True)
-    except Exception as err:
-        raise HTTPException(status_code=400, detail="Invalid base64 in 'content'") from err
-
-    in_bytes = convert_to_png_bytes(payload.content, get_format(backend_base_url, auth_header, format_id=payload.formatId), debug=True, debug_indent=1)
-
-    out_bytes = run_ocr(in_bytes, model_id=payload.model_id, debug=True, debug_indent=1)
-    logger.info("OCR produced output bytes: %d bytes", len(out_bytes))
 
     backend_base_url = os.getenv("BACKEND_BASE_URL")
     auth_header = request.headers.get("authorization")
 
-    # out_format = get_format(backend_base_url, auth_header, format_name="docx")
-    out_format = get_format(backend_base_url, auth_header, format_name="pdf")
+    in_bytes = convert_to_png_bytes(
+                    base64.b64decode(
+                        payload.content,
+                        validate=True
+                    ),
+                    get_format(
+                        backend_base_url,
+                        auth_header,
+                        format_id=payload.formatId
+                    ),
+                    debug=True,
+                    debug_indent=1
+                )
+
+    out_bytes = run_ocr(in_bytes, model_id=payload.processingModelId, debug=True, debug_indent=1)
+    logger.info("OCR produced output bytes: %d bytes", len(out_bytes))
+
+
+    out_format = get_format(backend_base_url, auth_header, format_name="docx")
+    # out_format = get_format(backend_base_url, auth_header, format_name="pdf")
     logger.info("Using backend out format: %s", out_format)
 
     result = send_file(

@@ -133,12 +133,12 @@ def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0)
     if debug:
         print(get_frontline(debug_indent) + f"Converting input format '{input_format}' to PNG bytes")
 
-    if input_format["name"] == "png":
+    if input_format["format"] == "png":
         if debug:
             print(get_frontline(debug_indent) + "Input is already PNG format, no conversion needed")
         return input_bytes
 
-    elif input_format["name"] == "pdf":
+    elif input_format["format"] == "pdf":
         if debug:
             print(get_frontline(debug_indent) + "Converting PDF to PNG using fitz")
         pdf_doc = fitz.open(stream=input_bytes, filetype="pdf")
@@ -149,9 +149,9 @@ def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0)
             print(get_frontline(debug_indent) + f"Converted PDF to PNG bytes: {len(png_bytes)} bytes")
         return png_bytes
     
-    elif input_format["name"] in ["jpeg", "jpg", "tiff", "bmp", "gif"]:
+    elif input_format["format"] in ["jpeg", "jpg", "tiff", "bmp", "gif"]:
         if debug:
-            print(get_frontline(debug_indent) + f"Converting image format '{input_format['name']}' to PNG using PIL")
+            print(get_frontline(debug_indent) + f"Converting image format '{input_format['format']}' to PNG using PIL")
         im = Image.open(io.BytesIO(input_bytes))
         with io.BytesIO() as output:
             im.save(output, format="PNG")
