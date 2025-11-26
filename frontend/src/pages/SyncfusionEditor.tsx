@@ -1,4 +1,3 @@
-// src/pages/SyncfusionEditor.tsx
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import MainLayout from '../components/MainLayout'
@@ -9,10 +8,13 @@ import {
   Toolbar,
 } from '@syncfusion/ej2-react-documenteditor'
 
-// Typy z tej biblioteki są oznaczone jako `any/error`,
-// więc lokalnie wyłączamy ostrzeżenia dla Inject:
- // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+// This library uses "any" type that linter does not let pass, so we disable warnings here:
+
+/* eslint-disable */
+
 DocumentEditorContainerComponent.Inject(Toolbar)
+
+/* eslint-enable */
 
 const BACKEND_API_BASE: string =
   (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
@@ -23,14 +25,16 @@ export default function SyncfusionEditor() {
   const id = rawId ?? ''
   const { token } = useAuth()
 
-  // DocumentEditorContainerComponent ma typ `any/error`, więc union z null
-  // wygląda dla linta na redundantny – wyłączamy tylko tę regułę na tej linii.
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+// This library uses "any" type that linter does not let pass, so we disable warnings here:
+
+/* eslint-disable */
+
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
+
+/* eslint-enable */
 
   const [saving, setSaving] = useState(false)
 
-  // ŁADOWANIE
   useEffect(() => {
     if (!id) return
 
@@ -64,7 +68,6 @@ export default function SyncfusionEditor() {
     void loadDocument()
   }, [id, token])
 
-  // ZAPIS
   const handleSave = async () => {
     if (!id) return
     if (!containerRef.current) return
