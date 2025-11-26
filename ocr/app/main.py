@@ -28,6 +28,7 @@ class IncomingFile(BaseModel):
     primaryFileId: int | None = None
     processingModelId: int | None
     content: str
+    processingModelId: int | None
 
     @field_validator("content")
     @classmethod
