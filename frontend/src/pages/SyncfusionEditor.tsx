@@ -31,8 +31,6 @@ export default function SyncfusionEditor() {
 
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
 
-/* eslint-enable */
-
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -128,3 +126,4 @@ export default function SyncfusionEditor() {
     </MainLayout>
   )
 }
+/* eslint-enable */
