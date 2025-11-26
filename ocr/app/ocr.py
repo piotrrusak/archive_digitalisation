@@ -37,7 +37,6 @@ def get_model_list():
         module = load_module_from_path(handler_file)
         if not hasattr(module, "NAME") or not hasattr(module, "DESCRIPTION") or not hasattr(module, "handle"):
             continue
-        print(f"Loaded OCR model handler: {handler_file.name}")
 
         name = getattr(module, "NAME", handler_file.stem)
         desc = module.DESCRIPTION

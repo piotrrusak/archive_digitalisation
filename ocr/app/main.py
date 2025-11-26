@@ -60,14 +60,12 @@ def find_correct_backend_url(auth_header, format_id):
     if BACKEND_URL is None :
         try:
             backend_base_url = os.getenv("BACKEND_BASE_URL_DOCKER")
-            print("Found format:", get_format(backend_base_url, auth_header, format_id=format_id))
-            print("Using BACKEND_BASE_URL_DOCKER:", backend_base_url)
+            get_format(backend_base_url, auth_header, format_id=format_id)
             BACKEND_URL = backend_base_url
         except Exception as e :
             try:
                 backend_base_url = os.getenv("BACKEND_BASE_URL")
-                print("Found format:", get_format(backend_base_url, auth_header, format_id=format_id))
-                print("Using BACKEND_BASE_URL:", backend_base_url)
+                get_format(backend_base_url, auth_header, format_id=format_id)
                 BACKEND_URL = backend_base_url
             except Exception as e:
                 logger.error("Failed to find backend URL: %s", e)
@@ -106,8 +104,6 @@ async def handle_file(payload: IncomingFile, request: Request):
         format_id=payload.formatId,
     )
 
-    print(backend_base_url)
-
     in_bytes = convert_to_png_bytes(
         base64.b64decode(payload.content, validate=True),
         get_format(backend_base_url, auth_header, format_id=payload.formatId),
@@ -121,6 +117,7 @@ async def handle_file(payload: IncomingFile, request: Request):
 
     out_pdf_format = get_format(backend_base_url, auth_header, format_name="pdf")
     if not out_pdf_format:
+        logger.error("PDF format not found in backend formats")
         raise HTTPException(status_code=404, detail="PDF format not found in backend formats")
     logger.info("Sending OCR result as PDF format (%s) to backend", out_pdf_format)
 
@@ -138,8 +135,8 @@ async def handle_file(payload: IncomingFile, request: Request):
 
 
     out_docx_format = get_format(backend_base_url, auth_header, format_name="docx")
-    print(out_docx_format)
     if not out_docx_format:
+        logger.error("DOCX format not found in backend formats")
         raise HTTPException(status_code=404, detail="DOCX format not found in backend formats")
     logger.info("Sending OCR result as DOCX format (%s) to backend", out_docx_format)
 
