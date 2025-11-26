@@ -17,3 +17,8 @@ PyMuPDF>=1.24.10  # provides `import fitz`
 # tooling / tests
 pytest>=8.3
 ruff>=0.6.9
+
+# document conversion
+pdfminer.six>=20240706
+python-docx>=1.1.2
+lxml>=5.3

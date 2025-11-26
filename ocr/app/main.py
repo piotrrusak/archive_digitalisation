@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field, field_validator
 
 from dotenv import load_dotenv
 
-load_dotenv()
 
 try:
     from app.backend_client import get_format, send_file
@@ -22,7 +21,11 @@ except ImportError:
     except ImportError as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
-app = FastAPI(title="OCR Service", version="1.0.4")  # I forgor to update versions, but this is correct one
+load_dotenv()
+
+BACKEND_URL = None
+
+app = FastAPI(title="OCR Service", version="1.0.5")
 logger = logging.getLogger("uvicorn.error")
 
 
@@ -52,6 +55,24 @@ def strip_content(data):
         data = "[NON-JSON BODY]"
     return data
 
+def find_correct_backend_url(auth_header, format_id):
+    global BACKEND_URL
+    if BACKEND_URL is None :
+        try:
+            backend_base_url = os.getenv("BACKEND_BASE_URL_DOCKER")
+            print("Found format:", get_format(backend_base_url, auth_header, format_id=format_id))
+            print("Using BACKEND_BASE_URL_DOCKER:", backend_base_url)
+            BACKEND_URL = backend_base_url
+        except Exception as e :
+            try:
+                backend_base_url = os.getenv("BACKEND_BASE_URL")
+                print("Found format:", get_format(backend_base_url, auth_header, format_id=format_id))
+                print("Using BACKEND_BASE_URL:", backend_base_url)
+                BACKEND_URL = backend_base_url
+            except Exception as e:
+                logger.error("Failed to find backend URL: %s", e)
+    return BACKEND_URL
+
 @app.get("/health")
 def health():
     try:
@@ -78,8 +99,14 @@ async def handle_file(payload: IncomingFile, request: Request):
         len(payload.content),
     )
 
-    backend_base_url = os.getenv("BACKEND_BASE_URL")
     auth_header = request.headers.get("authorization")
+
+    backend_base_url = find_correct_backend_url(
+        auth_header=auth_header,
+        format_id=payload.formatId,
+    )
+
+    print(backend_base_url)
 
     in_bytes = convert_to_png_bytes(
         base64.b64decode(payload.content, validate=True),
@@ -88,11 +115,13 @@ async def handle_file(payload: IncomingFile, request: Request):
         debug_indent=1,
     )
 
-    out_bytes = run_ocr(in_bytes, model_id=payload.processingModelId, debug=True, debug_indent=1)
-    logger.info("OCR produced output bytes: %d bytes", len(out_bytes))
+    out_pdf_bytes, out_docx_bytes = run_ocr(in_bytes, model_id=payload.processingModelId, debug=True, debug_indent=1)
+    logger.info("OCR produced output PDF bytes: %d bytes", len(out_pdf_bytes))
+    logger.info("OCR produced output DOCX bytes: %d bytes", len(out_docx_bytes))
 
     out_pdf_format = get_format(backend_base_url, auth_header, format_name="pdf")
-
+    if not out_pdf_format:
+        raise HTTPException(status_code=404, detail="PDF format not found in backend formats")
     logger.info("Sending OCR result as PDF format (%s) to backend", out_pdf_format)
 
     result = send_file(
@@ -101,25 +130,29 @@ async def handle_file(payload: IncomingFile, request: Request):
         owner_id=payload.ownerId,
         format_id=out_pdf_format["id"],
         generation=payload.generation,
-        content_bytes=out_bytes,
+        content_bytes=out_pdf_bytes,
         primary_file_id=payload.id,
     )
 
     logger.info("Sent OCR result back to backend, got response: %s", strip_content(result))
 
 
-    # out_docx_format = get_format(backend_base_url, auth_header, format_name="docx")
-    # logger.info("Sending OCR result as DOCX format (%s) to backend", out_docx_format)
+    out_docx_format = get_format(backend_base_url, auth_header, format_name="docx")
+    print(out_docx_format)
+    if not out_docx_format:
+        raise HTTPException(status_code=404, detail="DOCX format not found in backend formats")
+    logger.info("Sending OCR result as DOCX format (%s) to backend", out_docx_format)
 
-    # result = send_file(
-    #     backend_url=backend_base_url,
-    #     auth_token=auth_header,
-    #     owner_id=payload.ownerId,
-    #     format_id=out_docx_format["id"],
-    #     generation=payload.generation,
-    #     content_bytes=out_bytes,
-    #     primary_file_id=payload.id,
-    # )
+    result = send_file(
+        backend_url=backend_base_url,
+        auth_token=auth_header,
+        owner_id=payload.ownerId,
+        format_id=out_docx_format["id"],
+        generation=payload.generation,
+        content_bytes=out_docx_bytes,
+        primary_file_id=payload.id,
+    )
+    logger.info("Sent OCR result back to backend, got response: %s", strip_content(result))
 
     return result
 
