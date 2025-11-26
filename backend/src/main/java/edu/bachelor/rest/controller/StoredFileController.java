@@ -3,7 +3,9 @@ package edu.bachelor.rest.controller;
 import com.syncfusion.ej2.wordprocessor.FormatType;
 import com.syncfusion.ej2.wordprocessor.WordProcessorHelper;
 import edu.bachelor.rest.dto.StoredFileDTO;
+import edu.bachelor.rest.repository.FormatRepository;
 import edu.bachelor.rest.service.StoredFileService;
+import edu.bachelor.rest.utils.PathGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class StoredFileController {
 
   private final StoredFileService storedFileService;
+  private final FormatRepository formatRepository;
 
   @GetMapping
   public List<StoredFileDTO> getAllStoredFiles() {
@@ -35,6 +38,34 @@ public class StoredFileController {
   @GetMapping("/{id}/export")
   public byte[] exportStoredFileById(@PathVariable Long id) throws Exception {
     return this.storedFileService.exportFileById(id);
+  }
+
+  @GetMapping("/{id}/export/pdf")
+  public StoredFileDTO exportStoredFileAsPdfById(@PathVariable Long id) throws Exception {
+    PathGenerator pathGenerator = new PathGenerator();
+    StoredFileDTO original = this.storedFileService.getFileById(id);
+    StoredFileDTO temp =
+        new StoredFileDTO(
+            original.id(),
+            original.ownerId(),
+            this.formatRepository.findByFormat("pdf").getId(),
+            pathGenerator.generateRandomPath() + ".pdf",
+            original.generation() + 1,
+            original.primaryFileId(),
+            this.storedFileService.exportStoredFileAsPdfById(id),
+            original.processingModelId());
+    return this.storedFileService.saveStoredFileWithoutOCR(temp);
+  }
+
+  @GetMapping("/{id}/preview")
+  public ResponseEntity<byte[]> previewStoredFileById(@PathVariable Long id) throws Exception {
+    // works only for pdf
+    byte[] pdf = storedFileService.exportFileById(id);
+
+    return ResponseEntity.ok()
+        .header("Content-Type", "application/pdf")
+        .header("Content-Disposition", "inline; filename=\"preview.pdf\"")
+        .body(pdf);
   }
 
   @GetMapping("/owner/{owner_id}")
