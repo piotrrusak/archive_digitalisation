@@ -51,9 +51,9 @@ export default function Admin() {
 
         const data = (await res.json()) as { id: number; format: string; mimeType: string }[]
         setFormats(data)
-      } catch (err) {
-        addFlash('error', `Failed to load formats`)
-        console.log(err)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        addFlash('error', `Failed to load formats ${message}`)
       }
     }
 

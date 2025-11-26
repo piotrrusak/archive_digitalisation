@@ -1,14 +1,14 @@
 import clsx from 'clsx'
 
 interface ModelPreviewProps {
-  modelTitle: string
+  modelName: string
   modelDescription?: string
   selected: boolean
   onClick: () => void
 }
 
 const ModelPreview: React.FC<ModelPreviewProps> = ({
-  modelTitle,
+  modelName,
   modelDescription = '',
   selected,
   onClick,
@@ -33,7 +33,7 @@ const ModelPreview: React.FC<ModelPreviewProps> = ({
           selected ? 'text-blue-900' : 'text-black-base',
         )}
       >
-        {modelTitle}
+        {modelName}
       </span>
       <p className="text-xs text-gray-text text-center px-1">{modelDescription}</p>
     </button>
