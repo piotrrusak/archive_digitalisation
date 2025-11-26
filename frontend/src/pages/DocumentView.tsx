@@ -47,7 +47,7 @@ export default function DocumentView() {
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl)
     }
-  }, [id, token])
+  }, [id, token, pdfUrl])
 
   return (
     <MainLayout>
