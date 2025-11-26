@@ -19,6 +19,7 @@ interface StoredFileDTO {
   id: number
   fileName: string
   ownerId: number
+  formatId: number
 }
 
 async function fetchUserProfile(userId: number, userToken: string): Promise<string> {
@@ -107,26 +108,38 @@ export default function Home() {
 
         const files = (await listRes.json()) as StoredFileDTO[]
 
-        const pdfFiles = files.filter((file) => file.id === pdfFormatId)
+        const pdfFiles = files.filter((file) => file.formatId === pdfFormatId)
 
         if (pdfFiles.length === 0) {
+          console.log('DUPAPAPAPA')
           setError('User has no PDF documents')
           setLoading(false)
           return
         }
 
-        const randomFile = pdfFiles[Math.floor(Math.random() * files.length)]
+        console.log(pdfFiles)
+
+        console.log(Math.floor(Math.random() * pdfFiles.length))
+
+        const randomFile = pdfFiles[Math.floor(Math.random() * pdfFiles.length)]
+
+        console.log(randomFile)
 
         const exportUrl = `${base}/stored_files/${randomFile.id.toString()}/preview`
         const pdfRes = await fetch(exportUrl, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
+        console.log(pdfRes)
+
         if (!pdfRes.ok) throw new Error('Failed to export PDF')
 
         const blob = await pdfRes.blob()
+        console.log(blob)
         const url = URL.createObjectURL(blob)
+        console.log(url)
         setPdfUrl(url)
+        setError(null)
       } catch (err: unknown) {
         console.error(err)
         setError(err instanceof Error ? err.message : 'Failed to create blob')
@@ -167,11 +180,13 @@ export default function Home() {
               )}
 
               {!loading && !error && pdfUrl && (
-                <iframe
-                  src={pdfUrl}
-                  title="Document"
-                  className="w-full h-[600px] border rounded-lg shadow-lg bg-white"
-                />
+                <div>
+                  <iframe
+                    src={pdfUrl}
+                    title="Document"
+                    className="w-full h-[600px] border rounded-lg shadow-lg bg-white"
+                  />
+                </div>
               )}
             </div>
           </div>
