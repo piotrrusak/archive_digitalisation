@@ -3,7 +3,6 @@ package edu.bachelor.rest.controller;
 import com.syncfusion.ej2.wordprocessor.FormatType;
 import com.syncfusion.ej2.wordprocessor.WordProcessorHelper;
 import edu.bachelor.rest.dto.StoredFileDTO;
-import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.service.StoredFileService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
@@ -36,6 +35,17 @@ public class StoredFileController {
   @GetMapping("/{id}/export")
   public byte[] exportStoredFileById(@PathVariable Long id) throws Exception {
     return this.storedFileService.exportFileById(id);
+  }
+
+  @GetMapping("/{id}/preview")
+  public ResponseEntity<byte[]> previewStoredFileById(@PathVariable Long id) throws Exception {
+    // works only for pdf
+    byte[] pdf = storedFileService.exportFileById(id);
+
+    return ResponseEntity.ok()
+        .header("Content-Type", "application/pdf")
+        .header("Content-Disposition", "inline; filename=\"preview.pdf\"")
+        .body(pdf);
   }
 
   @GetMapping("/owner/{owner_id}")

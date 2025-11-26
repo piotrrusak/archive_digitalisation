@@ -18,6 +18,9 @@ export default function DocumentView() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
   useEffect(() => {
+    let isMounted = true
+    let objectUrl: string | null = null
+
     const fetchDocument = async () => {
       if (!id) return
       try {
@@ -32,26 +35,27 @@ export default function DocumentView() {
         if (!res.ok) throw new Error('Failed to load document.')
 
         const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        setPdfUrl(url)
+        objectUrl = URL.createObjectURL(blob)
+        if (isMounted) setPdfUrl(objectUrl)
       } catch (err) {
         console.error('Document fetch failed:', err)
-        setError('Failed to load document.')
+        if (isMounted) setError('Failed to load document.')
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     void fetchDocument()
 
     return () => {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl)
+      isMounted = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [id, token, pdfUrl])
+  }, [id, token])
 
   return (
     <MainLayout>
-      <div className="p-4 flex flex-col gap-4 **min-h-screen**">
+      <div className="p-4 flex flex-col gap-4 h-full">
         <div className="flex items-center gap-3">
           <button
             onClick={() => void navigate('/documents')}
@@ -70,7 +74,7 @@ export default function DocumentView() {
           <iframe
             src={pdfUrl}
             title="Document"
-            className="w-full flex-1 border rounded-lg shadow-md"
+            className="w-full h-full flex-1 border rounded-lg shadow-md"
           />
         )}
       </div>

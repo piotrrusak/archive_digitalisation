@@ -11,33 +11,31 @@ const API_BASE: string =
   (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
 
 interface APIStoredFileFormat {
-  id?: number | string
+  id?: number
   mimeType?: string
-  name?: string
-  extension?: string
+  format?: string
 }
 
 interface APIStoredFile {
-  id: number | string
+  id: number
   resourcePath?: string
-  format?: APIStoredFileFormat
+  formatId?: number
   generation?: number
   primaryFile?: unknown
   owner?: unknown
 }
 
 interface Doc {
-  id: string
+  id: number
   name: string
   type?: string
   generation?: number
 }
 
-function normalizeDoc(d: APIStoredFile): Doc {
-  const rawId = d.id
-  const id = typeof rawId === 'number' ? String(rawId) : rawId
-  const name = d.resourcePath?.split(/[/\\]/).pop() ?? `file-${id}`
-  const type = d.format?.mimeType ?? d.format?.name ?? d.format?.extension
+function normalizeDoc(d: APIStoredFile, formats: APIStoredFileFormat[]): Doc {
+  const id = d.id
+  const name = d.resourcePath?.split(/[/\\]/).pop()?.split('.').at(0) ?? `file-${id.toString()}`
+  const type = formats.find((f) => f.id === d.formatId)?.format ?? ''
   return { id, name, type, generation: d.generation }
 }
 
@@ -48,7 +46,6 @@ export default function Documents() {
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState<string>('')
 
-  // modal state
   const [deleteModal, setDeleteModal] = useState(false)
   const [docToDelete, setDocToDelete] = useState<Doc | null>(null)
 
@@ -56,16 +53,25 @@ export default function Documents() {
 
   const fetchDocs = useCallback(
     async (signal?: AbortSignal): Promise<void> => {
+      if (!token) return
       setLoading(true)
       setError(null)
       const url = `${API_BASE}/stored_files`
 
       try {
+        const formatsResponse = await fetch(`${API_BASE}/formats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!formatsResponse.ok) return
+
+        const formats = (await formatsResponse.json()) as APIStoredFileFormat[]
+
         const res = await fetch(url, {
           method: 'GET',
           headers: {
             Accept: 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            Authorization: `Bearer ${token}`,
           },
           signal,
         })
@@ -78,7 +84,7 @@ export default function Documents() {
 
         const json: unknown = await res.json()
         if (!Array.isArray(json)) throw new Error('Unexpected response shape.')
-        const parsed = (json as APIStoredFile[]).map((x) => normalizeDoc(x))
+        const parsed = (json as APIStoredFile[]).map((x) => normalizeDoc(x, formats))
         setDocs(parsed)
       } catch (e: unknown) {
         if (e instanceof DOMException && e.name === 'AbortError') return
@@ -129,7 +135,7 @@ export default function Documents() {
   const confirmDelete = async () => {
     if (!docToDelete) return
     try {
-      const url = `${API_BASE}/v1/stored_files/${docToDelete.id}`
+      const url = `${API_BASE}/stored_files/${docToDelete.id.toString()}`
       const res = await fetch(url, {
         method: 'DELETE',
         headers: {
