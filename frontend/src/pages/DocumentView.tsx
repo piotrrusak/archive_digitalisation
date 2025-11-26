@@ -51,7 +51,7 @@ export default function DocumentView() {
 
   return (
     <MainLayout>
-      <div className="p-4 flex flex-col gap-4 h-full">
+      <div className="p-4 flex flex-col gap-4 **min-h-screen**">
         <div className="flex items-center gap-3">
           <button
             onClick={() => void navigate('/documents')}

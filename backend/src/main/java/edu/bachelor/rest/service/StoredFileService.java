@@ -125,22 +125,25 @@ public class StoredFileService {
       final MediaType json =
           java.util.Objects.requireNonNull(
               MediaType.APPLICATION_JSON, "MediaType.APPLICATION_JSON is null");
-      
-      this.webClient
-          .post()
-          .uri(this.ocrPath)
-          .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-          .contentType(json)
-          .bodyValue(StoredFileDTO.fromStoredFile(savedFile, dto.content()))
-          .retrieve()
-          .bodyToMono(Void.class)
-          .subscribe(
-            v->{},
-            e->{
-              System.err.println("Failed to send file to OCR service: " + e.getMessage());
-            }
-          );
 
+      try {
+        this.webClient
+        .post()
+        .uri(this.ocrPath)
+        .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+        .contentType(json)
+        .bodyValue(StoredFileDTO.fromStoredFile(savedFile, dto.content()))
+        .retrieve()
+        .bodyToMono(Void.class)
+        .subscribe(
+            v -> { },
+            e -> {
+                System.out.println("OCR error: " + e.getMessage());
+            }
+        );
+      } catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
     }
 
     return StoredFileDTO.fromStoredFile(savedFile, dto.content());
@@ -148,5 +151,20 @@ public class StoredFileService {
 
   public void deleteStoredFileById(Long id) {
     this.storedFileRepository.deleteById(id);
+  }
+
+  @Transactional
+  public void updateFileContent(Long id, byte[] newContent) {
+    StoredFile storedFile =
+        this.storedFileRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("File not found: " + id));
+
+    String format = storedFile.getFormat().getFormat();
+
+    String newPath = this.fileManager.saveFile(newContent, format);
+    storedFile.setResourcePath(newPath);
+
+    this.storedFileRepository.save(storedFile);
   }
 }
