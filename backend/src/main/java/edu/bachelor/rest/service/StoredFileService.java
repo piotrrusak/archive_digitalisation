@@ -126,15 +126,19 @@ public class StoredFileService {
           java.util.Objects.requireNonNull(
               MediaType.APPLICATION_JSON, "MediaType.APPLICATION_JSON is null");
 
-      this.webClient
-          .post()
-          .uri(this.ocrPath)
-          .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-          .contentType(json)
-          .bodyValue(dto)
-          .retrieve()
-          .bodyToMono(String.class)
-          .block();
+      try {
+        this.webClient
+            .post()
+            .uri(this.ocrPath)
+            .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+            .contentType(json)
+            .bodyValue(dto)
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
+      } catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
     }
 
     return savedFile;
@@ -142,5 +146,25 @@ public class StoredFileService {
 
   public void deleteStoredFileById(Long id) {
     this.storedFileRepository.deleteById(id);
+  }
+
+  @Transactional
+  public void updateFileContent(Long id, byte[] newContent) {
+    StoredFile storedFile =
+        this.storedFileRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("File not found: " + id));
+
+    // zakładam, że zapisujesz po extension np. "docx"
+    String format = storedFile.getFormat().getFormat(); // np. "docx"
+    // Możesz:
+    // - albo nadpisać istniejący plik pod tym samym path
+    // - albo zapisać nowy plik i zaktualizować resourcePath
+
+    // Najprościej: zapisujemy nowy plik i podmieniamy ścieżkę:
+    String newPath = this.fileManager.saveFile(newContent, format);
+    storedFile.setResourcePath(newPath);
+
+    this.storedFileRepository.save(storedFile);
   }
 }
