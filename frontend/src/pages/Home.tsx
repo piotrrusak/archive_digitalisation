@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 import { HomeIcon } from 'lucide-react'
+import { useFlash } from '../contexts/FlashContext'
 
 function Divider() {
   return <div className="h-px w-full bg-gray-outline" />
@@ -42,8 +43,10 @@ async function fetchUserProfile(userId: number, userToken: string): Promise<stri
 export default function Home() {
   const { userId, token } = useAuth()
   const [username, setUsername] = useState('')
+  const { addFlash } = useFlash()
 
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [pdfFormatId, setPdfFormatId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -63,6 +66,31 @@ export default function Home() {
   }, [userId, token])
 
   useEffect(() => {
+    async function loadPDFFormatID() {
+      if (!token) return
+      try {
+        const base = import.meta.env.VITE_BACKEND_API_BASE_URL as string
+        const res = await fetch(`${base}/formats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!res.ok) return
+
+        const data = (await res.json()) as { id: number; format: string; mimeType: string }[]
+        const pdfFormat = data.find((f) => f.format.toLowerCase() === 'pdf')
+
+        if (!pdfFormat) throw Error('Failed to find PDF format ID')
+
+        setPdfFormatId(pdfFormat.id)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        addFlash('error', `Failed to load formats ${message}`)
+      }
+    }
+    void loadPDFFormatID()
+  }, [token, addFlash])
+
+  useEffect(() => {
     if (!userId || !token) return
 
     const loadRandomDocument = async () => {
@@ -79,15 +107,17 @@ export default function Home() {
 
         const files = (await listRes.json()) as StoredFileDTO[]
 
-        if (files.length === 0) {
-          setError('User has no documents')
+        const pdfFiles = files.filter((file) => file.id === pdfFormatId)
+
+        if (pdfFiles.length === 0) {
+          setError('User has no PDF documents')
           setLoading(false)
           return
         }
 
-        const randomFile = files[Math.floor(Math.random() * files.length)]
+        const randomFile = pdfFiles[Math.floor(Math.random() * files.length)]
 
-        const exportUrl = `${base}/stored_files/${randomFile.id.toString()}/export`
+        const exportUrl = `${base}/stored_files/${randomFile.id.toString()}/preview`
         const pdfRes = await fetch(exportUrl, {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -106,7 +136,7 @@ export default function Home() {
     }
 
     void loadRandomDocument()
-  }, [userId, token])
+  }, [userId, token, pdfFormatId])
 
   return (
     <MainLayout>
@@ -126,11 +156,13 @@ export default function Home() {
             <div className="w-full flex-1 justify-center align-middle bg-gray-base p-4 rounded-xl shadow-inner border min-h-[600px] border-gray-300">
               {loading && <p>Loading document…</p>}
 
-              {error && error === 'User has no documents' && (
-                <p className="text-black-base font-medium">You have no documents yet.</p>
+              {error && error === 'User has no PDF documents' && (
+                <p className="text-black-base font-medium">
+                  You have no PDF documents yet. Consider creating one!
+                </p>
               )}
 
-              {error && error !== 'User has no documents' && (
+              {error && error !== 'User has no PDF documents' && (
                 <p className="text-red-dark">{error}</p>
               )}
 
