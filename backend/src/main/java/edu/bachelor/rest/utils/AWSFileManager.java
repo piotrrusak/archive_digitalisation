@@ -32,7 +32,11 @@ public class AWSFileManager implements FileManager {
     String mimeType = URLConnection.guessContentTypeFromName("example." + format);
 
     s3.putObject(
-        PutObjectRequest.builder().bucket(bucketName).key(key).contentType(mimeType).build(),
+        PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(key + "." + format)
+            .contentType(mimeType)
+            .build(),
         RequestBody.fromBytes(data));
     System.out.println("File sent S3 as: " + key);
 

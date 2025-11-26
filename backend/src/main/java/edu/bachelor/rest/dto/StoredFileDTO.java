@@ -5,6 +5,7 @@ import edu.bachelor.rest.model.StoredFile;
 import edu.bachelor.rest.model.User;
 
 public record StoredFileDTO(
+    Long id,
     Long ownerId,
     Long formatId,
     Integer generation,
@@ -20,6 +21,7 @@ public record StoredFileDTO(
     }
 
     return new StoredFileDTO(
+        storedFile.getId(),
         storedFile.getOwner().getId(),
         storedFile.getFormat().getId(),
         storedFile.getGeneration(),
