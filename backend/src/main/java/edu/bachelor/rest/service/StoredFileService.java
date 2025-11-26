@@ -128,14 +128,19 @@ public class StoredFileService {
 
       try {
         this.webClient
-            .post()
-            .uri(this.ocrPath)
-            .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
-            .contentType(json)
-            .bodyValue(dto)
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
+        .post()
+        .uri(this.ocrPath)
+        .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
+        .contentType(json)
+        .bodyValue(StoredFileDTO.fromStoredFile(savedFile, dto.content()))
+        .retrieve()
+        .bodyToMono(Void.class)
+        .subscribe(
+            v -> { },
+            e -> {
+                System.out.println("OCR error: " + e.getMessage());
+            }
+        );
       } catch (Exception e) {
         System.out.println(e.getMessage());
       }
@@ -155,13 +160,8 @@ public class StoredFileService {
             .findById(id)
             .orElseThrow(() -> new IllegalArgumentException("File not found: " + id));
 
-    // zakładam, że zapisujesz po extension np. "docx"
-    String format = storedFile.getFormat().getFormat(); // np. "docx"
-    // Możesz:
-    // - albo nadpisać istniejący plik pod tym samym path
-    // - albo zapisać nowy plik i zaktualizować resourcePath
+    String format = storedFile.getFormat().getFormat();
 
-    // Najprościej: zapisujemy nowy plik i podmieniamy ścieżkę:
     String newPath = this.fileManager.saveFile(newContent, format);
     storedFile.setResourcePath(newPath);
 

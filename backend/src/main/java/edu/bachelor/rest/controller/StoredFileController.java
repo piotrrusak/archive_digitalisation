@@ -54,18 +54,8 @@ public class StoredFileController {
     this.storedFileService.deleteStoredFileById(id);
   }
 
-  // ===========================
-  //  NOWY ENDPOINT: DOCX -> SFDT
-  // ===========================
-
-  /**
-   * Zwraca dokument w formacie SFDT dla Syncfusion DocumentEditor.
-   *
-   * <p>Front: GET /api/v1/stored_files/{id}/syncfusion i potem: documentEditor.open(sfdtString)
-   */
   @GetMapping(value = "/{id}/syncfusion", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> exportStoredFileAsSfdt(@PathVariable Long id) {
-    // 1. Pobierz bajty pliku (DOCX) z istniejącego serwisu
     byte[] docxBytes = this.storedFileService.exportFileById(id);
 
     if (docxBytes == null || docxBytes.length == 0) {
@@ -73,10 +63,8 @@ public class StoredFileController {
     }
 
     try (InputStream is = new ByteArrayInputStream(docxBytes)) {
-      // 2. Konwersja DOCX -> SFDT
       String sfdt = WordProcessorHelper.load(is, FormatType.Docx);
 
-      // 3. Zwracamy czysty SFDT jako JSON string
       return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(sfdt);
 
     } catch (Exception e) {
@@ -92,7 +80,6 @@ public class StoredFileController {
     }
   }
 
-  // helper do escapowania stringa do JSON-a
   private String escapeForJson(String value) {
     if (value == null) {
       return "";
@@ -107,13 +94,10 @@ public class StoredFileController {
   @PutMapping(value = "/{id}/syncfusion", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> saveEditedDocument(@PathVariable Long id, @RequestBody String sfdt) {
     try {
-      // 1. Konwersja SFDT -> DOCX
       OutputStream os = WordProcessorHelper.save(sfdt, FormatType.Docx);
 
-      // zakładamy, że Syncfusion używa ByteArrayOutputStream
       byte[] docxBytes = ((ByteArrayOutputStream) os).toByteArray();
 
-      // 2. Zapis pliku w storage (S3 / dysk) pod tym samym StoredFile
       storedFileService.updateFileContent(id, docxBytes);
 
       return ResponseEntity.noContent().build();
