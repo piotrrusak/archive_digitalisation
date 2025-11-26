@@ -1,13 +1,24 @@
+import io
+import subprocess
 from pathlib import Path
 
 import fitz
 from PIL import Image
 
+try:
+    from app.utils import get_frontline
+except ImportError:
+    try:
+        from utils import get_frontline
+    except ImportError as e:
+        raise ImportError("Failed to import get_frontline") from e
+
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_DIR = SCRIPT_DIR / ".." / "temp" / "pdf_pages"
 
 
-def _pil_to_pixmap(image):
+def pil_to_pixmap(image):
     if image.mode == "1":
         image = image.convert("L")
 
@@ -34,7 +45,7 @@ def initialize_pdf_with_image(image, visible_image=True):
     rect = fitz.Rect(0, 0, image.width, image.height)
     page = pdf_doc.new_page(width=image.width, height=image.height)
     if visible_image:
-        pix = _pil_to_pixmap(image)
+        pix = pil_to_pixmap(image)
         page.insert_image(rect, pixmap=pix)
     return pdf_doc
 
@@ -87,6 +98,70 @@ def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False
 
 def pdf_to_bytes(pdf_doc):
     return pdf_doc.write()
+
+
+def pdf_to_docx_bytes(pdf_doc):
+    pdf_bytes = pdf_to_bytes(pdf_doc)
+
+    p1 = subprocess.run(
+        ["pdftotext", "-layout", "-", "-"],
+        input=pdf_bytes,
+        stdout=subprocess.PIPE,
+        check=True,
+    )
+
+    p2 = subprocess.run(
+        [
+            "pandoc",
+            "--wrap=none",
+            "-f",
+            "markdown+hard_line_breaks",
+            "-t",
+            "docx",
+            "-o",
+            "-",
+        ],
+        input=p1.stdout,
+        stdout=subprocess.PIPE,
+        check=True,
+    )
+
+    return p2.stdout
+
+
+def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0):
+    if debug:
+        print(get_frontline(debug_indent) + f"Converting input format '{input_format}' to PNG bytes")
+
+    if input_format["format"] == "png":
+        if debug:
+            print(get_frontline(debug_indent) + "Input is already PNG format, no conversion needed")
+        return input_bytes
+
+    elif input_format["format"] == "pdf":
+        if debug:
+            print(get_frontline(debug_indent) + "Converting PDF to PNG using fitz")
+        pdf_doc = fitz.open(stream=input_bytes, filetype="pdf")
+        page = pdf_doc.load_page(0)
+        pix = page.get_pixmap()
+        png_bytes = pix.tobytes("png")
+        if debug:
+            print(get_frontline(debug_indent) + f"Converted PDF to PNG bytes: {len(png_bytes)} bytes")
+        return png_bytes
+
+    elif input_format["format"] in ["jpeg", "jpg", "tiff", "bmp", "gif"]:
+        if debug:
+            print(get_frontline(debug_indent) + f"Converting image format '{input_format['format']}' to PNG using PIL")
+        im = Image.open(io.BytesIO(input_bytes))
+        with io.BytesIO() as output:
+            im.save(output, format="PNG")
+            png_bytes = output.getvalue()
+        if debug:
+            print(get_frontline(debug_indent) + f"Converted image to PNG bytes: {len(png_bytes)} bytes")
+        return png_bytes
+
+    else:
+        raise ValueError(f"Unsupported input format for conversion to PNG: {input_format}")
 
 
 if __name__ == "__main__":
