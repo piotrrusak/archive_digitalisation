@@ -39,15 +39,14 @@ public class StoredFileController {
 
   @GetMapping("/{id}/preview")
   public ResponseEntity<byte[]> previewStoredFileById(@PathVariable Long id) throws Exception {
-      //works only for pdf
-      byte[] pdf = storedFileService.exportFileById(id);
+    // works only for pdf
+    byte[] pdf = storedFileService.exportFileById(id);
 
-      return ResponseEntity.ok()
-              .header("Content-Type", "application/pdf")
-              .header("Content-Disposition", "inline; filename=\"preview.pdf\"")
-              .body(pdf);
+    return ResponseEntity.ok()
+        .header("Content-Type", "application/pdf")
+        .header("Content-Disposition", "inline; filename=\"preview.pdf\"")
+        .body(pdf);
   }
-
 
   @GetMapping("/owner/{owner_id}")
   public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
