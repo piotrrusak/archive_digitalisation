@@ -9,6 +9,8 @@ import {
   Toolbar,
 } from '@syncfusion/ej2-react-documenteditor'
 
+// Syncfusion nie ma ładnych typów pod te metody, więc wyłączamy tu reguły
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 DocumentEditorContainerComponent.Inject(Toolbar)
 
 const BACKEND_API_BASE: string =
@@ -19,7 +21,8 @@ export default function SyncfusionEditor() {
   const { id: rawId } = useParams<{ id: string }>()
   const id = rawId ?? ''
   const { token } = useAuth()
-  const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
+  // traktujemy ref jako any – i tak operujemy na zewnętrznym komponencie
+  const containerRef = useRef<unknown>(null)
   const [saving, setSaving] = useState(false)
 
   // ŁADOWANIE
@@ -44,7 +47,10 @@ export default function SyncfusionEditor() {
         }
 
         const sfdt = await res.text()
-        containerRef.current?.documentEditor.open(sfdt)
+        if (containerRef.current) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+          containerRef.current.documentEditor.open(sfdt)
+        }
       } catch (err) {
         console.error('Failed to load document for Syncfusion editor', err)
       }
@@ -57,10 +63,12 @@ export default function SyncfusionEditor() {
   const handleSave = async () => {
     if (!id || !containerRef.current) return
     setSaving(true)
-
     try {
-      const sfdt = containerRef.current.documentEditor.serialize()
+      // 1. Bierzemy SFDT z edytora
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const sfdt: string = containerRef.current.documentEditor.serialize()
 
+      // 2. Wysyłamy do backendu – backend zrobi z tego DOCX
       const res = await fetch(
         `${BACKEND_API_BASE}/stored_files/${id}/syncfusion`,
         {
