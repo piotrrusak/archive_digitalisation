@@ -6,7 +6,6 @@ export function GoogleLoginButton() {
 
   const handleCustomGoogleLogin = () => {
     setLoading(true)
-    console.log(`${window.location.origin}/auth/google/callback`)
 
     const params = {
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,

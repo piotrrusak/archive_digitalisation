@@ -83,7 +83,7 @@ public class StoredFileService {
         .toList();
   }
 
-  public StoredFile saveStoredFile(HttpServletRequest request, StoredFileDTO dto) {
+  public StoredFileDTO saveStoredFile(HttpServletRequest request, StoredFileDTO dto) {
 
     final Long ownerId = java.util.Objects.requireNonNull(dto.ownerId(), "ownerId is null");
     User owner =
@@ -146,7 +146,7 @@ public class StoredFileService {
       }
     }
 
-    return savedFile;
+    return StoredFileDTO.fromStoredFile(savedFile, dto.content());
   }
 
   public void deleteStoredFileById(Long id) {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Dropzone from '../components/upload/Dropzone'
 import { uploadStoredFiles } from '../lib/modelClient'
 import { useAuth } from '../hooks/useAuth'
@@ -7,6 +7,27 @@ import { ScanLine } from 'lucide-react'
 import ModelCarousel from '../components/upload/ModelCarousel'
 import { useFlash } from '../contexts/FlashContext'
 import { Button } from '../components/ui/Button'
+import type Model from '../types/models'
+
+const apiBase = import.meta.env.VITE_BACKEND_API_BASE_URL as string
+
+async function getModels(token: string): Promise<Model[]> {
+  const response = await fetch(`${apiBase}/information/available_models`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch the models')
+  }
+
+  const data = (await response.json()) as Model[]
+
+  return data
+}
 
 export default function Scan() {
   const { token, userId } = useAuth()
@@ -14,16 +35,26 @@ export default function Scan() {
   const [isSending, setIsSending] = useState(false)
   const [selectedModelIndex, setSelectedModelIndex] = useState(0)
   const { addFlash } = useFlash()
+  const [models, setModels] = useState<Model[]>([])
 
-  const models = [
-    { title: 'Base Model', description: 'Our standard production model' },
-    { title: 'Document Pro', description: 'Showcase: handles complex layouts' },
-    { title: 'Fast Lite', description: 'Showcase: optimized for speed' },
-    { title: 'Vision XL', description: 'Showcase: better image clarity' },
-    { title: 'OCR Boost', description: 'Showcase: advanced text extraction' },
-    { title: 'Archive Model', description: 'Showcase: historical document tuning' },
-    { title: 'Experimental', description: 'Showcase: AI research prototype' },
-  ]
+  useEffect(() => {
+    const fetchModels = async () => {
+      if (!token) {
+        addFlash('error', 'Failed to fetch the models. Please log in again')
+        return
+      }
+      try {
+        const models = await getModels(token)
+
+        setModels(models)
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to fetch the models. Please log in again'
+        addFlash('error', message)
+      }
+    }
+    void fetchModels()
+  }, [token, addFlash])
 
   const cleanup = () => {
     setIsSending(false)
@@ -51,6 +82,7 @@ export default function Scan() {
           ownerId,
           generation: 1,
           primaryFileId: null,
+          processingModelId: models[selectedModelIndex]?.id ?? 0,
         },
         token,
       )
