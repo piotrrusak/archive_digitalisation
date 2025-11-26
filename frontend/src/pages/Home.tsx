@@ -111,33 +111,22 @@ export default function Home() {
         const pdfFiles = files.filter((file) => file.formatId === pdfFormatId)
 
         if (pdfFiles.length === 0) {
-          console.log('DUPAPAPAPA')
           setError('User has no PDF documents')
           setLoading(false)
           return
         }
 
-        console.log(pdfFiles)
-
-        console.log(Math.floor(Math.random() * pdfFiles.length))
-
         const randomFile = pdfFiles[Math.floor(Math.random() * pdfFiles.length)]
-
-        console.log(randomFile)
 
         const exportUrl = `${base}/stored_files/${randomFile.id.toString()}/preview`
         const pdfRes = await fetch(exportUrl, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        console.log(pdfRes)
-
         if (!pdfRes.ok) throw new Error('Failed to export PDF')
 
         const blob = await pdfRes.blob()
-        console.log(blob)
         const url = URL.createObjectURL(blob)
-        console.log(url)
         setPdfUrl(url)
         setError(null)
       } catch (err: unknown) {
