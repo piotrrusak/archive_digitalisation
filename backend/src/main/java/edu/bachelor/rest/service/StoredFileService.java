@@ -83,7 +83,7 @@ public class StoredFileService {
         .toList();
   }
 
-  public StoredFile saveStoredFile(HttpServletRequest request, StoredFileDTO dto) {
+  public StoredFileDTO saveStoredFile(HttpServletRequest request, StoredFileDTO dto) {
 
     final Long ownerId = java.util.Objects.requireNonNull(dto.ownerId(), "ownerId is null");
     User owner =
@@ -125,19 +125,25 @@ public class StoredFileService {
       final MediaType json =
           java.util.Objects.requireNonNull(
               MediaType.APPLICATION_JSON, "MediaType.APPLICATION_JSON is null");
-
+      
       this.webClient
           .post()
           .uri(this.ocrPath)
           .header(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION))
           .contentType(json)
-          .bodyValue(dto)
+          .bodyValue(StoredFileDTO.fromStoredFile(savedFile, dto.content()))
           .retrieve()
-          .bodyToMono(String.class)
-          .block();
+          .bodyToMono(Void.class)
+          .subscribe(
+            v->{},
+            e->{
+              System.err.println("Failed to send file to OCR service: " + e.getMessage());
+            }
+          );
+
     }
 
-    return savedFile;
+    return StoredFileDTO.fromStoredFile(savedFile, dto.content());
   }
 
   public void deleteStoredFileById(Long id) {

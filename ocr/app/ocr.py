@@ -6,13 +6,13 @@ from pathlib import Path
 from PIL import Image
 
 try:
-    from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_docx_bytes
+    from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
     from app.module_loading import load_module_from_path
     from app.segmentator import debug_save, segment
     from app.utils import get_frontline
 except ImportError:
     try:
-        from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_docx_bytes
+        from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
         from module_loading import load_module_from_path
         from segmentator import debug_save, segment
         from utils import get_frontline
@@ -134,8 +134,8 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
 
     # temporary fix until future of docx design in decided
 
-    # pdf_bytes = pdf_to_bytes(pdf_doc)
-    # return pdf_bytes
+    pdf_bytes = pdf_to_bytes(pdf_doc)
+    return pdf_bytes
     docx_bytes = pdf_to_docx_bytes(pdf_doc)
     return docx_bytes
 

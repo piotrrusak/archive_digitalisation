@@ -1,4 +1,5 @@
 import base64
+import json
 import logging
 import os
 
@@ -28,6 +29,7 @@ class IncomingFile(BaseModel):
     primaryFileId: int | None = None
     processingModelId: int | None
     content: str
+    id: int | None = None
 
     @field_validator("content")
     @classmethod
@@ -49,9 +51,23 @@ def health():
 
 
 @app.post("/ocr/process")
-def handle_file(payload: IncomingFile, request: Request):
+async def handle_file(payload: IncomingFile, request: Request):
+    
+    raw = await request.body()
+
+    try:
+        data = json.loads(raw)
+        if "content" in data :
+            data["content"] = "[SKIPPED]"
+    except Exception:
+        # fallback jeśli body to nie JSON
+        data = "[NON-JSON BODY]"
+
+    logger.info("Full request (content skipped): %s", data)
+    
     logger.info(
-        "Received file: ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
+        "Received file: id=%s, ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
+        payload.id,
         payload.ownerId,
         payload.formatId,
         payload.generation,
@@ -73,8 +89,8 @@ def handle_file(payload: IncomingFile, request: Request):
     out_bytes = run_ocr(in_bytes, model_id=payload.processingModelId, debug=True, debug_indent=1)
     logger.info("OCR produced output bytes: %d bytes", len(out_bytes))
 
-    out_format = get_format(backend_base_url, auth_header, format_name="docx")
-    # out_format = get_format(backend_base_url, auth_header, format_name="pdf")
+    # out_format = get_format(backend_base_url, auth_header, format_name="docx")
+    out_format = get_format(backend_base_url, auth_header, format_name="pdf")
     logger.info("Using backend out format: %s", out_format)
 
     result = send_file(
@@ -84,7 +100,7 @@ def handle_file(payload: IncomingFile, request: Request):
         format_id=out_format["id"],
         generation=payload.generation,
         content_bytes=out_bytes,
-        primary_file_id=payload.primaryFileId,
+        primary_file_id=payload.id,
     )
 
     logger.info("Sent OCR DOCX back to backend, got response: %s", result)

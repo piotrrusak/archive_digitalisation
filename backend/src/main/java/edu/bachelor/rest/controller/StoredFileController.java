@@ -36,7 +36,7 @@ public class StoredFileController {
   }
 
   @PostMapping
-  public StoredFile saveStoredFile(
+  public StoredFileDTO saveStoredFile(
       HttpServletRequest request, @RequestBody StoredFileDTO storedFileDTO) {
     return this.storedFileService.saveStoredFile(request, storedFileDTO);
   }
