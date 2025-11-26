@@ -25,12 +25,12 @@ MAX_EPOCHS = 55
 SEED = 42
 
 
-def _natural_epoch_sort_key(p):
+def natural_epoch_sort_key(p):
     m = re.search(r"model_(\d+)\.mlmodel$", p.name)
     return int(m.group(1)) if m else -1
 
 
-def _load_metric_sibling(model_path):
+def load_metric_sibling(model_path):
     for suf in (".json", ".metrics.json", ".report.json"):
         p = model_path.with_suffix(suf)
         if p.exists():
@@ -45,7 +45,7 @@ def _load_metric_sibling(model_path):
     return None
 
 
-def _debug_dump_gt(model, run_dir):
+def debug_dump_gt(model, run_dir):
     try:
         dl = model._make_dataloader(split="train", shuffle=False)
         xb, yb = next(iter(dl))
@@ -105,7 +105,7 @@ def train(
     if torch.cuda.is_available():
         torch.set_float32_matmul_precision("high")
 
-    _debug_dump_gt(model, run_dir)
+    debug_dump_gt(model, run_dir)
 
     trainer.fit(model)
 
@@ -118,7 +118,7 @@ def promote(run_dir, dest_path, prefer_metric=True):
     dest_path = Path(dest_path).resolve()
     dest_path.parent.mkdir(parents=True, exist_ok=True)
 
-    candidates = sorted(run_dir.glob("model_*.mlmodel"), key=_natural_epoch_sort_key)
+    candidates = sorted(run_dir.glob("model_*.mlmodel"), key=natural_epoch_sort_key)
     if not candidates:
         raise FileNotFoundError(f"No model_*.mlmodel files found in {run_dir}")
 
@@ -128,16 +128,16 @@ def promote(run_dir, dest_path, prefer_metric=True):
     if prefer_metric:
         scored = []
         for m in candidates:
-            sc = _load_metric_sibling(m)
+            sc = load_metric_sibling(m)
             if sc is not None:
                 scored.append((m, sc))
         if scored:
             scored.sort(key=lambda x: x[1], reverse=True)
             selected, best_metric = scored[0]
         else:
-            selected = max(candidates, key=_natural_epoch_sort_key)
+            selected = max(candidates, key=natural_epoch_sort_key)
     else:
-        selected = max(candidates, key=_natural_epoch_sort_key)
+        selected = max(candidates, key=natural_epoch_sort_key)
 
     shutil.copy2(selected, dest_path)
     print(f"Promoted: {selected.name}  →  {dest_path}  (metric={best_metric})")
