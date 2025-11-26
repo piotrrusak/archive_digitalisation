@@ -11,7 +11,7 @@ import Admin from './pages/Admin'
 import { GoogleCallback } from './pages/GoogleCallback'
 import DocumentView from './pages/DocumentView'
 import RegisterAdditionalInfo from './pages/RegisterAdditionalInfo'
-import SyncfusionEditor from './pages/SyncfusionEditor'   // 👈 DODAJ TO
+import SyncfusionEditor from './pages/SyncfusionEditor' // 👈 DODAJ TO
 
 function App() {
   const isLoggedIn = useAuth().isLoggedIn
@@ -21,10 +21,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={isLoggedIn ? <Home /> : <Navigate to="/login" />} />
-        <Route
-          path="/documents"
-          element={isLoggedIn ? <Documents /> : <Navigate to="/login" />}
-        />
+        <Route path="/documents" element={isLoggedIn ? <Documents /> : <Navigate to="/login" />} />
         <Route path="/account" element={<Account />} />
         <Route path="/login" element={<Login />} />
         <Route path="/scan" element={isLoggedIn ? <Scan /> : <Navigate to="/login" />} />
@@ -32,7 +29,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            isLoggedIn ? (isAdmin ? <Admin /> : <Navigate to="/" />) : <Navigate to="/login" />
+            isLoggedIn ? isAdmin ? <Admin /> : <Navigate to="/" /> : <Navigate to="/login" />
           }
         />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />

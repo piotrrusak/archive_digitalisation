@@ -3,18 +3,13 @@ import { useParams } from 'react-router-dom'
 import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 
-import {
-  DocumentEditorContainerComponent,
-  Toolbar,
-} from '@syncfusion/ej2-react-documenteditor'
+import { DocumentEditorContainerComponent, Toolbar } from '@syncfusion/ej2-react-documenteditor'
 
 // This library uses "any" type that linter does not let pass, so we disable warnings here:
 
 /* eslint-disable */
 
 DocumentEditorContainerComponent.Inject(Toolbar)
-
-/* eslint-enable */
 
 const BACKEND_API_BASE: string =
   (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
@@ -25,10 +20,6 @@ export default function SyncfusionEditor() {
   const id = rawId ?? ''
   const { token } = useAuth()
 
-// This library uses "any" type that linter does not let pass, so we disable warnings here:
-
-/* eslint-disable */
-
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
 
   const [saving, setSaving] = useState(false)
@@ -38,16 +29,13 @@ export default function SyncfusionEditor() {
 
     const loadDocument = async () => {
       try {
-        const res = await fetch(
-          `${BACKEND_API_BASE}/stored_files/${id}/syncfusion`,
-          {
-            method: 'GET',
-            headers: {
-              Accept: 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
+        const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/syncfusion`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        )
+        })
 
         if (!res.ok) {
           throw new Error(`Failed to load SFDT: ${String(res.status)}`)
@@ -76,17 +64,14 @@ export default function SyncfusionEditor() {
     try {
       const sfdt = editor.serialize()
 
-      const res = await fetch(
-        `${BACKEND_API_BASE}/stored_files/${id}/syncfusion`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: sfdt,
+      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/syncfusion`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      )
+        body: sfdt,
+      })
 
       if (!res.ok) {
         throw new Error(`Failed to save document: ${String(res.status)}`)
