@@ -7,7 +7,7 @@ import { DocumentEditorContainerComponent, Toolbar } from '@syncfusion/ej2-react
 
 // This library uses "any" type that linter does not let pass, so we disable warnings here:
 
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-redundant-type-constituents */
+// /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-redundant-type-constituents */
 
 DocumentEditorContainerComponent.Inject(Toolbar)
 
@@ -111,4 +111,4 @@ export default function SyncfusionEditor() {
     </MainLayout>
   )
 }
-/* eslint-enable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-redundant-type-constituents */
+// /* eslint-enable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-redundant-type-constituents */
