@@ -2,11 +2,10 @@ import io
 from pathlib import Path
 
 import fitz
-from PIL import Image
-
+from docx import Document
 from pdfminer.high_level import extract_text
 from pdfminer.layout import LAParams
-from docx import Document
+from PIL import Image
 
 try:
     from app.utils import get_frontline

@@ -3,11 +3,9 @@ import json
 import logging
 import os
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
-
-from dotenv import load_dotenv
-
 
 try:
     from app.backend_client import get_format, send_file
@@ -51,7 +49,7 @@ def strip_content(data):
     try:
         if "content" in data:
             data["content"] = "[SKIPPED]"
-    except Exception as e:
+    except Exception:
         data = "[NON-JSON BODY]"
     return data
 
@@ -62,7 +60,7 @@ def find_correct_backend_url(auth_header, format_id):
             backend_base_url = os.getenv("BACKEND_BASE_URL_DOCKER")
             get_format(backend_base_url, auth_header, format_id=format_id)
             BACKEND_URL = backend_base_url
-        except Exception as e :
+        except Exception:
             try:
                 backend_base_url = os.getenv("BACKEND_BASE_URL")
                 get_format(backend_base_url, auth_header, format_id=format_id)
