@@ -16,7 +16,8 @@ const BACKEND_API_BASE: string =
   'http://localhost:8080/api/v1'
 
 export default function SyncfusionEditor() {
-  const { id } = useParams<{ id: string }>()
+  const { id: rawId } = useParams<{ id: string }>()
+  const id = rawId ?? ''
   const { token } = useAuth()
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
   const [saving, setSaving] = useState(false)
@@ -27,22 +28,23 @@ export default function SyncfusionEditor() {
 
     const loadDocument = async () => {
       try {
-        const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/syncfusion`, {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        const res = await fetch(
+          `${BACKEND_API_BASE}/stored_files/${id}/syncfusion`,
+          {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
           },
-        })
+        )
 
         if (!res.ok) {
-          throw new Error(`Failed to load SFDT: ${res.status}`)
+          throw new Error(`Failed to load SFDT: ${String(res.status)}`)
         }
 
         const sfdt = await res.text()
-        if (containerRef.current) {
-          containerRef.current.documentEditor.open(sfdt)
-        }
+        containerRef.current?.documentEditor.open(sfdt)
       } catch (err) {
         console.error('Failed to load document for Syncfusion editor', err)
       }
@@ -55,25 +57,26 @@ export default function SyncfusionEditor() {
   const handleSave = async () => {
     if (!id || !containerRef.current) return
     setSaving(true)
+
     try {
-      // 1. Bierzemy SFDT z edytora
       const sfdt = containerRef.current.documentEditor.serialize()
 
-      // 2. Wysyłamy do backendu – backend zrobi z tego DOCX
-      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/syncfusion`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      const res = await fetch(
+        `${BACKEND_API_BASE}/stored_files/${id}/syncfusion`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: sfdt,
         },
-        body: sfdt,
-      })
+      )
 
       if (!res.ok) {
-        throw new Error(`Failed to save document: ${res.status}`)
+        throw new Error(`Failed to save document: ${String(res.status)}`)
       }
 
-      // tu możesz dodać toast „Saved”
       console.log('Document saved')
     } catch (err) {
       console.error('Save failed:', err)
