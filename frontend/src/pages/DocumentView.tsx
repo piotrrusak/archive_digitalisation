@@ -18,6 +18,9 @@ export default function DocumentView() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
   useEffect(() => {
+    let isMounted = true
+    let objectUrl: string | null = null
+
     const fetchDocument = async () => {
       if (!id) return
       try {
@@ -32,22 +35,23 @@ export default function DocumentView() {
         if (!res.ok) throw new Error('Failed to load document.')
 
         const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        setPdfUrl(url)
+        objectUrl = URL.createObjectURL(blob)
+        if (isMounted) setPdfUrl(objectUrl)
       } catch (err) {
         console.error('Document fetch failed:', err)
-        setError('Failed to load document.')
+        if (isMounted) setError('Failed to load document.')
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     void fetchDocument()
 
     return () => {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl)
+      isMounted = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [id, token, pdfUrl])
+  }, [id, token])
 
   return (
     <MainLayout>
