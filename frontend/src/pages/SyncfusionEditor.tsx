@@ -5,10 +5,6 @@ import { useAuth } from '../hooks/useAuth'
 
 import { DocumentEditorContainerComponent, Toolbar } from '@syncfusion/ej2-react-documenteditor'
 
-// This library uses "any" type that linter does not let pass, so we disable warnings here:
-
-// /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-redundant-type-constituents */
-
 DocumentEditorContainerComponent.Inject(Toolbar)
 
 const BACKEND_API_BASE: string =
@@ -23,6 +19,7 @@ export default function SyncfusionEditor() {
   const containerRef = useRef<DocumentEditorContainerComponent | null>(null)
 
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -86,18 +83,54 @@ export default function SyncfusionEditor() {
     }
   }
 
+  const handleExportPdf = async () => {
+    if (!id) return
+
+    setExporting(true)
+    try {
+      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/export/pdf`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      })
+
+      if (!res.ok) {
+        throw new Error(`Failed to export PDF: ${String(res.status)}`)
+      }
+
+      // opcjonalnie możesz coś z logiem / toastem zrobić
+      console.log('PDF export triggered successfully')
+    } catch (err) {
+      console.error('PDF export failed:', err)
+      alert('Failed to export PDF.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <MainLayout>
       <div className="p-4 w-full h-full flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Edit document #{id}</h1>
-          <button
-            onClick={() => void handleSave()}
-            disabled={saving}
-            className="px-4 py-2 rounded-lg bg-blue-base text-white-base disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => void handleExportPdf()}
+              disabled={exporting}
+              className="px-4 py-2 rounded-lg bg-gray-600 text-white-base disabled:opacity-50"
+            >
+              {exporting ? 'Exporting…' : 'Export PDF'}
+            </button>
+            <button
+              onClick={() => void handleSave()}
+              disabled={saving}
+              className="px-4 py-2 rounded-lg bg-blue-base text-white-base disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
         </div>
 
         <DocumentEditorContainerComponent
@@ -111,4 +144,3 @@ export default function SyncfusionEditor() {
     </MainLayout>
   )
 }
-// /* eslint-enable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-redundant-type-constituents */

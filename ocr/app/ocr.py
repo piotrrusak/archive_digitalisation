@@ -37,7 +37,7 @@ def get_model_list():
         module = load_module_from_path(handler_file)
         if not hasattr(module, "NAME") or not hasattr(module, "DESCRIPTION") or not hasattr(module, "handle"):
             continue
-
+        print(f"Loaded OCR model handler: {handler_file.stem}")
         name = getattr(module, "NAME", handler_file.stem)
         desc = module.DESCRIPTION
         handle_func = module.handle
@@ -51,7 +51,7 @@ def get_model_list():
             }
         )
         count += 1
-
+    print(f"Total OCR model handlers loaded: {len(models)}")
     return models
 
 
