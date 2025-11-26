@@ -4,7 +4,8 @@ import requests
 
 API_BASE = "/api/v1"
 
-def get_format(backend_url, auth_token, format_name = None, format_id = None, timeout=10):
+
+def get_format(backend_url, auth_token, format_name=None, format_id=None, timeout=10):
     url = f"{backend_url.rstrip('/')}{API_BASE}/formats"
     headers = {}
     if auth_token:
@@ -25,7 +26,6 @@ def get_format(backend_url, auth_token, format_name = None, format_id = None, ti
                 return item
 
     raise ValueError(f"{format_name} format not found in backend formats list")
-
 
 
 def send_file(

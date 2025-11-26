@@ -1,17 +1,17 @@
 import io
+import subprocess
 from pathlib import Path
 
 import fitz
 from PIL import Image
-import subprocess
 
-try :
+try:
     from app.utils import get_frontline
-except ImportError :
-    try :
+except ImportError:
+    try:
         from utils import get_frontline
     except ImportError as e:
-       raise ImportError("Failed to import get_frontline") from e
+        raise ImportError("Failed to import get_frontline") from e
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -100,14 +100,14 @@ def pdf_to_bytes(pdf_doc):
     return pdf_doc.write()
 
 
-def pdf_to_docx_bytes(pdf_doc) :
+def pdf_to_docx_bytes(pdf_doc):
     pdf_bytes = pdf_to_bytes(pdf_doc)
 
     p1 = subprocess.run(
         ["pdftotext", "-layout", "-", "-"],
-        input = pdf_bytes,
-        stdout = subprocess.PIPE,
-        check = True,
+        input=pdf_bytes,
+        stdout=subprocess.PIPE,
+        check=True,
     )
 
     p2 = subprocess.run(
@@ -121,15 +121,15 @@ def pdf_to_docx_bytes(pdf_doc) :
             "-o",
             "-",
         ],
-        input = p1.stdout,
-        stdout = subprocess.PIPE,
-        check = True,
+        input=p1.stdout,
+        stdout=subprocess.PIPE,
+        check=True,
     )
 
     return p2.stdout
 
+
 def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0):
-    
     if debug:
         print(get_frontline(debug_indent) + f"Converting input format '{input_format}' to PNG bytes")
 
@@ -148,7 +148,7 @@ def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0)
         if debug:
             print(get_frontline(debug_indent) + f"Converted PDF to PNG bytes: {len(png_bytes)} bytes")
         return png_bytes
-    
+
     elif input_format["format"] in ["jpeg", "jpg", "tiff", "bmp", "gif"]:
         if debug:
             print(get_frontline(debug_indent) + f"Converting image format '{input_format['format']}' to PNG using PIL")
@@ -162,6 +162,7 @@ def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0)
 
     else:
         raise ValueError(f"Unsupported input format for conversion to PNG: {input_format}")
+
 
 if __name__ == "__main__":
     OUT_DIR.mkdir(parents=True, exist_ok=True)
