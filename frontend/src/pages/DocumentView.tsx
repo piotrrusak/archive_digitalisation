@@ -55,7 +55,7 @@ export default function DocumentView() {
 
   return (
     <MainLayout>
-      <div className="p-4 flex flex-col gap-4 **min-h-screen**">
+      <div className="p-4 flex flex-col gap-4 h-full">
         <div className="flex items-center gap-3">
           <button
             onClick={() => void navigate('/documents')}
@@ -74,7 +74,7 @@ export default function DocumentView() {
           <iframe
             src={pdfUrl}
             title="Document"
-            className="w-full flex-1 border rounded-lg shadow-md"
+            className="w-full h-full flex-1 border rounded-lg shadow-md"
           />
         )}
       </div>
