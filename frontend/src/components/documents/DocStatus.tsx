@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 
 interface DocStatusProps {
-  doc: { id: string; name: string }
+  doc: { id: number; name: string }
 }
 
 export const DocStatus: FC<DocStatusProps> = () => {
