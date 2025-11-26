@@ -104,14 +104,8 @@ public class StoredFileController {
         .replace("\r", "\\r");
   }
 
-  @PutMapping(
-    value = "/{id}/syncfusion",
-    consumes = MediaType.APPLICATION_JSON_VALUE
-  )
-  public ResponseEntity<Void> saveEditedDocument(
-      @PathVariable Long id,
-      @RequestBody String sfdt
-  ) {
+  @PutMapping(value = "/{id}/syncfusion", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> saveEditedDocument(@PathVariable Long id, @RequestBody String sfdt) {
     try {
       // 1. Konwersja SFDT -> DOCX
       OutputStream os = WordProcessorHelper.save(sfdt, FormatType.Docx);
