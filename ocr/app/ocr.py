@@ -33,7 +33,7 @@ def get_model_list():
     models = []
     count = 1
 
-    for handler_file in handlers_dir.glob("*.py"):
+    for handler_file in sorted(handlers_dir.glob("*.py")):
         module = load_module_from_path(handler_file)
         if not hasattr(module, "NAME") or not hasattr(module, "DESCRIPTION") or not hasattr(module, "handle"):
             continue
@@ -132,12 +132,9 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
         pdf_doc.save(pdf_path)
         print(get_frontline(debug_indent) + f"Saved OCR overlay PDF to: {pdf_path}")
 
-    # temporary fix until future of docx design in decided
-
     pdf_bytes = pdf_to_bytes(pdf_doc)
-    return pdf_bytes
     docx_bytes = pdf_to_docx_bytes(pdf_doc)
-    return docx_bytes
+    return pdf_bytes, docx_bytes
 
 
 def test_ocr(test_image_path, model_id=1, one_liner=False, debug=True, debug_indent=0):
@@ -149,9 +146,10 @@ def test_ocr(test_image_path, model_id=1, one_liner=False, debug=True, debug_ind
 
 if __name__ == "__main__":
     # test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png", 1, True)
-    test_ocr(
-        Path(__file__).resolve().parent / "../model_training/data/0000.png",
-        model_id=1,
-        #  one_liner=True,
-        debug=True,
-    )
+    # test_ocr(
+    #     Path(__file__).resolve().parent / "../model_training/data/0000.png",
+    #     model_id=1,
+    #     #  one_liner=True,
+    #     debug=True,
+    # )
+    get_model_list()

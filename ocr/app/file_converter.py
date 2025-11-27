@@ -1,8 +1,10 @@
 import io
-import subprocess
 from pathlib import Path
 
 import fitz
+from docx import Document
+from pdfminer.high_level import extract_text
+from pdfminer.layout import LAParams
 from PIL import Image
 
 try:
@@ -99,35 +101,25 @@ def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False
 def pdf_to_bytes(pdf_doc):
     return pdf_doc.write()
 
+def save_docx_to_path(docx_bytes, output_path) :
+    with open(output_path, "wb") as f :
+        f.write(docx_bytes)
 
-def pdf_to_docx_bytes(pdf_doc):
+def pdf_to_docx_bytes(pdf_doc) :
     pdf_bytes = pdf_to_bytes(pdf_doc)
 
-    p1 = subprocess.run(
-        ["pdftotext", "-layout", "-", "-"],
-        input=pdf_bytes,
-        stdout=subprocess.PIPE,
-        check=True,
-    )
+    laparams = LAParams()
+    text = extract_text(io.BytesIO(pdf_bytes), laparams=laparams)
 
-    p2 = subprocess.run(
-        [
-            "pandoc",
-            "--wrap=none",
-            "-f",
-            "markdown+hard_line_breaks",
-            "-t",
-            "docx",
-            "-o",
-            "-",
-        ],
-        input=p1.stdout,
-        stdout=subprocess.PIPE,
-        check=True,
-    )
+    doc = Document()
+    for line in text.splitlines() :
+        if line.strip() == "" :
+            continue
+        doc.add_paragraph(line)
 
-    return p2.stdout
-
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
 
 def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0):
     if debug:
@@ -221,3 +213,8 @@ if __name__ == "__main__":
     pdf_doc.save(out_path)
 
     print(f"Saved PDF to: {out_path.resolve()}")
+
+    docx_bytes = pdf_to_docx_bytes(pdf_doc)
+    docx_path = OUT_DIR / "output.docx"
+    save_docx_to_path(docx_bytes, docx_path)
+    print(f"Saved DOCX to: {docx_path.resolve()}")
