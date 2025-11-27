@@ -41,6 +41,9 @@ def handle_record(item):
     img_crop_pil = Image.fromarray(img_crop)
     img_crop_pil.save(filepath)
 
+    # return number of printed lines
+    return 0
+
 
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)

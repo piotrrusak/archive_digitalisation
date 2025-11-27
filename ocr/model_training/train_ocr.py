@@ -58,6 +58,7 @@ def promote(run_dir, dest_path):
 
 def collect_xml_files(data_dir):
     xml_paths = sorted(glob.glob(str(data_dir / "*.xml")))
+    xml_paths = [p for p in xml_paths if "aug" not in Path(p).name]
     if not xml_paths:
         raise FileNotFoundError(f"No XML files found in {data_dir}")
     return [Path(p) for p in xml_paths]
