@@ -4,8 +4,11 @@ spring:
   jpa:
     open-in-view: false
 
-aws:
-  bucket-name: archive-digitalisation-v1
+storage:
+  aws:
+    bucket-name: archive-digitalisation-v1
+  local:
+    base-dir-path: /app/files
 
 auth:
   base-url: http://localhost:4000

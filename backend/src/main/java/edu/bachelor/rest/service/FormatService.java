@@ -22,14 +22,23 @@ public class FormatService {
 
   @Transactional(readOnly = true)
   public Optional<Format> getFormatById(Long id) {
+    if (id == null) {
+      throw new IllegalArgumentException("Id cannot be null");
+    }
     return this.formatRepository.findById(id);
   }
 
   public Format saveFormat(Format format) {
+    if (format == null) {
+      throw new IllegalArgumentException("Format cannot be null");
+    }
     return this.formatRepository.save(format);
   }
 
   public void deleteFormatById(Long id) {
+    if (id == null) {
+      throw new IllegalArgumentException("Id cannot be null");
+    }
     this.formatRepository.deleteById(id);
   }
 }

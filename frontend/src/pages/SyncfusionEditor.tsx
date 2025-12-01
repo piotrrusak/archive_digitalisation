@@ -88,7 +88,7 @@ export default function SyncfusionEditor() {
 
     setExporting(true)
     try {
-      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/export/pdf`, {
+      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/convert/docx_to_pdf`, {
         method: 'GET',
         headers: {
           Accept: 'application/json',
