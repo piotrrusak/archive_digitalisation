@@ -182,7 +182,7 @@ public class StoredFileService {
 
   @Transactional
   public StoredFileDTO saveStoredFile(
-      @NonNull HttpServletRequest request, @NonNull StoredFileDTO dto, String sendToOCR) {
+      @NonNull HttpServletRequest request, @NonNull StoredFileDTO dto, boolean sendToOCR) {
 
     final Long ownerId = java.util.Objects.requireNonNull(dto.ownerId(), "ownerId is null");
     User owner =
@@ -218,7 +218,7 @@ public class StoredFileService {
         java.util.Objects.requireNonNull(
             storedFile, "StoredFileDTO.toStoredFile returned null for dto=" + dto);
     StoredFile savedFile = storedFileRepository.save(storedFile);
-    if (sendToOCR.equals("1")) {
+    if (sendToOCR) {
       this.sendFileToOCRService(dto, request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 

@@ -53,7 +53,7 @@ public class StoredFileController {
             this.storedFileService.convertDocxToPdfById(id),
             original.processingModelId());
 
-    return this.storedFileService.saveStoredFile(request, temp, "0");
+    return this.storedFileService.saveStoredFile(request, temp, false);
   }
 
   @GetMapping("/{id}/preview")
@@ -69,7 +69,7 @@ public class StoredFileController {
   @GetMapping("/owner/{owner_id}")
   public List<StoredFileDTO> getStoredFileByOwnerId(
       @PathVariable Long owner_id,
-      @RequestParam(name = "fetchContent", defaultValue = "0") boolean fetch_content) {
+      @RequestParam(name = "fetchContent", defaultValue = "false") boolean fetch_content) {
     return this.storedFileService.getStoredFilesByOwnerId(owner_id, fetch_content);
   }
 
@@ -77,7 +77,7 @@ public class StoredFileController {
   public StoredFileDTO saveStoredFile(
       @NonNull HttpServletRequest request,
       @NonNull @RequestBody StoredFileDTO storedFileDTO,
-      @RequestParam(name = "sendToOCR", defaultValue = "0") String sendToOCR)
+      @RequestParam(name = "sendToOCR", defaultValue = "false") boolean sendToOCR)
       throws Exception {
 
     return this.storedFileService.saveStoredFile(request, storedFileDTO, sendToOCR);
