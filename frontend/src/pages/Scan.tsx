@@ -83,7 +83,7 @@ export default function Scan() {
           generation: 1,
           primaryFileId: null,
           processingModelId: models[selectedModelIndex]?.id ?? 0,
-          sendToOCR: "1",
+          sendToOCR: '1',
         },
         token,
       )

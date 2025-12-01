@@ -166,19 +166,14 @@ export async function uploadStoredFile(
 
   if (options.sendToOCR !== undefined) {
     const sep = url.includes('?') ? '&' : '?'
-    url = `${url}${sep}sendToOCR=${String(options.sendToOCR)}`
+    url = `${url}${sep}sendToOCR=${options.sendToOCR}`
   }
 
-  return postJson<StoredFileResponse>(
-    url,
-    payload,
-    {
-      timeoutMs: 30_000,
-      token,
-    }
-  )
+  return postJson<StoredFileResponse>(url, payload, {
+    timeoutMs: 30_000,
+    token,
+  })
 }
-
 
 export async function uploadStoredFiles(
   files: File[],
