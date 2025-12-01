@@ -10,6 +10,9 @@ storage:
   local:
     base-dir-path: /app/files
 
+syncfusion:
+  license-key: adfs
+
 auth:
   base-url: http://localhost:4000
   path: /api/v1/token/verify

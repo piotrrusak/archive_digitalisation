@@ -25,6 +25,11 @@ public class UserController {
     return this.userService.getUserById(id).orElseThrow(() -> new Exception(""));
   }
 
+  @PostMapping
+  public User saveUser(@NonNull @RequestBody User user) {
+    return this.userService.saveUser(user);
+  }
+
   @PatchMapping("/{id}")
   public User updateUser(@NonNull @PathVariable Long id, @RequestBody Map<String, String> updates)
       throws Exception {
@@ -46,11 +51,6 @@ public class UserController {
       }
     }
     return this.userService.saveUser(user); // User cant be null here
-  }
-
-  @PostMapping
-  public User saveUser(@NonNull @RequestBody User user) {
-    return this.userService.saveUser(user);
   }
 
   @DeleteMapping("/{id}")

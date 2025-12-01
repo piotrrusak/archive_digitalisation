@@ -88,7 +88,7 @@ public class StoredFileController {
     this.storedFileService.deleteStoredFileById(id);
   }
 
-  @GetMapping(value = "/{id}/syncfusion", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{id}/convert/docx_to_sfdt", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> exportStoredFileAsSfdt(@PathVariable Long id) {
     try {
       String sfdt = this.storedFileService.convertDocxToSfdtById(id);
@@ -101,12 +101,12 @@ public class StoredFileController {
     }
   }
 
-  @PutMapping(value = "/{id}/syncfusion", consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> saveEditedDocument(@PathVariable Long id, @RequestBody String sfdt) {
+  @PutMapping(value = "/{id}/update/sfdt", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> updateStoredFileContent(
+      @PathVariable Long id, @RequestBody String sfdt) {
     try {
       byte[] bytes = this.storedFileService.convertSfdtToDocxById(id, sfdt);
       this.storedFileService.updateFileContentById(id, bytes);
-
       return ResponseEntity.noContent().build();
     } catch (Exception e) {
       return ResponseEntity.internalServerError().build();

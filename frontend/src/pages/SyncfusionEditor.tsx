@@ -26,7 +26,7 @@ export default function SyncfusionEditor() {
 
     const loadDocument = async () => {
       try {
-        const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/syncfusion`, {
+        const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/convert/docx_to_sfdt`, {
           method: 'GET',
           headers: {
             Accept: 'application/json',
@@ -61,7 +61,7 @@ export default function SyncfusionEditor() {
     try {
       const sfdt = editor.serialize()
 
-      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/syncfusion`, {
+      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/update/sfdt`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
