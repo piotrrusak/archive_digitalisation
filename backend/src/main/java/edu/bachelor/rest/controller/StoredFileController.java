@@ -1,20 +1,15 @@
 package edu.bachelor.rest.controller;
 
-import com.syncfusion.ej2.wordprocessor.FormatType;
-import com.syncfusion.ej2.wordprocessor.WordProcessorHelper;
 import edu.bachelor.rest.dto.StoredFileDTO;
 import edu.bachelor.rest.repository.FormatRepository;
 import edu.bachelor.rest.service.StoredFileService;
 import edu.bachelor.rest.utils.PathGenerator;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,8 +21,9 @@ public class StoredFileController {
   private final FormatRepository formatRepository;
 
   @GetMapping
-  public List<StoredFileDTO> getAllStoredFiles() {
-    return this.storedFileService.getAllStoredFiles();
+  public List<StoredFileDTO> getAllStoredFiles(
+      @RequestParam(name = "fetchContent", defaultValue = "false") boolean fetch_content) {
+    return this.storedFileService.getAllStoredFiles(fetch_content);
   }
 
   @GetMapping("/{id}")
@@ -37,30 +33,32 @@ public class StoredFileController {
 
   @GetMapping("/{id}/export")
   public byte[] exportStoredFileById(@PathVariable Long id) throws Exception {
-    return this.storedFileService.exportFileById(id);
+    return this.storedFileService.getFileContentById(id);
   }
 
-  @GetMapping("/{id}/export/pdf")
-  public StoredFileDTO exportStoredFileAsPdfById(@PathVariable Long id) throws Exception {
-    PathGenerator pathGenerator = new PathGenerator();
+  @GetMapping("/{id}/convert/docx_to_pdf")
+  public StoredFileDTO convertDocxToPdfById(
+      @NonNull HttpServletRequest request, @NonNull @PathVariable Long id) throws Exception {
+
     StoredFileDTO original = this.storedFileService.getFileById(id);
+
     StoredFileDTO temp =
         new StoredFileDTO(
             original.id(),
             original.ownerId(),
             this.formatRepository.findByFormat("pdf").getId(),
-            pathGenerator.generateRandomPath() + ".pdf",
+            PathGenerator.generateRandomPath(null) + ".pdf",
             original.generation() + 1,
             original.primaryFileId(),
-            this.storedFileService.exportStoredFileAsPdfById(id),
+            this.storedFileService.convertDocxToPdfById(id),
             original.processingModelId());
-    return this.storedFileService.saveStoredFileWithoutOCR(temp);
+
+    return this.storedFileService.saveStoredFile(request, temp, false);
   }
 
   @GetMapping("/{id}/preview")
   public ResponseEntity<byte[]> previewStoredFileById(@PathVariable Long id) throws Exception {
-    // works only for pdf
-    byte[] pdf = storedFileService.exportFileById(id);
+    byte[] pdf = storedFileService.getFileContentById(id);
 
     return ResponseEntity.ok()
         .header("Content-Type", "application/pdf")
@@ -69,14 +67,20 @@ public class StoredFileController {
   }
 
   @GetMapping("/owner/{owner_id}")
-  public List<StoredFileDTO> getStoredFileByOwnerId(@PathVariable Long owner_id) {
-    return this.storedFileService.getStoredFilesByOwnerId(owner_id);
+  public List<StoredFileDTO> getStoredFileByOwnerId(
+      @PathVariable Long owner_id,
+      @RequestParam(name = "fetchContent", defaultValue = "false") boolean fetch_content) {
+    return this.storedFileService.getStoredFilesByOwnerId(owner_id, fetch_content);
   }
 
   @PostMapping
   public StoredFileDTO saveStoredFile(
-      HttpServletRequest request, @RequestBody StoredFileDTO storedFileDTO) {
-    return this.storedFileService.saveStoredFile(request, storedFileDTO);
+      @NonNull HttpServletRequest request,
+      @NonNull @RequestBody StoredFileDTO storedFileDTO,
+      @RequestParam(name = "sendToOCR", defaultValue = "false") boolean sendToOCR)
+      throws Exception {
+
+    return this.storedFileService.saveStoredFile(request, storedFileDTO, sendToOCR);
   }
 
   @DeleteMapping("/{id}")
@@ -84,55 +88,27 @@ public class StoredFileController {
     this.storedFileService.deleteStoredFileById(id);
   }
 
-  @GetMapping(value = "/{id}/syncfusion", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{id}/convert/docx_to_sfdt", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<String> exportStoredFileAsSfdt(@PathVariable Long id) {
-    byte[] docxBytes = this.storedFileService.exportFileById(id);
-
-    if (docxBytes == null || docxBytes.length == 0) {
-      return ResponseEntity.notFound().build();
-    }
-
-    try (InputStream is = new ByteArrayInputStream(docxBytes)) {
-      String sfdt = WordProcessorHelper.load(is, FormatType.Docx);
-
-      return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(sfdt);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-
-      String errorText = "Błąd konwersji dokumentu: " + e.getMessage();
-      String errorSfdt =
-          "{\"sections\":[{\"blocks\":[{\"inlines\":[{\"text\":\""
-              + escapeForJson(errorText)
-              + "\"}]}]}]}";
-
-      return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(errorSfdt);
-    }
-  }
-
-  private String escapeForJson(String value) {
-    if (value == null) {
-      return "";
-    }
-    return value
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r");
-  }
-
-  @PutMapping(value = "/{id}/syncfusion", consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Void> saveEditedDocument(@PathVariable Long id, @RequestBody String sfdt) {
     try {
-      OutputStream os = WordProcessorHelper.save(sfdt, FormatType.Docx);
+      String sfdt = this.storedFileService.convertDocxToSfdtById(id);
+      if (sfdt == null || sfdt.isBlank()) {
+        return ResponseEntity.notFound().build();
+      }
+      return ResponseEntity.ok(sfdt);
+    } catch (Exception e) {
+      return ResponseEntity.internalServerError().build();
+    }
+  }
 
-      byte[] docxBytes = ((ByteArrayOutputStream) os).toByteArray();
-
-      storedFileService.updateFileContent(id, docxBytes);
-
+  @PutMapping(value = "/{id}/update/sfdt", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> updateStoredFileContent(
+      @PathVariable Long id, @RequestBody String sfdt) {
+    try {
+      byte[] bytes = this.storedFileService.convertSfdtToDocxById(id, sfdt);
+      this.storedFileService.updateFileContentById(id, bytes);
       return ResponseEntity.noContent().build();
     } catch (Exception e) {
-      e.printStackTrace();
       return ResponseEntity.internalServerError().build();
     }
   }

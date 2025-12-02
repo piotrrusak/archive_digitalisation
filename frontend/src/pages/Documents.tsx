@@ -56,7 +56,7 @@ export default function Documents() {
       if (!token) return
       setLoading(true)
       setError(null)
-      const url = `${API_BASE}/stored_files`
+      const url = `${API_BASE}/stored_files?fetchContent=false`
 
       try {
         const formatsResponse = await fetch(`${API_BASE}/formats`, {

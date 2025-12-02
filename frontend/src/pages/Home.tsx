@@ -98,7 +98,7 @@ export default function Home() {
       setLoading(true)
       try {
         const base = import.meta.env.VITE_BACKEND_API_BASE_URL as string
-        const listUrl = `${base}/stored_files/owner/${userId.toString()}`
+        const listUrl = `${base}/stored_files/owner/${userId.toString()}?fetchContent=false`
 
         const listRes = await fetch(listUrl, {
           headers: { Authorization: `Bearer ${token}` },

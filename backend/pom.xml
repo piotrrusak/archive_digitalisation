@@ -77,13 +77,11 @@
         </dependency>
 
         <!-- OPTIONAL: jeśli będziesz rejestrował licencję Java po stronie backendu -->
-        <!--
         <dependency>
             <groupId>com.syncfusion</groupId>
             <artifactId>syncfusion-licensing</artifactId>
             <version>24.1.46</version>
         </dependency>
-        -->
 
         <!-- HTTP Communication (reaktywny WebClient – zostawiam, jeśli go używasz) -->
         <dependency>

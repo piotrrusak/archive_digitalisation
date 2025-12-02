@@ -3,6 +3,7 @@ package edu.bachelor.rest.config;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -11,15 +12,19 @@ public class AuthClient {
   private final RestClient restClient;
   private final AuthProps props;
 
-  public AuthClient(AuthProps props) {
+  public AuthClient(@NonNull AuthProps props) {
     this.props = props;
 
     var factory = new SimpleClientHttpRequestFactory();
     factory.setConnectTimeout(props.getConnectTimeoutMs());
     factory.setReadTimeout(props.getReadTimeoutMs());
 
-    this.restClient =
-        RestClient.builder().baseUrl(props.getBaseUrl()).requestFactory(factory).build();
+    String baseUrl = props.getBaseUrl();
+    if (baseUrl == null) {
+      throw new IllegalStateException("baseUrl from resource cannot be null. Check main/resources/application.yml");
+    }
+
+    this.restClient = RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
   }
 
   public AuthVerifyResponse verify(String authorizationHeader) {
@@ -27,9 +32,13 @@ public class AuthClient {
       if (props.getBypassToken().equals(authorizationHeader)) {
         return new AuthVerifyResponse(true, null, null);
       }
+      String path = props.getPath();
+      if (path == null) {
+        throw new IllegalStateException("path from resource cannot be null. Check main/resources/application.yml");
+      }
       return restClient
           .get()
-          .uri(props.getPath())
+          .uri(path)
           .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
           .accept(MediaType.APPLICATION_JSON)
           .retrieve()

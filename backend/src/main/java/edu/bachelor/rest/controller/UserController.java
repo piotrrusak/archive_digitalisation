@@ -5,6 +5,7 @@ import edu.bachelor.rest.service.UserService;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,12 +21,17 @@ public class UserController {
   }
 
   @GetMapping("/{id}")
-  public User getById(@PathVariable Long id) throws Exception {
+  public User getById(@NonNull @PathVariable Long id) throws Exception {
     return this.userService.getUserById(id).orElseThrow(() -> new Exception(""));
   }
 
+  @PostMapping
+  public User saveUser(@NonNull @RequestBody User user) {
+    return this.userService.saveUser(user);
+  }
+
   @PatchMapping("/{id}")
-  public User updateUser(@PathVariable Long id, @RequestBody Map<String, String> updates)
+  public User updateUser(@NonNull @PathVariable Long id, @RequestBody Map<String, String> updates)
       throws Exception {
     User user = this.getById(id);
     for (String update : updates.keySet()) {
@@ -44,16 +50,11 @@ public class UserController {
           break;
       }
     }
-    return this.userService.saveUser(user);
-  }
-
-  @PostMapping
-  public User saveUser(@RequestBody User user) {
-    return this.userService.saveUser(user);
+    return this.userService.saveUser(user); // User cant be null here
   }
 
   @DeleteMapping("/{id}")
-  public void deleteById(@PathVariable Long id) {
+  public void deleteById(@NonNull @PathVariable Long id) {
     this.userService.deleteUser(id);
   }
 }
