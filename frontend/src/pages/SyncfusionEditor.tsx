@@ -99,7 +99,7 @@ export default function SyncfusionEditor() {
       if (!res.ok) {
         throw new Error(`Failed to export PDF: ${String(res.status)}`)
       }
-      
+
       console.log('PDF export triggered successfully')
     } catch (err) {
       console.error('PDF export failed:', err)
