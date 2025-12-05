@@ -2,9 +2,9 @@ import json
 import time
 from pathlib import Path
 
+from augment_data import handle_record as augment_record
 from image_cropper import handle_record as crop_record
 from json_to_page import handle_record as generate_xml
-from augment_data import handle_record as augment_record
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = (SCRIPT_DIR / "data").resolve()
@@ -14,7 +14,7 @@ JSON_PATH = (SCRIPT_DIR / "input" / "dataset.json").resolve()
 def clear_n_lines(n):
     for i in range(n):
         print("\033[F\033[K", end="")
-        time.sleep((((2*i)/(n*(n+1))) * 0.2))
+        time.sleep(((2*i)/(n*(n+1))) * 0.2)
 
 
 def main():

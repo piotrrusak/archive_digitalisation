@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import io
+import logging
 from pathlib import Path
 
 from PIL import Image
-import logging
 
 try:
     from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes

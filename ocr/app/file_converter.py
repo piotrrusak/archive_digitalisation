@@ -1,4 +1,5 @@
 import io
+import logging
 from pathlib import Path
 
 import fitz
@@ -6,7 +7,6 @@ from docx import Document
 from pdfminer.high_level import extract_text
 from pdfminer.layout import LAParams
 from PIL import Image
-import logging
 
 try:
     from app.utils import get_frontline
@@ -143,7 +143,8 @@ def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0)
 
     elif input_format["format"] in ["jpeg", "jpg", "tiff", "bmp", "gif"]:
         if debug:
-            logging.debug(get_frontline(debug_indent) + f"Converting image format '{input_format['format']}' to PNG using PIL")
+            logging.debug(get_frontline(debug_indent) +
+                          f"Converting image format '{input_format['format']}' to PNG using PIL")
         im = Image.open(io.BytesIO(input_bytes))
         with io.BytesIO() as output:
             im.save(output, format="PNG")
