@@ -1,7 +1,9 @@
 # OCR
 
 ## Run  
+Python version is `3.11-slim`  
 You will need to have `/ocr/.env` file with `BACKEND_BASE_URL` and `BACKEND_BASE_URL_DOCKER` specified for communication with backend
+
 
 ### Local
 
@@ -13,11 +15,11 @@ cd /ocr
 
 pip install -r requirements.txt
 
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+python -u app/run.py
 ```
 
 ### Docker
-`Note`: First run may take much longer due to the need to actually download libraries
+`Note`: First run may take much longer due to the need to download libraries
 
 ```bash
 docker compose up --build # build is just recommended to keep actual changes in code

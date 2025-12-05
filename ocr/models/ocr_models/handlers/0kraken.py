@@ -26,7 +26,7 @@ def handle(image, seg_info=None, debug=False, frontline="", filter_warnings=Fals
         load()
 
     if debug:
-        print(frontline + f"Using model: {MODEL_PATH.name}")
+        logging.debug(frontline + f"Using model: {MODEL_PATH.name}")
     if filter_warnings:
         import warnings
 
@@ -48,7 +48,7 @@ def handle(image, seg_info=None, debug=False, frontline="", filter_warnings=Fals
             raise Exception("Empty output from automatic segmentation")
         else:
             if debug:
-                print(frontline + "Used automatic segmentation")
+                logging.debug(frontline + "Used automatic segmentation")
     except Exception:
         if seg_info is None:
             seg_info = {}
@@ -85,6 +85,6 @@ def handle(image, seg_info=None, debug=False, frontline="", filter_warnings=Fals
             )
         )
         if debug:
-            print(frontline + "Used provided segmentation")
+            logging.debug(frontline + "Used provided segmentation")
 
     return output

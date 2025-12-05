@@ -11,7 +11,8 @@ from kraken.lib import vgsl
 from PIL import Image
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel"
+# MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel"
+MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel"
 _SEG_MODEL = None
 
 TEXT_DIRECTION = "horizontal-lr"
@@ -151,7 +152,7 @@ def segment(im, seg_model_path=MODEL_PATH, filter_warnings=False, debug=False, f
         silence_segmentation_logs()
 
     if debug:
-        print(frontline + "Starting segmentation...")
+        logging.debug(frontline + "Starting segmentation...")
     lines = segment_lines_from_image(
         im,
         text_direction=TEXT_DIRECTION,
@@ -166,7 +167,7 @@ def segment(im, seg_model_path=MODEL_PATH, filter_warnings=False, debug=False, f
 def debug_save(im, lines, save_dir=SAVE_DIR, frontline=""):
     img_arr = np.array(im.convert("RGB"))
 
-    print(frontline + f"Found {len(lines)} lines:")
+    logging.info(frontline + f"Found {len(lines)} lines:")
     save_dir.mkdir(parents=True, exist_ok=True)
     for item in lines:
         bbox = item["bbox"]
@@ -229,7 +230,7 @@ def debug_save(im, lines, save_dir=SAVE_DIR, frontline=""):
     im_out = Image.fromarray(img_arr)
     im_out.save(save_dir / "segmented_image.png")
 
-    print(frontline + f"Saved lines to directory: {save_dir.resolve()}")
+    logging.debug(frontline + f"Saved lines to directory: {save_dir.resolve()}")
 
 
 if __name__ == "__main__":
