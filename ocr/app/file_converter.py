@@ -6,6 +6,7 @@ from docx import Document
 from pdfminer.high_level import extract_text
 from pdfminer.layout import LAParams
 from PIL import Image
+import logging
 
 try:
     from app.utils import get_frontline
@@ -14,7 +15,6 @@ except ImportError:
         from utils import get_frontline
     except ImportError as e:
         raise ImportError("Failed to import get_frontline") from e
-
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_DIR = SCRIPT_DIR / ".." / "temp" / "pdf_pages"
@@ -123,33 +123,33 @@ def pdf_to_docx_bytes(pdf_doc) :
 
 def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0):
     if debug:
-        print(get_frontline(debug_indent) + f"Converting input format '{input_format}' to PNG bytes")
+        logging.debug(get_frontline(debug_indent) + f"Converting input format '{input_format}' to PNG bytes")
 
     if input_format["format"] == "png":
         if debug:
-            print(get_frontline(debug_indent) + "Input is already PNG format, no conversion needed")
+            logging.debug(get_frontline(debug_indent) + "Input is already PNG format, no conversion needed")
         return input_bytes
 
     elif input_format["format"] == "pdf":
         if debug:
-            print(get_frontline(debug_indent) + "Converting PDF to PNG using fitz")
+            logging.debug(get_frontline(debug_indent) + "Converting PDF to PNG using fitz")
         pdf_doc = fitz.open(stream=input_bytes, filetype="pdf")
         page = pdf_doc.load_page(0)
         pix = page.get_pixmap()
         png_bytes = pix.tobytes("png")
         if debug:
-            print(get_frontline(debug_indent) + f"Converted PDF to PNG bytes: {len(png_bytes)} bytes")
+            logging.debug(get_frontline(debug_indent) + f"Converted PDF to PNG bytes: {len(png_bytes)} bytes")
         return png_bytes
 
     elif input_format["format"] in ["jpeg", "jpg", "tiff", "bmp", "gif"]:
         if debug:
-            print(get_frontline(debug_indent) + f"Converting image format '{input_format['format']}' to PNG using PIL")
+            logging.debug(get_frontline(debug_indent) + f"Converting image format '{input_format['format']}' to PNG using PIL")
         im = Image.open(io.BytesIO(input_bytes))
         with io.BytesIO() as output:
             im.save(output, format="PNG")
             png_bytes = output.getvalue()
         if debug:
-            print(get_frontline(debug_indent) + f"Converted image to PNG bytes: {len(png_bytes)} bytes")
+            logging.debug(get_frontline(debug_indent) + f"Converted image to PNG bytes: {len(png_bytes)} bytes")
         return png_bytes
 
     else:

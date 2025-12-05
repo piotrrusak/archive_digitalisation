@@ -26,7 +26,6 @@ def get_format(backend_url, auth_token, format_name=None, format_id=None, timeou
                 return item
 
     return None
-    # raise ValueError(f"{format_name} format not found in backend formats list")
 
 
 def send_file(

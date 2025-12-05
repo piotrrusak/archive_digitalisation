@@ -12,8 +12,8 @@ def main():
     subprocess.run(["./load_backups.sh"], cwd=SCRIPT_DIR)
     print("Preprocessing data...")
     preprocess_data()
-    # print("Training segmentator model...")
-    # train_segmentator()
+    print("Training segmentator model...")
+    train_segmentator()
 
 
 if __name__ == "__main__":

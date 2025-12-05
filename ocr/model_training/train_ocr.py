@@ -26,11 +26,13 @@ BASE_MODEL = (SCRIPT_DIR / ".." / "models" / "en_best.mlmodel").resolve()
 
 MIN_EPOCHS = 10
 MAX_EPOCHS = 200
-LAG = 10
+EARLY_STOPPING = 10
 BATCH_SIZE = 16
 SEED = 42
 VAL_RATIO = 0.2
 DEVICE = "cuda:0"
+
+MIN_EPOCHS = max(MIN_EPOCHS, EARLY_STOPPING)
 
 
 def natural_epoch_sort_key(p):
@@ -96,7 +98,7 @@ def run_ketos_train(
     min_epochs=MIN_EPOCHS,
     max_epochs=MAX_EPOCHS,
     batch_size=BATCH_SIZE,
-    lag=LAG,
+    early_stopping=EARLY_STOPPING,
     device=DEVICE,
     val_ratio=VAL_RATIO,
 ):
@@ -133,7 +135,7 @@ def run_ketos_train(
         "-N",
         str(max_epochs),
         "--lag",
-        str(lag),
+        str(early_stopping),
         "-q",
         "early",
         "--output",
@@ -174,7 +176,7 @@ def main():
         min_epochs=MIN_EPOCHS,
         max_epochs=MAX_EPOCHS,
         batch_size=BATCH_SIZE,
-        lag=LAG,
+        early_stopping=EARLY_STOPPING,
         device=DEVICE,
         val_ratio=VAL_RATIO,
     )

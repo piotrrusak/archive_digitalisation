@@ -19,26 +19,40 @@ def clear_n_lines(n):
 
 def main():
     start_time = time.time()
+    
     with open(JSON_PATH, encoding="utf-8") as f:
-        org_data_len = len(json.load(f))
+        original_data = json.load(f)
+    original_data.sort(key=lambda x: int(x["name"]))
+    with open(JSON_PATH, "w", encoding="utf-8") as f:
+        json.dump(original_data, f, ensure_ascii=False, indent=4)
+
     i = 0
     n = 0
+
+    json_data = []
+    reload_json_data = True
+
     while True:
         clear_n_lines(n)
         n = 0
-        with open(JSON_PATH, encoding="utf-8") as f:
-            json_data = json.load(f)
-            print(f"Dataset size: {len(json_data)} records.")
+        if reload_json_data:
+            print("Reloading JSON data...")
             n += 1
+            with open(JSON_PATH, encoding="utf-8") as f:
+                json_data = json.load(f)
+        
         try :
             record = json_data[i]
         except IndexError:
             break
+
         print(f"Processing: {record['name']} ({i + 1}/{len(json_data)})")
         n += 1
-        if i < org_data_len:
+        reload_json_data = False
+        if "aug" not in record["name"]:
             print(" - Augmenting record...")
             n += augment_record(record) + 1
+            reload_json_data = True
 
         print(" - Cropping image...")
         n += crop_record(record) + 1
