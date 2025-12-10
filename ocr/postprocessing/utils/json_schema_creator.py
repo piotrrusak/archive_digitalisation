@@ -4,15 +4,11 @@ from copy import deepcopy
 This class creates dict in json schema format based on properties required by document. (https://json-schema.org/draft/2020-12/json-schema-core)
 """
 
+
 class JsonSchemaCreator:
     def __init__(self):
-        self.schema = {
-            "type": "object",
-            "properties": {},
-            "required": [],
-            "additionalProperties": False
-        }
-    
+        self.schema = {"type": "object", "properties": {}, "required": [], "additionalProperties": False}
+
     def create_information_schema(self, input_name: list, input_type: list, **kwargs) -> tuple[dict, list]:
         result_schema = deepcopy(self.schema)
         result_order = []
@@ -24,14 +20,14 @@ class JsonSchemaCreator:
 
         if len(input_name) != len(input_type):
             raise ValueError("input_name and input_type length is not same")
-        
+
         for i in range(len(input_name)):
             result_order.append(input_name[i])
             result_schema["properties"][input_name[i]] = {"type": input_type[i]}
             if input_name[i] not in not_required:
                 result_schema["required"].append(input_name[i])
         return result_schema, result_order
-    
+
     def create_certainity_schema(self, input_name: list) -> tuple[dict, list]:
         result_schema = deepcopy(self.schema)
         result_order = []
@@ -47,12 +43,7 @@ class JsonSchemaCreator:
         result_schema = deepcopy(self.schema)
         result_order = []
 
-        result_schema["properties"]["lines"] = {
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
-        }
+        result_schema["properties"]["lines"] = {"type": "array", "items": {"type": "string"}}
 
         result_order.append("lines")
 

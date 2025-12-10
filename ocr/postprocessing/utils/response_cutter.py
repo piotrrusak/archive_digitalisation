@@ -1,7 +1,7 @@
 class ResponseCutter:
-
     """
-    Llama response format: ("usage" is only in last yielded response. when streaming is off, there is only one response.) (there is only one choice so index is always 0)
+    Llama response format: ("usage" is only in last yielded response. when streaming is off,
+    there is only one response.) (there is only one choice so index is always 0)
 
     {
         "id": completion_id,
@@ -29,6 +29,6 @@ class ResponseCutter:
 
     def get_response_text(self, response):
         return response["choices"][0]["text"]
-    
+
     def get_finish_reason(self, response):
         return response["choices"][0]["finish_reason"]

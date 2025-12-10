@@ -1,5 +1,6 @@
 import os
 
+
 class FileManager:
     def __init__(self, file_path):
         self.file_path = file_path
@@ -9,26 +10,26 @@ class FileManager:
             raise ValueError("File path is not set.")
         if not self.file_exists():
             raise FileNotFoundError(f"The file at {self.file_path} does not exist.")
-        with open(self.file_path, 'r') as file:
+        with open(self.file_path) as file:
             content = file.read()
         return content
-    
+
     def overwrite_file(self, data):
         if self.file_path is None:
             raise ValueError("File path is not set.")
         if not self.file_exists():
             raise FileNotFoundError(f"The file at {self.file_path} does not exist.")
-        with open(self.file_path, 'w') as file:
+        with open(self.file_path, "w") as file:
             file.write(data)
-    
+
     def write_to_file(self, data):
         if self.file_path is None:
             raise ValueError("File path is not set.")
         if not self.file_exists():
             raise FileNotFoundError(f"The file at {self.file_path} does not exist.")
-        with open(self.file_path, 'a') as file:
+        with open(self.file_path, "a") as file:
             file.write(data)
-    
+
     def file_exists(self):
         if self.file_path is None:
             raise ValueError("File path is not set.")
