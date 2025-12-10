@@ -12,15 +12,15 @@ try:
     from app.postprocess_lines import postprocess
     from app.segmentator import debug_save, segment
     from app.utils import get_frontline
-except ImportError:
+except Exception:
     try:
         from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
         from module_loading import load_module_from_path
         from segmentator import debug_save, segment
         from utils import get_frontline
 
-        from app.postprocess_lines import postprocess
-    except ImportError as e:
+        from postprocess_lines import postprocess
+    except Exception as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
 logging.getLogger("kraken").setLevel(logging.ERROR)
@@ -138,7 +138,7 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
         lines_data.append({"text": line_txt, "bbox": item["bbox"]})
         # insert_text_at_bbox(pdf_doc, line_txt, item["bbox"], visible_image=image_visibility)
 
-    lines_data.sort(key=lambda x: (x["bbox"][1], x["bbox"][0]))
+    # lines_data.sort(key=lambda x: (x["bbox"][1], x["bbox"][0]))
     preprocessed_lines = postprocess(lines_data)
 
     for item in preprocessed_lines:
