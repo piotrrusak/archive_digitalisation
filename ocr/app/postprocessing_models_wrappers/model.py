@@ -7,7 +7,7 @@ from ocr.postprocessing.utils.paths import get_root_dir
 class Model(ABC):
     def __init__(self, filename, n_gpu_layers):
         self.llm = Llama(
-            model_path=str(get_root_dir() / "models" / "postprocessing_models" / filename),
+            model_path=str("models" / "postprocessing_models" / filename),
             n_ctx=4096 * 2,
             n_threads=32,
             n_gpu_layers=n_gpu_layers,
