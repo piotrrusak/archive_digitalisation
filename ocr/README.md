@@ -1,7 +1,7 @@
 # OCR
 
 ## Run  
-Python version is `3.11-slim`  
+Python version is `3.11`  
 You will need to have `/ocr/.env` file with `BACKEND_BASE_URL` and `BACKEND_BASE_URL_DOCKER` specified for communication with backend
 
 
