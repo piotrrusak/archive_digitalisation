@@ -11,8 +11,8 @@ from kraken.lib import vgsl
 from PIL import Image
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-# MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel"
-MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel"
+MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel"
+# MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel"
 _SEG_MODEL = None
 
 TEXT_DIRECTION = "horizontal-lr"
