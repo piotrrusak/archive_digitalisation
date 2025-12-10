@@ -9,14 +9,12 @@ from PIL import Image
 try:
     from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
     from app.module_loading import load_module_from_path
-    from app.postprocess_lines import postprocess
     from app.segmentator import debug_save, segment
     from app.utils import get_frontline
 except Exception:
     try:
         from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
         from module_loading import load_module_from_path
-        from postprocess_lines import postprocess
         from segmentator import debug_save, segment
         from utils import get_frontline
     except Exception as e:
@@ -135,12 +133,14 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
             logging.debug(get_frontline(debug_indent) + "OCR result: " + line_txt)
 
         lines_data.append({"text": line_txt, "bbox": item["bbox"]})
-        # insert_text_at_bbox(pdf_doc, line_txt, item["bbox"], visible_image=image_visibility)
 
+    # optional sorting for better context for postprocessing - TODO, maybe
     # lines_data.sort(key=lambda x: (x["bbox"][1], x["bbox"][0]))
-    preprocessed_lines = postprocess(lines_data)
 
-    for item in preprocessed_lines:
+    # implement postprocessing later - TODO
+    # lines_data = postprocess(lines_data)
+
+    for item in lines_data:
         insert_text_at_bbox(pdf_doc, item["text"], item["bbox"], visible_image=image_visibility)
 
     if debug:
