@@ -2,6 +2,7 @@ package edu.bachelor.rest.utils;
 
 import java.io.IOException;
 import java.net.URLConnection;
+import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -20,14 +21,12 @@ public class AWSFileManager implements FileManager {
 
   private final S3Client s3;
 
-  @Value("${aws.bucket-name}")
+  @Value("${storage.aws.bucket-name}")
   private String bucketName;
 
-  private PathGenerator pathGenerator = new PathGenerator();
-
   @Override
-  public String saveFile(byte[] data, String format) {
-    String key = this.pathGenerator.generateRandomPath();
+  public String saveFile(byte[] data, String format, Set<String> takenPaths) {
+    String key = PathGenerator.generateRandomPath(takenPaths);
 
     String mimeType = URLConnection.guessContentTypeFromName("example." + format);
 
