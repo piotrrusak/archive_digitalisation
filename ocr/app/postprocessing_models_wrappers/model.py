@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from llama_cpp import Llama
-from ocr.postprocessing.utils.paths import get_root_dir
 
 
 class Model(ABC):

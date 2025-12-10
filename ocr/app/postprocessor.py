@@ -1,5 +1,4 @@
 import json
-from copy import deepcopy
 
 from postprocessing_models_wrappers.gemma3 import Gemma3
 
@@ -30,7 +29,19 @@ def postprocess(lines: list[str]):
         context=str(lines),
     )
 
-    schema = {"type": "object", "properties": {"lines": {"type": "array", "items": {"type": "string"}}}, "required": [], "additionalProperties": False}
+    schema = {
+        "type": "object",
+        "properties": {
+            "lines": {
+                "type": "array",
+                "items": {"type": "string"}
+            }
+        },
+        "required": [
+            "lines"
+        ],
+        "additionalProperties": False
+    }
     order = ["lines"]
 
     response = model(query, schema=json.dumps(schema), order=order)["choices"][0]["text"]
