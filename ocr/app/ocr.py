@@ -9,6 +9,7 @@ from PIL import Image
 try:
     from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
     from app.module_loading import load_module_from_path
+    from app.postprocess_lines import postprocess
     from app.segmentator import debug_save, segment
     from app.utils import get_frontline
 except ImportError:
@@ -17,6 +18,8 @@ except ImportError:
         from module_loading import load_module_from_path
         from segmentator import debug_save, segment
         from utils import get_frontline
+
+        from app.postprocess_lines import postprocess
     except ImportError as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
@@ -111,7 +114,7 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
         lines = [{"bbox": (0, 0, im.width, im.height)}]
 
     ocr_handler = get_model_handler(model_id, debug=debug, debug_indent=debug_indent + 1)
-    text_lines: list[str] = []
+    lines_data: list[str] = []
 
     pdf_path = OUT_DIR / "ocr_overlay.pdf"
     if debug:
@@ -132,8 +135,14 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
         if debug:
             logging.debug(get_frontline(debug_indent) + "OCR result: " + line_txt)
 
-        text_lines.append(line_txt)
-        insert_text_at_bbox(pdf_doc, line_txt, item["bbox"], visible_image=image_visibility)
+        lines_data.append({"text": line_txt, "bbox": item["bbox"]})
+        # insert_text_at_bbox(pdf_doc, line_txt, item["bbox"], visible_image=image_visibility)
+
+    lines_data.sort(key=lambda x: (x["bbox"][1], x["bbox"][0]))
+    preprocessed_lines = postprocess(lines_data)
+
+    for item in preprocessed_lines:
+        insert_text_at_bbox(pdf_doc, item["text"], item["bbox"], visible_image=image_visibility)
 
     if debug:
         pdf_doc.save(pdf_path)
