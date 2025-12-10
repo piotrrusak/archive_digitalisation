@@ -4,19 +4,8 @@ from copy import deepcopy
 from postprocessing_models_wrappers.gemma3 import Gemma3
 
 INITIAL_PROMPT = "Jesteś pomocnym asystentem, który poprawia tekst wyekstrahowany z obrazu."
-INITIAL_SCHEMA = {"type": "object", "properties": {}, "required": [], "additionalProperties": False}
 
-def create_list_schema() -> tuple[dict, list]:
-    result_schema = deepcopy(INITIAL_SCHEMA)
-    result_order = []
-
-    result_schema["properties"]["lines"] = {"type": "array", "items": {"type": "string"}}
-
-    result_order.append("lines")
-
-    return result_schema, result_order
-
-def create_query_with_context(user_input, context):
+def create_query_with_context(user_input: str, context: str):
     query = f"<start_of_turn>user\n{INITIAL_PROMPT}\n<end_of_turn>\n \
         <start_of_turn>model\n<end_of_turn>\n<start_of_turn>user\nThis is context: {context}\n<end_of_turn>\n \
         <start_of_turn>model\n<end_of_turn>\n<start_of_turn>user\n{user_input}\n<end_of_turn>\n<start_of_turn>model"
@@ -24,8 +13,6 @@ def create_query_with_context(user_input, context):
 
 def postprocess(lines: list[str]):
     model = Gemma3()
-
-    schema, order = create_list_schema()
 
     query = create_query_with_context(
         """
@@ -42,6 +29,9 @@ def postprocess(lines: list[str]):
         """,
         context=str(lines),
     )
+
+    schema = {"type": "object", "properties": {"lines": {"type": "array", "items": {"type": "string"}}}, "required": [], "additionalProperties": False}
+    order = ["lines"]
 
     response = model(query, schema=json.dumps(schema), order=order)["choices"][0]["text"]
 
