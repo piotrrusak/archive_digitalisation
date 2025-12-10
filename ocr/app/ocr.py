@@ -16,10 +16,9 @@ except Exception:
     try:
         from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
         from module_loading import load_module_from_path
+        from postprocess_lines import postprocess
         from segmentator import debug_save, segment
         from utils import get_frontline
-
-        from postprocess_lines import postprocess
     except Exception as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
