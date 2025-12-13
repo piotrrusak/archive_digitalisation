@@ -139,6 +139,7 @@ export async function uploadStoredFile(
     primaryFileId: number | null
     endpointPath?: string
     processingModelId: number
+    sendToOCR?: string
   },
   token?: string,
 ): Promise<StoredFileResponse> {
@@ -160,8 +161,18 @@ export async function uploadStoredFile(
     content,
   }
 
-  const url = `${apiBase}/${options.endpointPath ?? 'stored_files'}`
-  return postJson<StoredFileResponse>(url, payload, { timeoutMs: 30_000, token })
+  const basePath = options.endpointPath ?? 'stored_files'
+  let url = `${apiBase}/${basePath}`
+
+  if (options.sendToOCR !== undefined) {
+    const sep = url.includes('?') ? '&' : '?'
+    url = `${url}${sep}sendToOCR=${options.sendToOCR}`
+  }
+
+  return postJson<StoredFileResponse>(url, payload, {
+    timeoutMs: 30_000,
+    token,
+  })
 }
 
 export async function uploadStoredFiles(
@@ -172,6 +183,7 @@ export async function uploadStoredFiles(
     primaryFileId: number | null
     endpointPath?: string
     processingModelId: number
+    sendToOCR?: string
   },
   token?: string,
 ): Promise<StoredFileResponse[]> {

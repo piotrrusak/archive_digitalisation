@@ -4,27 +4,34 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LocalFileManager {
+public class LocalFileManager implements FileManager {
 
-  private final PathGenerator pathGenerator;
+  @Value("${storage.local.base-dir-path}")
+  public String baseDirPath;
 
-  private static final Path BASE_DIR = Path.of("/app/files");
+  public String saveFile(byte[] data, String format, Set<String> takenPaths) {
 
-  public LocalFileManager() {
-    this.pathGenerator = new PathGenerator();
-  }
-
-  public String saveFile(byte[] data, String format) throws IOException {
-
-    if (!Files.exists(BASE_DIR)) {
-      Files.createDirectories(BASE_DIR);
+    if (!Files.exists(Path.of(this.baseDirPath))) {
+      try {
+        Files.createDirectories(Path.of(this.baseDirPath));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 
-    Path path = BASE_DIR.resolve(this.pathGenerator.generateRandomPath() + "." + format);
-    Files.write(path, data);
+    Path path =
+        Path.of(this.baseDirPath)
+            .resolve(PathGenerator.generateRandomPath(takenPaths) + "." + format);
+    try {
+      Files.write(path, data);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     return path.toAbsolutePath().toString();
   }

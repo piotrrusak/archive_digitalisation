@@ -80,6 +80,9 @@ def handle_record(item):
     xml_path = Path(DATA_DIR) / f"{name}.xml"
     xml_path.write_bytes(xml_bytes)
 
+    # return number of printed lines
+    return 0
+
 
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)
