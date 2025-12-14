@@ -1,14 +1,18 @@
-FROM elixir:latest
-RUN mkdir /app
-COPY ../auth /app
+FROM elixir:latest AS build
+
 WORKDIR /app
 
-RUN mix local.hex --force
+RUN apk add --no-cache build-base git
 
+COPY auth/mix.exs auth/mix.lock ./
+RUN mix local.hex --force && mix deps.get --only prod
+
+COPY auth .
+RUN MIX_ENV=prod mix compile
+
+FROM elixir:1.16-alpine
+WORKDIR /app
+COPY --from=build /app /app
 EXPOSE 4000
 
-COPY ../auth/entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-
-RUN mix deps.get --only prod
-RUN MIX_ENV=prod 
+CMD ["mix", "phx.server"]
