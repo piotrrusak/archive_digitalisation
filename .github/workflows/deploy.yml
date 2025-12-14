@@ -1,0 +1,134 @@
+name: Deploy to AWS ECS
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Docker image tag to deploy (e.g. v1.2.3)"
+        required: true
+        type: string
+
+      services:
+        description: "Comma-separated services to deploy (auth,backend,frontend,ocr) or 'all'"
+        required: false
+        default: "all"
+        type: string
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_ACCOUNT_ID: ${{ vars.ECR_ACCOUNT_ID }}
+
+jobs:
+  build-elixir:
+    uses: ./.github/workflows/build_elixir.yml
+    with:
+      directory: auth
+    secrets: inherit
+
+  build-ts:
+    uses: ./.github/workflows/build_frontend.yml
+    with:
+      directory: frontend
+    secrets: inherit
+
+  build-python:
+    uses: ./.github/workflows/build_python.yml
+    with:
+      directory: ocr
+    secrets: inherit
+
+  build-java:
+    uses: ./.github/workflows/build_java.yml
+    with:
+      directory: backend
+    secrets: inherit
+
+
+  deploy:
+    needs:
+      - build-elixir
+      - build-ts
+      - build-python
+      - build-java
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push Docker images
+        env:
+          TAG: ${{ inputs.tag }}
+          SERVICES: ${{ inputs.services }}
+        run: |
+          if [ "$SERVICES" = "all" ]; then
+            SERVICES="auth backend frontend ocr"
+          else
+            SERVICES=$(echo "$SERVICES" | tr ',' ' ')
+          fi
+
+          for svc in $SERVICES; do
+            IMAGE="$ECR_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$svc:$TAG"
+
+            echo "Building $svc -> $IMAGE"
+
+            docker build \
+              -f docker/$svc.Dockerfile \
+              -t "$IMAGE" .
+
+            docker push "$IMAGE"
+          done
+
+      - name: Deploy to ECS
+        env:
+          TAG: ${{ inputs.tag }}
+          ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+          SERVICES: ${{ inputs.services }}
+        run: |
+          if [ "$SERVICES" = "all" ]; then
+            SERVICES="auth backend frontend ocr"
+          else
+            SERVICES=$(echo "$SERVICES" | tr ',' ' ')
+          fi
+
+          for svc in $SERVICES; do
+            case "$svc" in
+              auth)
+                ECS_SERVICE="${{ vars.AUTH_ECS_SERVICE }}"
+                TASK_FAMILY="${{ vars.AUTH_TASK_FAMILY }}"
+                ;;
+              backend)
+                ECS_SERVICE="${{ vars.BACKEND_ECS_SERVICE }}"
+                TASK_FAMILY="${{ vars.BACKEND_TASK_FAMILY }}"
+                ;;
+              frontend)
+                ECS_SERVICE="${{ vars.FRONTEND_ECS_SERVICE }}"
+                TASK_FAMILY="${{ vars.FRONTEND_TASK_FAMILY }}"
+                ;;
+              ocr)
+                ECS_SERVICE="${{ vars.OCR_ECS_SERVICE }}"
+                TASK_FAMILY="${{ vars.OCR_TASK_FAMILY }}"
+                ;;
+              *)
+                echo "Unknown service: $svc"
+                exit 1
+                ;;
+            esac
+
+            export ECS_SERVICE
+            export TASK_FAMILY
+            export IMAGE_URI="$ECR_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$svc:$TAG"
+
+            echo "Deploying $svc"
+            ./deploy_to_ecs.sh
+          done

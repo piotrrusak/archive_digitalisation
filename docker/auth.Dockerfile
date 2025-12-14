@@ -5,6 +5,8 @@ WORKDIR /app
 
 RUN mix local.hex --force
 
+EXPOSE 4000
+
 COPY ../auth/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
