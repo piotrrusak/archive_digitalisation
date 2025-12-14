@@ -15,29 +15,33 @@ on:
         type: string
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_ACCOUNT_ID: ${{ vars.ECR_ACCOUNT_ID }}
+  AWS_REGION: "eu-north-1"
+  ECR_ACCOUNT_ID: 927788616928
 
 jobs:
   build-elixir:
+    if: false
     uses: ./.github/workflows/build_elixir.yml
     with:
       directory: auth
     secrets: inherit
 
   build-ts:
+    if: false
     uses: ./.github/workflows/build_frontend.yml
     with:
       directory: frontend
     secrets: inherit
 
   build-python:
+    if: false
     uses: ./.github/workflows/build_python.yml
     with:
       directory: ocr
     secrets: inherit
 
   build-java:
+    if: false
     uses: ./.github/workflows/build_java.yml
     with:
       directory: backend
@@ -45,16 +49,15 @@ jobs:
 
 
   deploy:
-    needs:
-      - build-elixir
-      - build-ts
-      - build-python
-      - build-java
 
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Echo
+        run: |
+            echo ${{ env.AWS_REGION }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -130,5 +133,6 @@ jobs:
             export IMAGE_URI="$ECR_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$svc:$TAG"
 
             echo "Deploying $svc"
-            ./deploy_to_ecs.sh
+            chmod +x ./scripts/deployment/deploy_to_ecs.sh
+            ./scripts/deployment/deploy_to_ecs.sh
           done

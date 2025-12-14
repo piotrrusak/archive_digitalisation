@@ -1,0 +1,7 @@
+**/target
+**/.git
+**/.idea
+**/*.log
+**/node_modules
+**/_build
+**/deps

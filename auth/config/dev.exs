@@ -92,6 +92,8 @@ config :swoosh, :api_client, false
 
 config :auth, :backend_url, "http://localhost:8080"
 
+config :auth, :jwt_secret, "test"
+
 # try read config from env.exs file
 try do
   import_config "env.exs"
