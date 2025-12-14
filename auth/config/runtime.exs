@@ -29,6 +29,8 @@ if config_env() == :prod do
 
   config :auth, :backend_authorization_token, System.fetch_env!("BACKEND_AUTHORIZATION_TOKEN")
 
+  config :auth, :backend_url, System.fetch_env!("BACKEND_URL")
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """

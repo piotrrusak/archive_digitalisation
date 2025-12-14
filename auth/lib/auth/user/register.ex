@@ -7,7 +7,7 @@ defmodule Auth.User.Register do
   # Changed to raising version. If on start any of those are failing
   # Check if everything from config/env.exs.example is present
   # in config/env.exs
-  @backend_url Application.compile_env!(:auth, :backend_url)
+  defp backend_url, do: Application.get_env(:auth, :backend_url)
   defp backend_token, do: Application.get_env(:auth, :backend_authorization_token)
 
   @doc """
@@ -63,7 +63,7 @@ defmodule Auth.User.Register do
     request =
       Finch.build(
         :post,
-        "#{@backend_url}/api/v1/users",
+        "#{backend_url()}/api/v1/users",
         [
           {"content-type", "application/json"},
           {"authorization", backend_token()}

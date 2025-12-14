@@ -5,7 +5,7 @@ defmodule AuthWeb.DeleteAccountController do
   alias Auth.Accounts.User
   alias Auth.Repo
 
-  @backend_url Application.compile_env!(:auth, :backend_url)
+  defp backend_url, do: Application.get_env(:auth, :backend_url)
   defp backend_token, do: Application.get_env(:auth, :backend_authorization_token)
 
   def delete_account(conn, _params) do
@@ -35,7 +35,7 @@ defmodule AuthWeb.DeleteAccountController do
     request =
       Finch.build(
         :delete,
-        "#{@backend_url}/api/v1/users/#{user.id}",
+        "#{backend_url()}/api/v1/users/#{user.id}",
         [
           {"authorization", backend_token()},
           {"content-type", "application/json"}
