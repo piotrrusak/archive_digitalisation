@@ -15,8 +15,8 @@ on:
         type: string
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_ACCOUNT_ID: ${{ vars.ECR_ACCOUNT_ID }}
+  AWS_REGION: "eu-north-1"
+  ECR_ACCOUNT_ID: 927788616928
 
 jobs:
   build-elixir:
