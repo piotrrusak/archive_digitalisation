@@ -6,7 +6,7 @@ defmodule AuthWeb.DeleteAccountController do
   alias Auth.Repo
 
   @backend_url Application.compile_env!(:auth, :backend_url)
-  @backend_token Application.compile_env!(:auth, :backend_authorization_token)
+  defp backend_token, do: Application.get_env(:auth, :backend_authorization_token)
 
   def delete_account(conn, _params) do
     user = conn.assigns.current_user
@@ -37,7 +37,7 @@ defmodule AuthWeb.DeleteAccountController do
         :delete,
         "#{@backend_url}/api/v1/users/#{user.id}",
         [
-          {"authorization", @backend_token},
+          {"authorization", backend_token()},
           {"content-type", "application/json"}
         ]
       )

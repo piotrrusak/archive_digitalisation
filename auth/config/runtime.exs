@@ -20,10 +20,15 @@ if System.get_env("PHX_SERVER") do
   config :auth, AuthWeb.Endpoint, server: true
 end
 
-# during deployment do it properly
-config :auth, :jwt_secret, "test"
-
 if config_env() == :prod do
+  config :auth, :jwt_secret, System.fetch_env!("JWT_SECRET")
+
+  config :auth, :google_oauth,
+    client_id: System.fetch_env!("GOOGLE_CLIENT_ID"),
+    client_secret: System.fetch_env!("GOOGLE_CLIENT_SECRET")
+
+  config :auth, :backend_authorization_token, System.fetch_env!("BACKEND_AUTHORIZATION_TOKEN")
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """

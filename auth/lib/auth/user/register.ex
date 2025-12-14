@@ -8,7 +8,7 @@ defmodule Auth.User.Register do
   # Check if everything from config/env.exs.example is present
   # in config/env.exs
   @backend_url Application.compile_env!(:auth, :backend_url)
-  @backend_token Application.compile_env!(:auth, :backend_authorization_token)
+  defp backend_token, do: Application.get_env(:auth, :backend_authorization_token)
 
   @doc """
   Given user params, creates record in the local db and calls backend to
@@ -66,7 +66,7 @@ defmodule Auth.User.Register do
         "#{@backend_url}/api/v1/users",
         [
           {"content-type", "application/json"},
-          {"authorization", @backend_token}
+          {"authorization", backend_token()}
         ],
         body
       )
