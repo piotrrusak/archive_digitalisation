@@ -49,11 +49,6 @@ jobs:
 
 
   deploy:
-    needs:
-      - build-elixir
-      - build-ts
-      - build-python
-      - build-java
 
     runs-on: ubuntu-latest
 
