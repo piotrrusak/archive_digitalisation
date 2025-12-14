@@ -133,5 +133,6 @@ jobs:
             export IMAGE_URI="$ECR_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$svc:$TAG"
 
             echo "Deploying $svc"
+            chmod +x ./scripts/deployment/deploy_to_ecs.sh
             ./scripts/deployment/deploy_to_ecs.sh
           done
