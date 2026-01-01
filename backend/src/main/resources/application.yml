@@ -11,7 +11,7 @@ storage:
     base-dir-path: /app/files
 
 syncfusion:
-  license-key: NxYtGyMROh0gHDMgDk1jXk9FaF5LVmJWfFFpR2NbeU53flBAalxRVAciSV9jS3tSdEdgWXdfcHBTT2FcUk91XQ==
+  license-key:
 
 auth:
   base-url: http://host.docker.internal:4000
