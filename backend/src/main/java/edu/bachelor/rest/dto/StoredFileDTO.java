@@ -40,6 +40,7 @@ public record StoredFileDTO(
       String resourcePath) {
 
     return StoredFile.builder()
+        .id(storedFileDTO.id())
         .owner(owner)
         .format(format)
         .generation(storedFileDTO.generation())

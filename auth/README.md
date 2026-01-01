@@ -32,7 +32,7 @@ The command is simple
 1. Get user you want
 2. Set him to be admin
 ```elixir
-iex(1)> Auth.Accounts.get_user_by_email("email@example.com") |> Auth.Accounts.set_user_admin(true)
+Auth.Accounts.get_user_by_email("email@example.com") |> Auth.Accounts.set_user_admin(true)
 ```
 
 Replace email with your desired email and everything is done.
