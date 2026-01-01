@@ -11,17 +11,17 @@ storage:
     base-dir-path: /app/files
 
 syncfusion:
-  license-key: adfs
+  license-key: NxYtGyMROh0gHDMgDk1jXk9FaF5LVmJWfFFpR2NbeU53flBAalxRVAciSV9jS3tSdEdgWXdfcHBTT2FcUk91XQ==
 
 auth:
-  base-url: http://localhost:4000
+  base-url: http://host.docker.internal:4000
   path: /api/v1/token/verify
   connect-timeout-ms: 1000
   read-timeout-ms: 1500
   bypass-token: ${AUTH_BYPASS_TOKEN:agsrgbbgadfaa}
 
 ocr:
-  base-url: http://localhost:8000
+  base-url: http://ocr:8000
   path: /ocr/process
   information-path: /ocr/available_models
 

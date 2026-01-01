@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5434/postgres_backend
+    url: jdbc:postgresql://db_backend:5432/backend
     username: postgres_backend
     password: password
     hikari:

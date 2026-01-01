@@ -21,7 +21,8 @@ public class AuthClient {
 
     String baseUrl = props.getBaseUrl();
     if (baseUrl == null) {
-      throw new IllegalStateException("baseUrl from resource cannot be null. Check main/resources/application.yml");
+      throw new IllegalStateException(
+          "baseUrl from resource cannot be null. Check main/resources/application.yml");
     }
 
     this.restClient = RestClient.builder().baseUrl(baseUrl).requestFactory(factory).build();
@@ -34,7 +35,8 @@ public class AuthClient {
       }
       String path = props.getPath();
       if (path == null) {
-        throw new IllegalStateException("path from resource cannot be null. Check main/resources/application.yml");
+        throw new IllegalStateException(
+            "path from resource cannot be null. Check main/resources/application.yml");
       }
       return restClient
           .get()

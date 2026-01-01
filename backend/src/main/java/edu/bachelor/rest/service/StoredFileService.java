@@ -105,8 +105,6 @@ public class StoredFileService {
     }
   }
 
-  // File content
-
   @Transactional(readOnly = true)
   public byte[] getFileContentById(Long id) {
     StoredFile storedFile =
@@ -130,8 +128,6 @@ public class StoredFileService {
 
     this.storedFileRepository.save(storedFile);
   }
-
-  // Conversion
 
   @Transactional(readOnly = true)
   public byte[] convertDocxToPdfById(@NonNull Long id) throws Exception {
@@ -219,7 +215,9 @@ public class StoredFileService {
             storedFile, "StoredFileDTO.toStoredFile returned null for dto=" + dto);
     StoredFile savedFile = storedFileRepository.save(storedFile);
     if (sendToOCR) {
-      this.sendFileToOCRService(dto, request.getHeader(HttpHeaders.AUTHORIZATION));
+      this.sendFileToOCRService(
+          StoredFileDTO.fromStoredFile(storedFile, dto.content()),
+          request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
     return StoredFileDTO.fromStoredFile(savedFile, dto.content());
