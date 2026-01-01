@@ -37,7 +37,9 @@ function SegmentedToggle({
     <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
       <button
         type="button"
-        onClick={() => { onChange(true); }}
+        onClick={() => {
+          onChange(true)
+        }}
         disabled={disabledLeft}
         className={clsx(
           'px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed',
@@ -48,7 +50,9 @@ function SegmentedToggle({
       </button>
       <button
         type="button"
-        onClick={() => { onChange(false); }}
+        onClick={() => {
+          onChange(false)
+        }}
         className={clsx(
           'px-4 py-2 rounded-lg text-sm font-semibold transition',
           !value ? 'bg-blue-base text-white-base' : 'text-gray-700 hover:bg-gray-50',

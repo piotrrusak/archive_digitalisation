@@ -6,10 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 
-import {
-  DocumentEditorContainerComponent,
-  Toolbar,
-} from '@syncfusion/ej2-react-documenteditor'
+import { DocumentEditorContainerComponent, Toolbar } from '@syncfusion/ej2-react-documenteditor'
 
 DocumentEditorContainerComponent.Inject(Toolbar)
 
@@ -51,9 +48,7 @@ function SegmentedToggle({
         disabled={disabledLeft}
         className={clsx(
           'px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed',
-          value
-            ? 'bg-blue-base text-white-base'
-            : 'text-gray-700 hover:bg-gray-50',
+          value ? 'bg-blue-base text-white-base' : 'text-gray-700 hover:bg-gray-50',
         )}
       >
         {leftLabel}
@@ -66,9 +61,7 @@ function SegmentedToggle({
         }}
         className={clsx(
           'px-4 py-2 rounded-lg text-sm font-semibold transition',
-          !value
-            ? 'bg-blue-base text-white-base'
-            : 'text-gray-700 hover:bg-gray-50',
+          !value ? 'bg-blue-base text-white-base' : 'text-gray-700 hover:bg-gray-50',
         )}
       >
         {rightLabel}
@@ -93,10 +86,7 @@ export default function SyncfusionEditor() {
 
   const [showPreview, setShowPreview] = useState(true)
 
-  const originalId = useMemo<number | null>(
-    () => fileDto?.primaryFileId ?? null,
-    [fileDto],
-  )
+  const originalId = useMemo<number | null>(() => fileDto?.primaryFileId ?? null, [fileDto])
   const canShowPreview = originalId != null
 
   // Load current StoredFileDTO
@@ -149,15 +139,12 @@ export default function SyncfusionEditor() {
 
     const loadOriginal = async () => {
       try {
-        const res = await fetch(
-          `${BACKEND_API_BASE}/stored_files/${String(originalId)}`,
-          {
-            headers: {
-              Accept: 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
+        const res = await fetch(`${BACKEND_API_BASE}/stored_files/${String(originalId)}`, {
+          headers: {
+            Accept: 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        )
+        })
         if (!res.ok) {
           throw new Error(`Failed to load original DTO: ${String(res.status)}`)
         }
@@ -184,15 +171,12 @@ export default function SyncfusionEditor() {
 
     const loadSfdt = async () => {
       try {
-        const res = await fetch(
-          `${BACKEND_API_BASE}/stored_files/${id}/convert/docx_to_sfdt`,
-          {
-            headers: {
-              Accept: 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
+        const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/convert/docx_to_sfdt`, {
+          headers: {
+            Accept: 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        )
+        })
         if (!res.ok) {
           throw new Error(`Failed to load SFDT: ${String(res.status)}`)
         }
@@ -226,7 +210,7 @@ export default function SyncfusionEditor() {
           console.error(e)
         }
       })
-      
+
       return () => {
         cancelAnimationFrame(raf2)
       }
@@ -271,16 +255,13 @@ export default function SyncfusionEditor() {
 
     setConverting(true)
     try {
-      const res = await fetch(
-        `${BACKEND_API_BASE}/stored_files/${id}/convert/docx_to_pdf`,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+      const res = await fetch(`${BACKEND_API_BASE}/stored_files/${id}/convert/docx_to_pdf`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      )
+      })
 
       if (!res.ok) {
         throw new Error(`Failed to convert to PDF: ${String(res.status)}`)
