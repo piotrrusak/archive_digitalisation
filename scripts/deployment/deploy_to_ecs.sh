@@ -9,6 +9,8 @@ set -e
 
 echo "Deploying $IMAGE_URI to $ECS_SERVICE..."
 
+echo "aws ecs describe-task-definition --task-definition $TASK_FAMILY --region $AWS_REGION"
+
 TASK_DEF=$(aws ecs describe-task-definition \
   --task-definition "$TASK_FAMILY" \
   --region "$AWS_REGION")
