@@ -10,10 +10,10 @@ from PIL import Image
 
 try:
     from app.utils import get_frontline
-except ImportError:
+except Exception:
     try:
         from utils import get_frontline
-    except ImportError as e:
+    except Exception as e:
         raise ImportError("Failed to import get_frontline") from e
 
 SCRIPT_DIR = Path(__file__).resolve().parent

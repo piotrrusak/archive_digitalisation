@@ -11,12 +11,12 @@ try:
     from app.backend_client import get_format, send_file
     from app.file_converter import convert_to_png_bytes
     from app.ocr import get_model_list, run_ocr
-except ImportError:
+except Exception:
     try:
         from backend_client import get_format, send_file
         from file_converter import convert_to_png_bytes
         from ocr import get_model_list, run_ocr
-    except ImportError as e:
+    except Exception as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
 
