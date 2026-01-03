@@ -1,4 +1,5 @@
-FROM elixir:1.18-slim AS build
+# We use the HexPM image to strictly pin Elixir + Erlang + Debian Bookworm
+FROM hexpm/elixir:1.18.1-erlang-27.2-debian-bookworm-20241202-slim AS build
 
 RUN apt-get update -y && \
     apt-get install -y build-essential git ca-certificates && \
@@ -31,7 +32,7 @@ FROM debian:bookworm-slim AS app
 WORKDIR /app
 
 RUN apt-get update -y && \
-    apt-get install -y libstdc++6 openssl libncurses5 locales && \
+    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates && \
     apt-get clean && \
     rm -f /var/lib/apt/lists/*_*
 
