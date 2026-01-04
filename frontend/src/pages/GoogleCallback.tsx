@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useFlash } from '../contexts/FlashContext'
+import { config } from '../config'
 
 export function GoogleCallback() {
   const navigate = useNavigate()
@@ -24,7 +25,7 @@ export function GoogleCallback() {
 
     const exchangeCodeForJWT = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/auth/google`, {
+        const response = await fetch(`${config.authApiUrl}/auth/google`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

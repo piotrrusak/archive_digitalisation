@@ -5,10 +5,9 @@ import { RefreshCcw, Search, FileText } from 'lucide-react'
 import { DocStatus } from '../components/documents/DocStatus'
 import { DocOptionsMenu } from '../components/documents/DocOptionsMenu'
 import { Modal } from '../components/ui/Modal'
+import { config } from '../config'
 
-const API_BASE: string =
-  (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
-  (import.meta.env.DEV ? '/api' : 'http://localhost:8080')
+const API_BASE: string = (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080'
 
 interface APIStoredFileFormat {
   id?: number

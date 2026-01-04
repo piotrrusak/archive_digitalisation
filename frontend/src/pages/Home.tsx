@@ -3,6 +3,7 @@ import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 import { HomeIcon } from 'lucide-react'
 import { useFlash } from '../contexts/FlashContext'
+import { config } from '../config'
 
 function Divider() {
   return <div className="h-px w-full bg-gray-outline" />
@@ -23,7 +24,7 @@ interface StoredFileDTO {
 }
 
 async function fetchUserProfile(userId: number, userToken: string): Promise<string> {
-  const url = `${import.meta.env.VITE_BACKEND_API_BASE_URL as string}/users/${userId.toString()}`
+  const url = `${config.backendApiUrl}/users/${userId.toString()}`
 
   const res = await fetch(url, {
     method: 'GET',
@@ -70,7 +71,7 @@ export default function Home() {
     async function loadPDFFormatID() {
       if (!token) return
       try {
-        const base = import.meta.env.VITE_BACKEND_API_BASE_URL as string
+        const base = config.backendApiUrl
         const res = await fetch(`${base}/formats`, {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -97,7 +98,7 @@ export default function Home() {
     const loadRandomDocument = async () => {
       setLoading(true)
       try {
-        const base = import.meta.env.VITE_BACKEND_API_BASE_URL as string
+        const base = config.backendApiUrl
         const listUrl = `${base}/stored_files/owner/${userId.toString()}?fetchContent=false`
 
         const listRes = await fetch(listUrl, {

@@ -3,6 +3,7 @@ import { Ellipsis } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import type { FC } from 'react'
+import { config } from '../../config'
 
 interface DocOptionsMenuProps {
   doc: { id: number; name: string; type?: string }
@@ -11,8 +12,7 @@ interface DocOptionsMenuProps {
 }
 
 const BACKEND_API_BASE: string =
-  (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
-  'http://localhost:8080/api/v1'
+  (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080/api/v1'
 
 export const DocOptionsMenu: FC<DocOptionsMenuProps> = ({ doc, onDelete, token }) => {
   const [open, setOpen] = useState(false)

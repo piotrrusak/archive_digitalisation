@@ -6,6 +6,7 @@ import { useFlash } from '../contexts/FlashContext'
 import { Modal } from '../components/ui/Modal'
 import { getApiBaseUrl } from '../lib/modelClient'
 import { useAuth } from '../hooks/useAuth'
+import { config } from '../config'
 
 const colors = [
   { name: 'white-base', hex: '#FFFFFF' },
@@ -99,7 +100,7 @@ export default function Admin() {
     }
   }
 
-  const ADMIN_API = `${import.meta.env.VITE_AUTH_API_BASE_URL}/admins`
+  const ADMIN_API = `${config.authApiUrl}/admins`
 
   const [admins, setAdmins] = useState<{ id: number; email: string }[]>([])
   const [newAdminEmail, setNewAdminEmail] = useState('')

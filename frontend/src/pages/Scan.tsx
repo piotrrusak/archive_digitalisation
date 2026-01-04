@@ -8,8 +8,9 @@ import ModelCarousel from '../components/upload/ModelCarousel'
 import { useFlash } from '../contexts/FlashContext'
 import { Button } from '../components/ui/Button'
 import type Model from '../types/models'
+import { config } from '../config'
 
-const apiBase = import.meta.env.VITE_BACKEND_API_BASE_URL as string
+const apiBase = config.backendApiUrl
 
 async function getModels(token: string): Promise<Model[]> {
   const response = await fetch(`${apiBase}/information/available_models`, {

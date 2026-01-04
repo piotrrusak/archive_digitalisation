@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import googleLogo from '/google-logo.svg'
+import { config } from '../../config'
 
 export function GoogleLoginButton() {
   const [loading, setLoading] = useState(false)
@@ -8,7 +9,7 @@ export function GoogleLoginButton() {
     setLoading(true)
 
     const params = {
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      client_id: config.googleClientId,
       redirect_uri: `${window.location.origin}/auth/google/callback`,
       response_type: 'code',
       scope: 'openid email profile',

@@ -3,10 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import MainLayout from '../components/MainLayout'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { config } from '../config'
 
 const API_BASE: string =
-  (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
-  'http://localhost:8080/api/v1'
+  (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080/api/v1'
 
 export default function DocumentView() {
   const { id } = useParams<{ id: string }>()
