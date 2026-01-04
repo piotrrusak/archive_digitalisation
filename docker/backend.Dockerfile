@@ -12,7 +12,7 @@ RUN mvn -B package -DskipTests
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
 
-COPY --from=build /build/target/*jar app.jar
+COPY --from=build /build/target/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
