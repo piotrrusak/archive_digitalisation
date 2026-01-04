@@ -20,28 +20,24 @@ env:
 
 jobs:
   build-elixir:
-    if: false
     uses: ./.github/workflows/build_elixir.yml
     with:
       directory: auth
     secrets: inherit
 
   build-ts:
-    if: false
     uses: ./.github/workflows/build_frontend.yml
     with:
       directory: frontend
     secrets: inherit
 
   build-python:
-    if: false
     uses: ./.github/workflows/build_python.yml
     with:
       directory: ocr
     secrets: inherit
 
   build-java:
-    if: false
     uses: ./.github/workflows/build_java.yml
     with:
       directory: backend
@@ -49,15 +45,16 @@ jobs:
 
 
   deploy:
+    needs:
+      - build-elixir
+      - build-ts
+      - build-python
+      - build-java
 
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Echo
-        run: |
-            echo ${{ env.AWS_REGION }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
