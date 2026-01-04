@@ -4,9 +4,6 @@ defmodule Auth.User.Register do
   alias Auth.Accounts
   alias Auth.Accounts.User
 
-  # Changed to raising version. If on start any of those are failing
-  # Check if everything from config/env.exs.example is present
-  # in config/env.exs
   defp backend_url, do: Application.get_env(:auth, :backend_url)
   defp backend_token, do: Application.get_env(:auth, :backend_authorization_token)
 
