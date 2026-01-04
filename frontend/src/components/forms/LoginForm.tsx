@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { TextField } from '../ui/TextField'
 import { Button } from '../ui/Button'
 import { useFlash } from '../../contexts/FlashContext'
+import { config } from '../../config'
 
 interface Errors {
   email?: string
@@ -57,7 +58,7 @@ const LoginForm: React.FC = () => {
   }
 
   const attemptToLogIn = async (email: string, password: string): Promise<LoginResponse> => {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_API_BASE_URL}/users/login`, {
+    const response = await fetch(`${config.authApiUrl}/users/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),

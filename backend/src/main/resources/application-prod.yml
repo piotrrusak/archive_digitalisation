@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+auth:
+  base-url: ${AUTH_BASE_URL}
+  path: /api/v1/token/verify
+  connect-timeout-ms: 1000
+  read-timeout-ms: 1500
+  bypass-token: ${AUTH_BYPASS_TOKEN:agsrgbbgadfaa}
+
+ocr:
+  base-url: ${OCR_BASE_URL}
+  path: /ocr/process
+  information-path: /ocr/available_models

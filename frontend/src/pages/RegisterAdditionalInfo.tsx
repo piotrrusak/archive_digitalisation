@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useFlash } from '../contexts/FlashContext'
 import NameForm from '../components/forms/NameForm'
 import { LibraryBig } from 'lucide-react'
+import { config } from '../config'
 
 interface AuthApiErrorResponse {
   message?: string
@@ -17,7 +18,7 @@ async function handleChangeUserName(
 ) {
   if (typeof userId !== 'number' || isNaN(userId) || !userToken) return
 
-  const url = `${import.meta.env.VITE_BACKEND_API_BASE_URL as string}/users/${userId.toString()}`
+  const url = `${config.backendApiUrl}/users/${userId.toString()}`
 
   const body = {
     ...(userFirstName !== null && { firstName: userFirstName }),

@@ -15,8 +15,8 @@ on:
         type: string
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  ECR_ACCOUNT_ID: ${{ vars.ECR_ACCOUNT_ID }}
+  AWS_REGION: "eu-north-1"
+  ECR_ACCOUNT_ID: 927788616928
 
 jobs:
   build-elixir:
@@ -130,5 +130,6 @@ jobs:
             export IMAGE_URI="$ECR_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$svc:$TAG"
 
             echo "Deploying $svc"
-            ./deploy_to_ecs.sh
+            chmod +x ./scripts/deployment/deploy_to_ecs.sh
+            ./scripts/deployment/deploy_to_ecs.sh
           done

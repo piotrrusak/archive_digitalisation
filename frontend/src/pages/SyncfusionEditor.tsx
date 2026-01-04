@@ -7,12 +7,12 @@ import MainLayout from '../components/MainLayout'
 import { useAuth } from '../hooks/useAuth'
 
 import { DocumentEditorContainerComponent, Toolbar } from '@syncfusion/ej2-react-documenteditor'
+import { config } from '../config'
 
 DocumentEditorContainerComponent.Inject(Toolbar)
 
 const BACKEND_API_BASE: string =
-  (import.meta.env.VITE_BACKEND_API_BASE_URL as string | undefined) ??
-  'http://localhost:8080/api/v1'
+  (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080/api/v1'
 
 interface StoredFileDTO {
   id: number

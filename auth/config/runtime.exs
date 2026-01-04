@@ -20,10 +20,17 @@ if System.get_env("PHX_SERVER") do
   config :auth, AuthWeb.Endpoint, server: true
 end
 
-# during deployment do it properly
-config :auth, :jwt_secret, "test"
-
 if config_env() == :prod do
+  config :auth, :jwt_secret, System.fetch_env!("JWT_SECRET")
+
+  config :auth, :google_oauth,
+    client_id: System.fetch_env!("GOOGLE_CLIENT_ID"),
+    client_secret: System.fetch_env!("GOOGLE_CLIENT_SECRET")
+
+  config :auth, :backend_authorization_token, System.fetch_env!("BACKEND_AUTHORIZATION_TOKEN")
+
+  config :auth, :backend_url, System.fetch_env!("BACKEND_URL")
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
@@ -34,9 +41,10 @@ if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :auth, Auth.Repo,
-    # ssl: true,
+    ssl: true,
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    ssl_opts: [verify: :verify_none],
     socket_options: maybe_ipv6
 
   # The secret key base is used to sign/encrypt cookies and other secrets.

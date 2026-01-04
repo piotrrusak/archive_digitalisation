@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { Modal } from '../components/ui/Modal'
 import { useNavigate } from 'react-router-dom'
 import { useFlash } from '../contexts/FlashContext'
+import { config } from '../config'
 
 // Private component for divider
 function Divider() {
@@ -31,7 +32,7 @@ interface AuthApiErrorResponse {
 }
 
 async function fetchUserProfile(userId: number, userToken: string): Promise<UserProfile> {
-  const url = `${import.meta.env.VITE_BACKEND_API_BASE_URL as string}/users/${userId.toString()}`
+  const url = `${config.backendApiUrl}/users/${userId.toString()}`
 
   const res = await fetch(url, {
     method: 'GET',
@@ -61,7 +62,7 @@ async function handleDeleteAccount(
 ): Promise<void> {
   if (typeof userId !== 'number' || isNaN(userId) || !userToken) return
 
-  const url = `${import.meta.env.VITE_AUTH_API_BASE_URL}/users/delete_account`
+  const url = `${config.authApiUrl}/users/delete_account`
 
   try {
     const res = await fetch(url, {
@@ -92,7 +93,7 @@ async function handleChangePasswordApi(
 ) {
   if (!token) return
 
-  const url = `${import.meta.env.VITE_AUTH_API_BASE_URL}/users/update_password`
+  const url = `${config.authApiUrl}/users/update_password`
 
   const res = await fetch(url, {
     method: 'PUT',
@@ -121,7 +122,7 @@ async function handleChangeUserName(
 ) {
   if (typeof userId !== 'number' || isNaN(userId) || !userToken) return
 
-  const url = `${import.meta.env.VITE_BACKEND_API_BASE_URL as string}/users/${userId.toString()}`
+  const url = `${config.backendApiUrl}/users/${userId.toString()}`
 
   const body = {
     ...(userFirstName !== null && { firstName: userFirstName }),
