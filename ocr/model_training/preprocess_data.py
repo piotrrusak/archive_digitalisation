@@ -11,6 +11,7 @@ DATA_DIR = (SCRIPT_DIR / "data").resolve()
 JSON_PATH = (SCRIPT_DIR / "input" / "dataset.json").resolve()
 
 
+
 def clear_n_lines(number_of_lines):
     for i in range(number_of_lines):
         print("\033[F\033[K", end="")
