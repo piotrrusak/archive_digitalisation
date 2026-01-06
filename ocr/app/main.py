@@ -163,6 +163,7 @@ def available_models():
         logging.critical("Error listing available models: %s", e)
         raise HTTPException(status_code=500, detail="Failed to list available models") from e
 
+
 @app.get("/ocr/health")
 def health():
     return {"status": "ok"}
