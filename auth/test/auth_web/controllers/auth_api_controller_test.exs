@@ -43,7 +43,7 @@ defmodule AuthWeb.AuthApiControllerTest do
       end)
 
       conn =
-        post(conn, "/api/v1/auth/google", %{
+        post(conn, "/auth/api/v1/auth/google", %{
           "code" => "mock_auth_code",
           "redirect_uri" => "http://localhost:5173/auth/google/callback",
           "user_found_redirect" => "http://localhost:5173/",
@@ -83,7 +83,7 @@ defmodule AuthWeb.AuthApiControllerTest do
           host: "localhost",
           port: 8080,
           method: "POST",
-          path: "/api/v1/users",
+          path: "/backend/api/v1/users",
           headers: [
             {"content-type", "application/json"},
             {"authorization", @backend_token}
@@ -99,7 +99,7 @@ defmodule AuthWeb.AuthApiControllerTest do
       end)
 
       conn =
-        post(conn, "/api/v1/auth/google", %{
+        post(conn, "/auth/api/v1/auth/google", %{
           "code" => "mock_auth_code",
           "redirect_uri" => "http://localhost:5173/auth/google/callback",
           "user_found_redirect" => "http://localhost:5173/",
@@ -132,7 +132,7 @@ defmodule AuthWeb.AuthApiControllerTest do
       |> expect(:verify, fn _ -> {:error, "invalid"} end)
 
       conn =
-        post(conn, "/api/v1/auth/google", %{
+        post(conn, "/auth/api/v1/auth/google", %{
           "code" => "mock_auth_code",
           "redirect_uri" => "http://localhost:5173/auth/google/callback",
           "user_found_redirect" => "http://localhost:5173/",
@@ -154,7 +154,7 @@ defmodule AuthWeb.AuthApiControllerTest do
       end)
 
       conn =
-        post(conn, "/api/v1/auth/google", %{
+        post(conn, "/auth/api/v1/auth/google", %{
           "code" => "mock_auth_code",
           "redirect_uri" => "http://localhost:5173/auth/google/callback",
           "user_found_redirect" => "http://localhost:5173/",
@@ -187,7 +187,7 @@ defmodule AuthWeb.AuthApiControllerTest do
       end)
 
       conn =
-        post(conn, "/api/v1/auth/google", %{
+        post(conn, "/auth/api/v1/auth/google", %{
           "code" => "mock_auth_code",
           "redirect_uri" => "http://localhost:5173/auth/google/callback",
           "user_found_redirect" => "http://localhost:5173/",

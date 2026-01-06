@@ -32,7 +32,7 @@ defmodule AuthWeb.ChangePasswordControllerTest do
         "password_confirmation" => @valid_new_password
       }
 
-      conn = put(conn, ~p"/api/v1/users/update_password", attrs)
+      conn = put(conn, ~p"/auth/api/v1/users/update_password", attrs)
       assert json_response(conn, 200)["message"] == "Password Changed Successfully"
 
       # Ensure the password is actually updated in the database
@@ -47,7 +47,7 @@ defmodule AuthWeb.ChangePasswordControllerTest do
         "password_confirmation" => @valid_new_password
       }
 
-      conn = put(conn, ~p"/api/v1/users/update_password", attrs)
+      conn = put(conn, ~p"/auth/api/v1/users/update_password", attrs)
       assert %{"errors" => %{"current_password" => ["is not valid"]}} = json_response(conn, 422)
     end
 
@@ -58,7 +58,7 @@ defmodule AuthWeb.ChangePasswordControllerTest do
         "password_confirmation" => "mismatch"
       }
 
-      conn = put(conn, ~p"/api/v1/users/update_password", attrs)
+      conn = put(conn, ~p"/auth/api/v1/users/update_password", attrs)
 
       assert %{"errors" => %{"password_confirmation" => ["does not match password"]}} =
                json_response(conn, 422)
@@ -71,14 +71,14 @@ defmodule AuthWeb.ChangePasswordControllerTest do
         "password_confirmation" => @short_password
       }
 
-      conn = put(conn, ~p"/api/v1/users/update_password", attrs)
+      conn = put(conn, ~p"/auth/api/v1/users/update_password", attrs)
 
       assert %{"errors" => %{"password" => ["should be at least 6 character(s)"]}} =
                json_response(conn, 422)
     end
 
     test "rejects unauthenticated request", %{user: _user} do
-      conn = build_conn() |> put(~p"/api/v1/users/update_password", %{})
+      conn = build_conn() |> put(~p"/auth/api/v1/users/update_password", %{})
       assert json_response(conn, 401)["error"] == "Unauthorized"
     end
   end

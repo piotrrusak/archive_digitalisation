@@ -7,7 +7,7 @@ defmodule AuthWeb.DeleteAccountControllerTest do
 
   setup :verify_on_exit!
 
-  describe "DELETE /api/v1/users/delete_account (authenticated)" do
+  describe "DELETE /auth/api/v1/users/delete_account (authenticated)" do
     setup %{conn: conn} do
       {:ok, user} =
         %User{}
@@ -32,7 +32,7 @@ defmodule AuthWeb.DeleteAccountControllerTest do
         {:ok, %Finch.Response{status: 200, body: ""}}
       end)
 
-      conn = delete(conn, ~p"/api/v1/users/delete_account")
+      conn = delete(conn, ~p"/auth/api/v1/users/delete_account")
 
       assert json_response(conn, 200)["message"] == "Account deleted successfully"
 
@@ -42,7 +42,7 @@ defmodule AuthWeb.DeleteAccountControllerTest do
     end
 
     test "returns 401 when unauthenticated" do
-      conn = build_conn() |> delete(~p"/api/v1/users/delete_account")
+      conn = build_conn() |> delete(~p"/auth/api/v1/users/delete_account")
       assert json_response(conn, 401)["error"] == "Unauthorized"
     end
 
@@ -52,7 +52,7 @@ defmodule AuthWeb.DeleteAccountControllerTest do
         {:ok, %Finch.Response{status: 500, body: "Backend failure"}}
       end)
 
-      conn = delete(conn, ~p"/api/v1/users/delete_account")
+      conn = delete(conn, ~p"/auth/api/v1/users/delete_account")
 
       assert json_response(conn, 500)["errors"] == "Backend failure"
 

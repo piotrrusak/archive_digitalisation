@@ -25,7 +25,7 @@ defmodule AuthWeb.UserRegistrationControllerTest do
     :ok
   end
 
-  test "POST /api/v1/users/register returns 201 and token + user on success", %{conn: conn} do
+  test "POST /auth/api/v1/users/register returns 201 and token + user on success", %{conn: conn} do
     Auth.BackendClientMock
     |> expect(:request, fn
       %Finch.Request{
@@ -33,7 +33,7 @@ defmodule AuthWeb.UserRegistrationControllerTest do
         host: "localhost",
         port: 8080,
         method: "POST",
-        path: "/api/v1/users",
+        path: "/backend/api/v1/users",
         headers: [
           {"content-type", "application/json"},
           {"authorization", @backend_token}
@@ -48,7 +48,7 @@ defmodule AuthWeb.UserRegistrationControllerTest do
         {:ok, %Finch.Response{status: 200, body: ""}}
     end)
 
-    conn = post(conn, "/api/v1/users/register", @valid_attrs)
+    conn = post(conn, "/auth/api/v1/users/register", @valid_attrs)
 
     assert json = json_response(conn, 201)
 
@@ -60,13 +60,13 @@ defmodule AuthWeb.UserRegistrationControllerTest do
     assert is_integer(id)
   end
 
-  test "POST /api/v1/users/register returns 422 and errors on invalid data", %{conn: conn} do
+  test "POST /auth/api/v1/users/register returns 422 and errors on invalid data", %{conn: conn} do
     Auth.BackendClientMock
     |> expect(:request, fn _req ->
       {:ok, %Finch.Response{status: 200, body: ""}}
     end)
 
-    conn = post(conn, "/api/v1/users/register", @invalid_attrs)
+    conn = post(conn, "/auth/api/v1/users/register", @invalid_attrs)
 
     assert json = json_response(conn, 422)
     assert %{"errors" => errors} = json
@@ -74,14 +74,14 @@ defmodule AuthWeb.UserRegistrationControllerTest do
     assert Map.has_key?(errors, "email") or Map.has_key?(errors, "password")
   end
 
-  test "POST /api/v1/users/register rolls back if backend call fails", %{conn: conn} do
+  test "POST /auth/api/v1/users/register rolls back if backend call fails", %{conn: conn} do
     # Simulate backend failure
     Auth.BackendClientMock
     |> expect(:request, fn _req ->
       {:ok, %Finch.Response{status: 500, body: "backend error"}}
     end)
 
-    conn = post(conn, "/api/v1/users/register", @valid_attrs)
+    conn = post(conn, "/auth/api/v1/users/register", @valid_attrs)
 
     assert json = json_response(conn, 500)
     assert %{"errors" => errors} = json

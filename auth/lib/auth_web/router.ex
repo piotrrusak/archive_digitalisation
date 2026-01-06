@@ -12,7 +12,7 @@ defmodule AuthWeb.Router do
     plug(User.Auth, :fetch_api_user)
   end
 
-  scope "/api/v1", AuthWeb do
+  scope "/auth/api/v1", AuthWeb do
     pipe_through(:api)
 
     post "/auth/google", AuthApiController, :google_auth
@@ -21,7 +21,7 @@ defmodule AuthWeb.Router do
     delete "/users/logout", UserSessionController, :delete
   end
 
-  scope "/api/v1", AuthWeb do
+  scope "/auth/api/v1", AuthWeb do
     pipe_through(:auth_api)
 
     get "/token/verify", TokenController, :verify
@@ -29,7 +29,7 @@ defmodule AuthWeb.Router do
     delete "/users/delete_account", DeleteAccountController, :delete_account
   end
 
-  scope "/api/v1/admins", AuthWeb do
+  scope "/auth/api/v1/admins", AuthWeb do
     pipe_through(:auth_api)
 
     get "/", AdminsController, :list_admins
