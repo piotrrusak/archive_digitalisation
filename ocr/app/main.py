@@ -165,5 +165,5 @@ def available_models():
 
 
 @app.get("/ocr/health")
-def health():
+def ocr_health():
     return {"status": "ok"}
