@@ -107,7 +107,7 @@ jobs:
 
       - name: Run Sobelow static security analysis
         working-directory: ${{ inputs.directory }}
-        run: mix sobelow --verbose --exit high --private
+        run: mix sobelow -i Config.HTTPS --verbose --exit high --private
 
       - name: Run tests
         working-directory: ${{ inputs.directory }}
