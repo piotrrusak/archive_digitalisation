@@ -17,10 +17,10 @@ export default function Register() {
 
         <div className="flex flex-1 flex-col items-start justify-center px-20 gap-9">
           <div className="flex flex-col gap-2">
-            <span className="font-bold text-[40px] h-[49px]">Register</span>
+            <span className="font-bold text-[40px] h-12">Register</span>
           </div>
           <GoogleLoginButton />
-          <div className="flex items-center gap-3 px-3 w-full">
+          <div className="flex items-center gap-1 px-3 w-full">
             <div className="flex-1 h-px bg-gray-300" />
             <span className="text-xs text-gray-500">or</span>
             <div className="flex-1 h-px bg-gray-300" />
@@ -36,7 +36,7 @@ export default function Register() {
       </div>
       <div className="rounded-[20px] overflow-hidden w-full h-full">
         <img
-          src="https://as1.ftcdn.net/v2/jpg/02/86/74/06/1000_F_286740601_d16NX2q8zoOfzkeN8pR8JBzbkDil2xjW.jpg"
+          src="/kot.jpg"
           className="w-full h-full object-cover"
           alt="This is Placeholder image"
         />
