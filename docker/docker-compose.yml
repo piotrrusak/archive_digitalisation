@@ -4,13 +4,13 @@ services:
     environment:
       POSTGRES_USER: postgres_auth
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: auth
+      POSTGRES_DB: postgres_auth
     ports:
       - "5433:5432"
     volumes:
       - db_auth:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres_auth -d auth"]
+      test: ["CMD-SHELL", "pg_isready -U postgres_auth -d postgres_auth"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -49,7 +49,7 @@ services:
 
   backend:
     volumes:
-      - ${AWS_DIR}/.aws:/root/.aws:ro,Z
+      - ${HOME}/.aws:/root/.aws:ro,Z
     build:
       context: ../backend
       dockerfile: Dockerfile
