@@ -37,6 +37,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- HEALTH CHECKS -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- JPA + Database Driver -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
