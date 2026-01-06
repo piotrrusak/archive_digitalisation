@@ -37,7 +37,7 @@ export default function Login() {
       </div>
       <div className="rounded-[20px] overflow-hidden w-full h-full">
         <img
-          src="https://as1.ftcdn.net/v2/jpg/02/86/74/06/1000_F_286740601_d16NX2q8zoOfzkeN8pR8JBzbkDil2xjW.jpg"
+          src="/kot.jpg"
           className="w-full h-full object-cover"
           alt="This is Placeholder image"
         />
