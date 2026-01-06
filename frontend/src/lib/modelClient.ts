@@ -1,3 +1,5 @@
+import { config } from '../config'
+
 type Dict = Record<string, unknown>
 
 export interface SendFilePayload {
@@ -12,8 +14,7 @@ export interface SendFilePayload {
 export type StoredFileResponse = Dict
 
 export function getApiBaseUrl(): string {
-  const base = (import.meta as unknown as { env?: { VITE_BACKEND_API_BASE_URL?: string } }).env
-    ?.VITE_BACKEND_API_BASE_URL
+  const base = config.backendApiUrl
 
   if (!base) {
     throw new Error(
