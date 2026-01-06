@@ -1,4 +1,4 @@
-import { config } from "../config"
+import { config } from '../config'
 
 type Dict = Record<string, unknown>
 
@@ -14,7 +14,7 @@ export interface SendFilePayload {
 export type StoredFileResponse = Dict
 
 export function getApiBaseUrl(): string {
-  const base = config.backendApiUrl;
+  const base = config.backendApiUrl
 
   if (!base) {
     throw new Error(
