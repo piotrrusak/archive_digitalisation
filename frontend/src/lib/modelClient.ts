@@ -17,7 +17,7 @@ export function getApiBaseUrl(): string {
 
   if (!base) {
     throw new Error(
-      'VITE_BACKEND_API_BASE_URL in env. Set e.g. VITE_BACKEND_API_BASE_URL=http://localhost:8080/api/v1',
+      'VITE_BACKEND_API_BASE_URL in env. Set e.g. VITE_BACKEND_API_BASE_URL=http://localhost:8080/backend/api/v1',
     )
   }
   return base.replace(/\/+$/, '')

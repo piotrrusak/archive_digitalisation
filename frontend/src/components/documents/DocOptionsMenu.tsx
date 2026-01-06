@@ -12,7 +12,7 @@ interface DocOptionsMenuProps {
 }
 
 const BACKEND_API_BASE: string =
-  (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080/api/v1'
+  (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080/backend/api/v1'
 
 export const DocOptionsMenu: FC<DocOptionsMenuProps> = ({ doc, onDelete, token }) => {
   const [open, setOpen] = useState(false)

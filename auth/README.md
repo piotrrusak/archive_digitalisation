@@ -41,7 +41,7 @@ Replace email with your desired email and everything is done.
 
 ## API
 
-In dev mode the service is exposed @ `http://localhost:4000/` (tls soon).
+In dev mode the service is exposed @ `http://localhost:4000/auth` (tls soon).
 
 ### POST /api/v1/auth/google
 Given
