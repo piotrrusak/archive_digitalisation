@@ -1,10 +1,13 @@
 package edu.bachelor.rest.config;
 
+import java.util.Arrays;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -15,10 +18,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig {
 
+  @Value("${ALLOWED_ORIGINS:http://localhost:5173,http://host.docker.internal:5173}")
+  private String allowedOrigins;
+
+  @Bean
+  public WebSecurityCustomizer webSecurityCustomizer() {
+    return (web) -> web.ignoring().requestMatchers("/actuator/**").requestMatchers("/error");
+  }
+
   @Bean
   CorsConfigurationSource corsConfigurationSource() {
     var cfg = new CorsConfiguration();
-    cfg.setAllowedOrigins(List.of("http://localhost:5173", "http://host.docker.internal:5173"));
+
+    cfg.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+
     cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     cfg.setAllowedHeaders(
         List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
@@ -35,7 +48,7 @@ public class SecurityConfig {
   SecurityFilterChain filterChain(
       HttpSecurity http, AuthClient authClient, CorsConfigurationSource corsConfigurationSource)
       throws Exception {
-    return http.csrf(csrf -> csrf.disable())
+    return http.csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .sessionManagement(
             sm ->
