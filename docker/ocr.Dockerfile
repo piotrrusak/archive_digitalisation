@@ -11,4 +11,4 @@ RUN pip install --upgrade pip \
 COPY ocr/ .
 
 EXPOSE 8000
-CMD ["python", "main.py"]
+CMD ["python", "-u", "app/run.py"]
