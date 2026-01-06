@@ -2,7 +2,7 @@ import base64
 
 import requests
 
-API_BASE = "/api/v1"
+API_BASE = "/backend/api/v1"
 
 
 def get_format(backend_url, auth_token, format_name=None, format_id=None, timeout=10):
