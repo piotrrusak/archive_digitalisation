@@ -57,6 +57,10 @@ Generated using https://www.lucidchart.com. Create new document from "Database E
 
 ## Endpoints
 
+**NOTE:** all api endpoints are *prefixed* with `/backend` for path resolution.
+
+*Example:* `/api/v1/users` become `/backend/api/v1/users` 
+
 ### /api/v1/users
 
 | HTTP Method | Endpoint            | Operation description |

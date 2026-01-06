@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { config } from '../config'
 
 const API_BASE: string =
-  (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080/api/v1'
+  (config.backendApiUrl as string | undefined) ?? 'http://localhost:8080/backend/api/v1'
 
 interface StoredFileDTO {
   id: number

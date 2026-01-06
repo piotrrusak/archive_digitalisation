@@ -35,7 +35,7 @@ defmodule AuthWeb.DeleteAccountController do
     request =
       Finch.build(
         :delete,
-        "#{backend_url()}/api/v1/users/#{user.id}",
+        "#{backend_url()}/backend/api/v1/users/#{user.id}",
         [
           {"authorization", backend_token()},
           {"content-type", "application/json"}

@@ -20,7 +20,7 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
     %{user: user, token: token}
   end
 
-  test "GET /api/v1/token/verify returns valid=true + user info for a good token", %{
+  test "GET /auth/api/v1/token/verify returns valid=true + user info for a good token", %{
     conn: conn,
     token: token,
     user: user
@@ -28,7 +28,7 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
     conn =
       conn
       |> put_req_header("authorization", "Bearer #{token}")
-      |> get("/api/v1/token/verify")
+      |> get("/auth/api/v1/token/verify")
 
     assert json = json_response(conn, 200)
     assert %{"valid" => true, "user_id" => user_id, "email" => email} = json
@@ -36,26 +36,29 @@ defmodule AuthWeb.TokenAndProtectedRoutesTest do
     assert email == user.email
   end
 
-  test "GET /api/v1/token/verify returns 401 for missing/invalid token", %{conn: conn} do
-    conn = get(conn, "/api/v1/token/verify")
+  test "GET /auth/api/v1/token/verify returns 401 for missing/invalid token", %{conn: conn} do
+    conn = get(conn, "/auth/api/v1/token/verify")
     assert response(conn, 401)
 
     conn2 =
       build_conn()
       |> put_req_header("accept", "application/json")
       |> put_req_header("authorization", "Bearer invalid.token.here")
-      |> get("/api/v1/token/verify")
+      |> get("/auth/api/v1/token/verify")
 
     assert response(conn2, 401)
   end
 
-  test "GET /api/v1/token/verify returns 401 when token is expired", %{conn: conn, user: user} do
+  test "GET /auth/api/v1/token/verify returns 401 when token is expired", %{
+    conn: conn,
+    user: user
+  } do
     expired_token = Auth.generate_jwt(user, -10)
 
     conn =
       conn
       |> put_req_header("authorization", "Bearer #{expired_token}")
-      |> get("/api/v1/token/verify")
+      |> get("/auth/api/v1/token/verify")
 
     assert response(conn, 401)
   end

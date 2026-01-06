@@ -60,7 +60,7 @@ defmodule Auth.User.Register do
     request =
       Finch.build(
         :post,
-        "#{backend_url()}/api/v1/users",
+        "#{backend_url()}/backend/api/v1/users",
         [
           {"content-type", "application/json"},
           {"authorization", backend_token()}

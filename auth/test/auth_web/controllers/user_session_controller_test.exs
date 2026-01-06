@@ -18,12 +18,12 @@ defmodule AuthWeb.UserSessionControllerTest do
     %{user: user, email: email, password: params["password"]}
   end
 
-  test "POST /api/v1/users/login returns 200 with token + user on valid credentials", %{
+  test "POST /auth/api/v1/users/login returns 200 with token + user on valid credentials", %{
     conn: conn,
     email: email,
     password: password
   } do
-    conn = post(conn, "/api/v1/users/login", %{"email" => email, "password" => password})
+    conn = post(conn, "/auth/api/v1/users/login", %{"email" => email, "password" => password})
     assert json = json_response(conn, 200)
 
     assert %{
@@ -37,7 +37,7 @@ defmodule AuthWeb.UserSessionControllerTest do
     refute admin?
   end
 
-  test "POST /api/v1/users/login returns 200 with correct is_admin field value when user is admin",
+  test "POST /auth/api/v1/users/login returns 200 with correct is_admin field value when user is admin",
        %{
          conn: conn,
          email: email,
@@ -46,22 +46,22 @@ defmodule AuthWeb.UserSessionControllerTest do
        } do
     {:ok, user} = Accounts.set_user_admin(user, true)
 
-    conn = post(conn, "/api/v1/users/login", %{"email" => email, "password" => password})
+    conn = post(conn, "/auth/api/v1/users/login", %{"email" => email, "password" => password})
     assert json = json_response(conn, 200)
 
     assert %{"user" => %{"is_admin" => true}} = json
 
     {:ok, _user} = Accounts.set_user_admin(user, false)
 
-    conn = post(conn, "/api/v1/users/login", %{"email" => email, "password" => password})
+    conn = post(conn, "/auth/api/v1/users/login", %{"email" => email, "password" => password})
     assert json = json_response(conn, 200)
 
     assert %{"user" => %{"is_admin" => false}} = json
   end
 
-  test "POST /api/v1/users/login returns 401 on invalid credentials", %{conn: conn} do
+  test "POST /auth/api/v1/users/login returns 401 on invalid credentials", %{conn: conn} do
     conn =
-      post(conn, "/api/v1/users/login", %{
+      post(conn, "/auth/api/v1/users/login", %{
         "email" => "doesnotexist@example.com",
         "password" => "nope"
       })
@@ -70,7 +70,7 @@ defmodule AuthWeb.UserSessionControllerTest do
     assert Map.has_key?(json, "error")
   end
 
-  test "POST /api/v1/users/login returns 401 on deleted user", %{
+  test "POST /auth/api/v1/users/login returns 401 on deleted user", %{
     conn: conn,
     user: user,
     email: email,
@@ -79,7 +79,7 @@ defmodule AuthWeb.UserSessionControllerTest do
     Accounts.delete_account(user)
 
     conn =
-      post(conn, "/api/v1/users/login", %{
+      post(conn, "/auth/api/v1/users/login", %{
         "email" => email,
         "password" => password
       })
@@ -88,12 +88,12 @@ defmodule AuthWeb.UserSessionControllerTest do
     assert Map.has_key?(json, "error")
   end
 
-  test "DELETE /api/v1/users/logout returns a friendly message", %{
+  test "DELETE /auth/api/v1/users/logout returns a friendly message", %{
     conn: conn,
     email: _email,
     password: _password
   } do
-    conn = delete(conn, "/api/v1/users/logout", %{})
+    conn = delete(conn, "/auth/api/v1/users/logout", %{})
     # With JWT approach logout is typically client-side; ensure the endpoint responds 200
     assert json = json_response(conn, 200)
     assert %{"message" => _} = json

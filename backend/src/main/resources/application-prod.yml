@@ -12,7 +12,7 @@ spring:
 
 auth:
   base-url: ${AUTH_BASE_URL}
-  path: /api/v1/token/verify
+  path: /auth/api/v1/token/verify
   connect-timeout-ms: 1000
   read-timeout-ms: 1500
   bypass-token: ${AUTH_BYPASS_TOKEN:agsrgbbgadfaa}
