@@ -12,6 +12,12 @@ defmodule AuthWeb.Router do
     plug(User.Auth, :fetch_api_user)
   end
 
+  scope "/auth", AuthWeb do
+    pipe_through :api
+
+    get "/health", HealthController, :index
+  end
+
   scope "/auth/api/v1", AuthWeb do
     pipe_through(:api)
 
