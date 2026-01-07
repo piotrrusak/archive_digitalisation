@@ -27,3 +27,5 @@ model_training/data_backup
 model_training/input_backup
 
 model_training/pipeline.sh
+
+*.json
