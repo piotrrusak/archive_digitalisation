@@ -134,11 +134,11 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
 
         lines_data.append({"text": line_txt, "bbox": item["bbox"]})
 
-    # optional sorting for better context for postprocessing - TODO, maybe
-    # lines_data.sort(key=lambda x: (x["bbox"][1], x["bbox"][0]))
-
-    # implement postprocessing later - TODO
-    # lines_data = postprocess(lines_data)
+    from postprocessor import postprocess
+    lines_txt = [item["text"] for item in lines_data]
+    lines_txt = postprocess(lines_txt)
+    for i, item in enumerate(lines_data):
+        item["text"] = lines_txt[i]
 
     for item in lines_data:
         insert_text_at_bbox(pdf_doc, item["text"], item["bbox"], visible_image=image_visibility)
@@ -161,6 +161,8 @@ def test_ocr(test_image_path, model_id=1, one_liner=False, debug=True, debug_ind
 
 if __name__ == "__main__":
     # test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png", 1, True)
+    from run import setup_logging
+    setup_logging()
     test_ocr(
         Path(__file__).resolve().parent / "../model_training/data/0000.png",
         model_id=1,
