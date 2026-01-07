@@ -11,12 +11,14 @@ try:
     from app.module_loading import load_module_from_path
     from app.segmentator import debug_save, segment
     from app.utils import get_frontline
+    from app.postprocessor import postprocess
 except Exception:
     try:
         from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
         from module_loading import load_module_from_path
         from segmentator import debug_save, segment
         from utils import get_frontline
+        from postprocessor import postprocess
     except Exception as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
@@ -134,7 +136,6 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
 
         lines_data.append({"text": line_txt, "bbox": item["bbox"]})
 
-    from postprocessor import postprocess
     lines_txt = [item["text"] for item in lines_data]
     lines_txt = postprocess(lines_txt)
     for i, item in enumerate(lines_data):
