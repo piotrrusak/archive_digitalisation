@@ -1,6 +1,13 @@
 import json
 
-from postprocessing_models_wrappers.gemma3 import Gemma3
+try :
+    from app.postprocessing_models_wrappers.gemma3 import Gemma3
+except Exception :
+    try :
+        from postprocessing_models_wrappers.gemma3 import Gemma3
+    except Exception as e:
+        raise ImportError("Failed to import Gemma3 model wrapper. Ensure the package structure is correct.") from e
+
 
 INITIAL_PROMPT = "Jesteś pomocnym asystentem, który poprawia tekst wyekstrahowany z obrazu."
 

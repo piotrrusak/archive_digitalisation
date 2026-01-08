@@ -27,6 +27,9 @@ def handle_record(item):
     max_y1 = min(max(ln["bbox"][3] for ln in lines), img_arr.shape[0] - 1) + 1
 
     new_image = (np.random.power(50, size=img_arr.shape[:2]) * 255).astype(np.uint8)
+    # new_image = np.zeros_like(img_arr)
+    # create white new image
+    # new_image = np.ones_like(img_arr) * 255
 
     new_image[min_y0:max_y1, min_x0:max_x1] = img_arr[min_y0:max_y1, min_x0:max_x1]
     img_crop = new_image

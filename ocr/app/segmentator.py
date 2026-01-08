@@ -234,8 +234,12 @@ def debug_save(im, lines, save_dir=SAVE_DIR, frontline=""):
 
 
 if __name__ == "__main__":
+    from run import setup_logging
+    setup_logging()
+
+    
     print(getattr(vgsl.TorchVGSLModel.load_model(str(MODEL_PATH)).nn, "model_type", None))
-    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0001.png"
+    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "input3.png"
 
     if SAVE_DIR.exists():
         for f in SAVE_DIR.iterdir():
@@ -248,6 +252,24 @@ if __name__ == "__main__":
     print(f"Model: {MODEL_PATH}")
 
     im = Image.open(IMAGE_PATH)
+
+    histogram = im.convert("L").histogram()
+    dark_ratio = sum(histogram[:128]) / sum(histogram)
+
+    if dark_ratio > 0.3:
+        im = Image.eval(im, lambda x: 255 - x)
+
+    print(im.size)
+    # # scale down image if too large
+    
+
+
+    # scale_factor = 50 / max(im.width, im.height)
+    # new_width = int(im.width * scale_factor)
+    # new_height = int(im.height * scale_factor)
+    # im = im.resize((new_width, new_height), Image.LANCZOS)
+    # print(f"Scaled down image to: {im.size}")
+    # im = im.convert("L")
 
     lines = segment(im)
     debug_save(im, lines)

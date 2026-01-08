@@ -1,6 +1,7 @@
 import json
 import time
 from pathlib import Path
+import subprocess
 
 from augment_data import handle_record as augment_record
 from image_cropper import handle_record as crop_record
@@ -20,6 +21,8 @@ def clear_n_lines(number_of_lines):
 
 def main():
     start_time = time.time()
+
+    subprocess.run(["./load_backups.sh"], cwd = str(SCRIPT_DIR), check=True)
     
     with open(JSON_PATH, encoding="utf-8") as f:
         original_data = json.load(f)
