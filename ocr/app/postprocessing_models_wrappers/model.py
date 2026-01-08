@@ -9,7 +9,7 @@ class Model(ABC):
     def __init__(self, filename, n_gpu_layers):
         self.llm = Llama(
             model_path=str(PROJECT_DIR / "models" / "postprocessing_models" / filename),
-            n_ctx=4096,
+            n_ctx=2048,
             n_threads=32,
             n_gpu_layers=n_gpu_layers,
             n_batch=512,

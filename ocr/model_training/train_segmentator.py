@@ -21,7 +21,7 @@ BEST_MODEL_PATH = (SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel").resolve()
 
 FORMAT_TYPE = "page"
 
-BASE_MODEL = (SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel").resolve()
+BASE_MODEL = (SCRIPT_DIR / ".." / "models" / "blla.mlmodel").resolve()
 BASE_MODEL = None
 
 MIN_EPOCHS = 10

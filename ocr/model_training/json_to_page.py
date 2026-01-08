@@ -46,7 +46,7 @@ def make_page_xml(image_path, img_w, img_h, lines):
         x0, y0, x1, y1 = ln["bbox"]
         tl = etree.SubElement(region, "TextLine", id=f"l{i:04d}")
         etree.SubElement(tl, "Coords", points=f"{x0},{y0} {x1},{y0} {x1},{y1} {x0},{y1}")
-        etree.SubElement(tl, "Baseline", points=f"{x0},{y1} {x1},{y1}")
+        etree.SubElement(tl, "Baseline", points=f"{x0},{(y0 + y1) / 2} {x1},{(y0 + y1) / 2}")
         if "text" in ln and ln["text"] is not None:
             te = etree.SubElement(tl, "TextEquiv")
             uni = etree.SubElement(te, "Unicode")

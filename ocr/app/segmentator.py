@@ -11,8 +11,9 @@ from kraken.lib import vgsl
 from PIL import Image
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel"
+# MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel"
 # MODEL_PATH = SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel"
+MODEL_PATH = SCRIPT_DIR / ".." / "models" / "blla_submitted.mlmodel"
 _SEG_MODEL = None
 
 TEXT_DIRECTION = "horizontal-lr"
@@ -193,39 +194,39 @@ def debug_save(im, lines, save_dir=SAVE_DIR, frontline=""):
             0,
         )
 
-        baseline = item.get("baseline")
-        if baseline:
-            for (bx0, by0), (bx1, by1) in zip(baseline, baseline[1:], strict=False):
-                gx0, gy0 = int(bx0 + x0), int(by0 + y0)
-                gx1, gy1 = int(bx1 + x0), int(by1 + y0)
+        # baseline = item.get("baseline")
+        # if baseline:
+        #     for (bx0, by0), (bx1, by1) in zip(baseline, baseline[1:], strict=False):
+        #         gx0, gy0 = int(bx0 + x0), int(by0 + y0)
+        #         gx1, gy1 = int(bx1 + x0), int(by1 + y0)
 
-                steps = max(abs(gx1 - gx0), abs(gy1 - gy0)) + 1
-                xs = np.linspace(gx0, gx1, steps).astype(int)
-                ys = np.linspace(gy0, gy1, steps).astype(int)
+        #         steps = max(abs(gx1 - gx0), abs(gy1 - gy0)) + 1
+        #         xs = np.linspace(gx0, gx1, steps).astype(int)
+        #         ys = np.linspace(gy0, gy1, steps).astype(int)
 
-                for xx, yy in zip(xs, ys, strict=False):
-                    if 0 <= yy < img_arr.shape[0] and 0 <= xx < img_arr.shape[1]:
-                        for w_x in range(xx - BBOX_LINE_WIDTH, xx + BBOX_LINE_WIDTH + 1):
-                            for w_y in range(yy - BBOX_LINE_WIDTH, yy + BBOX_LINE_WIDTH + 1):
-                                if 0 <= w_y < img_arr.shape[0] and 0 <= w_x < img_arr.shape[1]:
-                                    img_arr[w_y, w_x] = (0, 255, 0)
+        #         for xx, yy in zip(xs, ys, strict=False):
+        #             if 0 <= yy < img_arr.shape[0] and 0 <= xx < img_arr.shape[1]:
+        #                 for w_x in range(xx - BBOX_LINE_WIDTH, xx + BBOX_LINE_WIDTH + 1):
+        #                     for w_y in range(yy - BBOX_LINE_WIDTH, yy + BBOX_LINE_WIDTH + 1):
+        #                         if 0 <= w_y < img_arr.shape[0] and 0 <= w_x < img_arr.shape[1]:
+        #                             img_arr[w_y, w_x] = (0, 255, 0)
 
-        boundary = item.get("boundary")
-        if boundary and len(boundary) > 1:
-            for (bx0, by0), (bx1, by1) in zip(boundary, boundary[1:], strict=False):
-                gx0, gy0 = int(bx0 + x0), int(by0 + y0)
-                gx1, gy1 = int(bx1 + x0), int(by1 + y0)
+        # boundary = item.get("boundary")
+        # if boundary and len(boundary) > 1:
+        #     for (bx0, by0), (bx1, by1) in zip(boundary, boundary[1:], strict=False):
+        #         gx0, gy0 = int(bx0 + x0), int(by0 + y0)
+        #         gx1, gy1 = int(bx1 + x0), int(by1 + y0)
 
-                steps = max(abs(gx1 - gx0), abs(gy1 - gy0)) + 1
-                xs = np.linspace(gx0, gx1, steps).astype(int)
-                ys = np.linspace(gy0, gy1, steps).astype(int)
+        #         steps = max(abs(gx1 - gx0), abs(gy1 - gy0)) + 1
+        #         xs = np.linspace(gx0, gx1, steps).astype(int)
+        #         ys = np.linspace(gy0, gy1, steps).astype(int)
 
-                for xx, yy in zip(xs, ys, strict=False):
-                    if 0 <= yy < img_arr.shape[0] and 0 <= xx < img_arr.shape[1]:
-                        for w_x in range(xx - BBOX_LINE_WIDTH, xx + BBOX_LINE_WIDTH + 1):
-                            for w_y in range(yy - BBOX_LINE_WIDTH, yy + BBOX_LINE_WIDTH + 1):
-                                if 0 <= w_y < img_arr.shape[0] and 0 <= w_x < img_arr.shape[1]:
-                                    img_arr[w_y, w_x] = (0, 0, 255)
+        #         for xx, yy in zip(xs, ys, strict=False):
+        #             if 0 <= yy < img_arr.shape[0] and 0 <= xx < img_arr.shape[1]:
+        #                 for w_x in range(xx - BBOX_LINE_WIDTH, xx + BBOX_LINE_WIDTH + 1):
+        #                     for w_y in range(yy - BBOX_LINE_WIDTH, yy + BBOX_LINE_WIDTH + 1):
+        #                         if 0 <= w_y < img_arr.shape[0] and 0 <= w_x < img_arr.shape[1]:
+        #                             img_arr[w_y, w_x] = (0, 0, 255)
 
     im_out = Image.fromarray(img_arr)
     im_out.save(save_dir / "segmented_image.png")
@@ -239,7 +240,7 @@ if __name__ == "__main__":
 
     
     print(getattr(vgsl.TorchVGSLModel.load_model(str(MODEL_PATH)).nn, "model_type", None))
-    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "input3.png"
+    IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0000.png"
 
     if SAVE_DIR.exists():
         for f in SAVE_DIR.iterdir():

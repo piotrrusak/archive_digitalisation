@@ -23,7 +23,7 @@ class SegModelSpec:
 SCRIPT_DIR = Path(__file__).resolve().parent
 JSON_PATH = SCRIPT_DIR / "input" / "dataset.json"
 
-OUT_FILE = SCRIPT_DIR / "segmentation_test_results.json"
+OUT_FILE = SCRIPT_DIR / "test_results" / "segmentation_test_results_new.json"
 SAVED_DATA = {}
 
 def load_module_from_path(path: Path) -> ModuleType:

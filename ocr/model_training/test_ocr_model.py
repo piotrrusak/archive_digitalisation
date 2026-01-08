@@ -224,10 +224,10 @@ if __name__ == "__main__":
     test_models_concurrently(
         [
             (MODEL_PATH, MODEL_HANDLER_PATH),
-            (Path(__file__).resolve().parent / ".." / "models" / "en_best.mlmodel", MODEL_HANDLER_PATH),
+            (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "en_best.mlmodel", MODEL_HANDLER_PATH),
             (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "kraken.mlmodel", MODEL_HANDLER_PATH),
-            (Path(__file__).resolve().parent / ".." / "models" / "ocr_best.mlmodel", MODEL_HANDLER_PATH),
-            (Path(__file__).resolve().parent / ".." / "models" / "ocr_best_ketos.mlmodel", MODEL_HANDLER_PATH),
+            (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best.mlmodel", MODEL_HANDLER_PATH),
+            (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best_ketos.mlmodel", MODEL_HANDLER_PATH),
         ],
         tests_per_model=float('inf'),
         one_line=True,
