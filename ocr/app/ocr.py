@@ -106,9 +106,9 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
 
     if not one_liner:
         lines = segment(im, debug=debug, frontline=get_frontline(debug_indent + 1))
-        if debug:
-            debug_save(im, lines, save_dir=OUT_DIR, frontline=get_frontline(debug_indent + 2))
-            logging.debug(get_frontline(debug_indent + 1) + "Segmentation finished")
+        # if debug:
+        #     debug_save(im, lines, save_dir=OUT_DIR, frontline=get_frontline(debug_indent + 2))
+        #     logging.debug(get_frontline(debug_indent + 1) + "Segmentation finished")
     else:
         lines = [{"bbox": (0, 0, im.width, im.height)}]
 
@@ -144,9 +144,9 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
     for item in lines_data:
         insert_text_at_bbox(pdf_doc, item["text"], item["bbox"], visible_image=image_visibility)
 
-    if debug:
-        pdf_doc.save(pdf_path)
-        logging.debug(get_frontline(debug_indent) + f"Saved OCR overlay PDF to: {pdf_path}")
+    # if debug:
+    #     pdf_doc.save(pdf_path)
+    #     logging.debug(get_frontline(debug_indent) + f"Saved OCR overlay PDF to: {pdf_path}")
 
     pdf_bytes = pdf_to_bytes(pdf_doc)
     docx_bytes = pdf_to_docx_bytes(pdf_doc)
