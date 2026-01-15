@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from typing import Any, Iterator
 
 import numpy as np
 from PIL import Image
@@ -12,7 +13,7 @@ JSON_DIR = os.path.join(SCRIPT_DIR, "input")
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
 
 
-def get_next(mask):
+def get_next(mask: list[int]) -> None:
     prev = -1
 
     for i in range(len(mask) - 1, -2, -1):
@@ -22,7 +23,7 @@ def get_next(mask):
         prev = mask.pop()
 
 
-def iterate_through_masks(n):
+def iterate_through_masks(n: int) -> Iterator[list[int]]:
     mask = []
     while len(mask) <= n:
         yield mask.copy()
@@ -30,7 +31,7 @@ def iterate_through_masks(n):
             break
         get_next(mask)
 
-def generate_maskset(n, num_of_masks=MASKS_PER_IMAGE):
+def generate_maskset(n: int, num_of_masks: int = MASKS_PER_IMAGE) -> list[list[int]]:
     masks = [(mask, i) for i, mask in enumerate(iterate_through_masks(n)) if 0 < len(mask) < n]
     maskset = []
     for mask in masks :
@@ -53,7 +54,7 @@ def generate_maskset(n, num_of_masks=MASKS_PER_IMAGE):
     
     return out_maskset
 
-def handle_record(record):
+def handle_record(record: dict[str, Any]) -> int:
     print(f"Augmenting record: {record['name']}")
     output = 1
     n = len(record["lines"])

@@ -1,6 +1,7 @@
 import io
 import logging
 from pathlib import Path
+from typing import Any, Iterable
 
 import fitz
 from docx import Document
@@ -20,7 +21,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_DIR = SCRIPT_DIR / ".." / "temp" / "pdf_pages"
 
 
-def pil_to_pixmap(image):
+def pil_to_pixmap(image: Image.Image) -> fitz.Pixmap:
     if image.mode == "1":
         image = image.convert("L")
 
@@ -42,7 +43,7 @@ def pil_to_pixmap(image):
     return fitz.Pixmap(colorspace, width, height, samples, alpha)
 
 
-def initialize_pdf_with_image(image, visible_image=True):
+def initialize_pdf_with_image(image: Image.Image, visible_image: bool = True) -> fitz.Document:
     pdf_doc = fitz.open()
     rect = fitz.Rect(0, 0, image.width, image.height)
     page = pdf_doc.new_page(width=image.width, height=image.height)
@@ -52,14 +53,14 @@ def initialize_pdf_with_image(image, visible_image=True):
     return pdf_doc
 
 
-def measure_text_single_line(text, fontsize=11, fontname="helv"):
+def measure_text_single_line(text: str, fontsize: int = 11, fontname: str = "helv") -> tuple[float, int]:
     font = fitz.Font(fontname)
     width = font.text_length(text, fontsize=fontsize)
     height = fontsize
     return width, height
 
 
-def find_fontsize(line_height, line_width, text, fontname="helv"):
+def find_fontsize(line_height: int, line_width: int, text: str, fontname: str = "helv") -> int:
     min_fontsize = 1
     max_fontsize = line_height
 
@@ -79,7 +80,13 @@ def find_fontsize(line_height, line_width, text, fontname="helv"):
     return int(fontsize) - 1
 
 
-def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False):
+def insert_text_at_bbox(
+    pdf_doc: fitz.Document,
+    text: str,
+    bbox: Iterable[int],
+    visible_image: bool = True,
+    draw_rect: bool = False,
+) -> None:
     page = pdf_doc[0]
     x0, y0, x1, y1 = bbox
     rect = fitz.Rect(x0, y0, x1, y1)
@@ -98,14 +105,14 @@ def insert_text_at_bbox(pdf_doc, text, bbox, visible_image=True, draw_rect=False
     page.insert_text(point, text, fontsize=fs, fontname="helv", color=0, fill_opacity=1, overlay=True)
 
 
-def pdf_to_bytes(pdf_doc):
+def pdf_to_bytes(pdf_doc: fitz.Document) -> bytes:
     return pdf_doc.write()
 
-def save_docx_to_path(docx_bytes, output_path) :
-    with open(output_path, "wb") as f :
+def save_docx_to_path(docx_bytes: bytes, output_path: Path) -> None:
+    with open(output_path, "wb") as f:
         f.write(docx_bytes)
 
-def pdf_to_docx_bytes(pdf_doc) :
+def pdf_to_docx_bytes(pdf_doc: fitz.Document) -> bytes:
     pdf_bytes = pdf_to_bytes(pdf_doc)
 
     laparams = LAParams()
@@ -121,7 +128,12 @@ def pdf_to_docx_bytes(pdf_doc) :
     doc.save(buf)
     return buf.getvalue()
 
-def convert_to_png_bytes(input_bytes, input_format, debug=False, debug_indent=0):
+def convert_to_png_bytes(
+    input_bytes: bytes,
+    input_format: dict[str, Any],
+    debug: bool = False,
+    debug_indent: int = 0,
+) -> bytes:
     if debug:
         logging.debug(get_frontline(debug_indent) + f"Converting input format '{input_format}' to PNG bytes")
 

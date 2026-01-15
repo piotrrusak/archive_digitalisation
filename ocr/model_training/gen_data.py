@@ -2,6 +2,7 @@ import json
 import os
 import tkinter as tk
 from tkinter import messagebox, ttk
+from typing import Any
 
 from PIL import Image, ImageTk
 
@@ -15,7 +16,7 @@ os.makedirs(OUTPUT_DATA_DIR, exist_ok=True)
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp", ".tif", ".tiff"}
 
 
-def collect_image_files(root_dir):
+def collect_image_files(root_dir: str) -> list[str]:
     paths = []
     for root, _, files in os.walk(root_dir):
         for fname in files:
@@ -29,7 +30,13 @@ class ImageAnnotator:
     HANDLE_SIZE = 6
     HANDLE_HIT = 8
 
-    def __init__(self, master, image_paths, start_index, output_file_path=OUTPUT_FILE_PATH):
+    def __init__(
+        self,
+        master: tk.Tk,
+        image_paths: list[str],
+        start_index: int,
+        output_file_path: str = OUTPUT_FILE_PATH,
+    ) -> None:
         self.master = master
         self.master.title("Image annotator — Shift+Enter submit, Enter add line, drag to edit")
         self.image_paths = image_paths
@@ -99,7 +106,7 @@ class ImageAnnotator:
 
         self._load_current()
 
-    def _fit_image(self, ow, oh, avail_w, avail_h):
+    def _fit_image(self, ow: int, oh: int, avail_w: int, avail_h: int) -> tuple[int, int]:
         if avail_w <= 0 or avail_h <= 0:
             return 0, 0
         img_ratio = ow / max(1, oh)
@@ -112,7 +119,7 @@ class ImageAnnotator:
             new_w = int(new_h * img_ratio)
         return max(new_w, 1), max(new_h, 1)
 
-    def _display_image(self):
+    def _display_image(self) -> None:
         if self._orig_img is None:
             return
         cw = max(self.canvas.winfo_width(), 1)
@@ -140,10 +147,10 @@ class ImageAnnotator:
             self._rect_id = None
         self._clicks = []
 
-    def _on_canvas_resize(self, _):
+    def _on_canvas_resize(self, _: Any) -> None:
         self._display_image()
 
-    def _orig_to_disp(self, x, y):
+    def _orig_to_disp(self, x: int, y: int) -> tuple[int, int]:
         ow, oh = self._orig_img.size
         rw, rh = self._render_size
         off_x, off_y = self._render_offset
@@ -151,7 +158,7 @@ class ImageAnnotator:
         sy = rh / oh
         return int(off_x + x * sx), int(off_y + y * sy)
 
-    def _disp_to_orig(self, x, y):
+    def _disp_to_orig(self, x: int, y: int) -> tuple[int, int]:
         ow, oh = self._orig_img.size
         rw, rh = self._render_size
         off_x, off_y = self._render_offset
@@ -161,14 +168,14 @@ class ImageAnnotator:
         sy = oh / max(1, rh)
         return int(rx * sx), int(ry * sy)
 
-    def _constrain_to_image(self, x, y):
+    def _constrain_to_image(self, x: int, y: int) -> tuple[int, int]:
         off_x, off_y = self._render_offset
         rw, rh = self._render_size
         x = max(off_x, min(off_x + rw, x))
         y = max(off_y, min(off_y + rh, y))
         return x, y
 
-    def _draw_selection(self, x1, y1, x2, y2):
+    def _draw_selection(self, x1: int, y1: int, x2: int, y2: int) -> None:
         x1, x2 = sorted((x1, x2))
         y1, y2 = sorted((y1, y2))
         x1, y1 = self._constrain_to_image(x1, y1)
@@ -194,7 +201,7 @@ class ImageAnnotator:
             self._handle_ids.append(hid)
         self._sel_rect = [x1, y1, x2, y2]
 
-    def _start_rubber_band(self, x, y):
+    def _start_rubber_band(self, x: int, y: int) -> int:
         self._clicks = [(x, y)]
         self.canvas.delete("temp_rect")
 
@@ -203,7 +210,7 @@ class ImageAnnotator:
         )
         return rect_id
 
-    def _on_canvas_motion(self, event):
+    def _on_canvas_motion(self, event: Any) -> None:
         if len(self._clicks) == 1 and self._orig_img is not None:
             x1, y1 = self._clicks[0]
             x2, y2 = self._constrain_to_image(event.x, event.y)
@@ -221,7 +228,7 @@ class ImageAnnotator:
             }.get(mode, "")
             self.canvas.configure(cursor=cursor)
 
-    def _on_canvas_click(self, event):
+    def _on_canvas_click(self, event: Any) -> None:
         if self._orig_img is None:
             return
         off_x, off_y = self._render_offset
@@ -249,7 +256,7 @@ class ImageAnnotator:
             self.text.focus_set()
             self._clicks = []
 
-    def _on_canvas_drag(self, event):
+    def _on_canvas_drag(self, event: Any) -> None:
         if self._sel_rect is None or self._drag_mode is None:
             return
         x1, y1, x2, y2 = self._sel_rect
@@ -270,11 +277,11 @@ class ImageAnnotator:
                 x2 = ex
             self._draw_selection(x1, y1, x2, y2)
 
-    def _on_canvas_release(self, _event):
+    def _on_canvas_release(self, _event: Any) -> None:
         self._drag_mode = None
         self._drag_start = None
 
-    def _hit_test(self, x, y, x1, y1, x2, y2):
+    def _hit_test(self, x: int, y: int, x1: int, y1: int, x2: int, y2: int) -> str | None:
         x1, x2 = sorted((x1, x2))
         y1, y2 = sorted((y1, y2))
         h = self.HANDLE_HIT
@@ -286,7 +293,7 @@ class ImageAnnotator:
             return "move"
         return None
 
-    def _on_escape(self, _):
+    def _on_escape(self, _: Any) -> None:
         if self._rect_id is not None:
             self.canvas.delete(self._rect_id)
             self._rect_id = None
@@ -299,7 +306,7 @@ class ImageAnnotator:
         self.text.delete("1.0", "end")
         self.text.config(state="disabled")
 
-    def _on_text_enter(self, event):
+    def _on_text_enter(self, event: Any) -> str:
         if self._sel_rect is None:
             return "break"
         text = self.text.get("1.0", "end").strip()
@@ -323,7 +330,7 @@ class ImageAnnotator:
         self._display_image()
         return "break"
 
-    def _save_image_record(self):
+    def _save_image_record(self) -> bool:
         name = f"{self.current_pos:04d}"
         rel_filepath = f"data/{name}.png"
         abs_filepath = os.path.join(SCRIPT_DIR, rel_filepath)
@@ -355,7 +362,7 @@ class ImageAnnotator:
         print(f"Saved record {name} with {len(self._lines)} line(s)")
         return True
 
-    def _on_submit(self, _event):
+    def _on_submit(self, _event: Any) -> str:
         try:
             self._on_text_enter(None)
         except Exception as e:
@@ -367,7 +374,7 @@ class ImageAnnotator:
         self._goto_next_image()
         return "break"
 
-    def _goto_next_image(self):
+    def _goto_next_image(self) -> None:
         self.current_pos += 2
         if self.current_pos >= len(self.image_paths):
             messagebox.showinfo("Done", "Reached the end of the dataset.")
@@ -375,7 +382,7 @@ class ImageAnnotator:
         else:
             self._load_current()
 
-    def _load_current(self):
+    def _load_current(self) -> None:
         self.current_image_path = self.image_paths[self.current_pos]
         self.path_var.set(self.current_image_path)
         try:
@@ -395,7 +402,7 @@ class ImageAnnotator:
         self.master.after(10, self._display_image)
 
 
-def main():
+def main() -> None:
     all_files = collect_image_files(DATA_DIR)
     print(f"Collected {len(all_files)} image files from dataset.")
 

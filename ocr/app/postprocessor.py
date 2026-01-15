@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 try :
     from app.postprocessing_models_wrappers.gemma3 import Gemma3
@@ -11,13 +12,13 @@ except Exception :
 
 INITIAL_PROMPT = "Jesteś pomocnym asystentem, który poprawia tekst wyekstrahowany z obrazu."
 
-def create_query_with_context(user_input: str, context: str):
+def create_query_with_context(user_input: str, context: str) -> str:
     query = f"<start_of_turn>user\n{INITIAL_PROMPT}\n<end_of_turn>\n \
         <start_of_turn>model\n<end_of_turn>\n<start_of_turn>user\nThis is context: {context}\n<end_of_turn>\n \
         <start_of_turn>model\n<end_of_turn>\n<start_of_turn>user\n{user_input}\n<end_of_turn>\n<start_of_turn>model"
     return query
 
-def postprocess(lines: list[str]):
+def postprocess(lines: list[str]) -> dict[str, Any]:
     model = Gemma3()
 
     query = create_query_with_context(

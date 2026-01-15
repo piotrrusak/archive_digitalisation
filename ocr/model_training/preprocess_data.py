@@ -13,13 +13,13 @@ JSON_PATH = (SCRIPT_DIR / "input" / "dataset.json").resolve()
 
 
 
-def clear_n_lines(number_of_lines):
+def clear_n_lines(number_of_lines: int) -> None:
     for i in range(number_of_lines):
         print("\033[F\033[K", end="")
         time.sleep(((2*i)/(number_of_lines*(number_of_lines+1))) * 0.2)
 
 
-def main():
+def main() -> None:
     start_time = time.time()
 
     subprocess.run(["./load_backups.sh"], cwd = str(SCRIPT_DIR), check=True)

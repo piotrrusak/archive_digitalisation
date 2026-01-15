@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import Any, Optional
 
 from kraken import binarization, containers, pageseg, rpred
 from kraken.lib.models import load_any
@@ -14,13 +15,19 @@ MODEL_PATH = Path(__file__).resolve().parent / ".." / "ocr_best_submitted.mlmode
 TEXT_DIRECTION = "horizontal-lr"
 
 
-def load(model_path=MODEL_PATH):
+def load(model_path: Path = MODEL_PATH) -> Any:
     global MODEL
     MODEL = load_any(str(model_path), device="cpu")
     return MODEL
 
 
-def handle(image, seg_info=None, debug=False, frontline="", filter_warnings=False):
+def handle(
+    image: Image.Image,
+    seg_info: Optional[dict[str, Any]] = None,
+    debug: bool = False,
+    frontline: str = "",
+    filter_warnings: bool = False,
+) -> str:
     global MODEL
     if MODEL is None:
         load()

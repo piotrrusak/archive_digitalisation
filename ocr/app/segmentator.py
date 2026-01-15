@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from io import BytesIO
 from pathlib import Path
+from typing import Any, Optional
 
 import numpy as np
 import torch
@@ -21,7 +22,7 @@ SAVE_DIR = SCRIPT_DIR / ".." / "temp" / "seg_lines"
 BBOX_LINE_WIDTH = 5
 
 
-def silence_segmentation_logs():
+def silence_segmentation_logs() -> None:
     logging.getLogger("kraken.blla").setLevel(logging.ERROR)
     logging.getLogger("kraken").setLevel(logging.ERROR)
 
@@ -31,7 +32,7 @@ def silence_segmentation_logs():
     logging.getLogger("geos").setLevel(logging.ERROR)
 
 
-def _ensure_pil_image(img):
+def _ensure_pil_image(img: Image.Image | bytes | bytearray | memoryview) -> Image.Image:
     if isinstance(img, Image.Image):
         return img
     if isinstance(img, (bytes, bytearray, memoryview)):
@@ -39,7 +40,7 @@ def _ensure_pil_image(img):
     raise TypeError("img must be a PIL.Image.Image or bytes")
 
 
-def _load_seg_model(device, seg_model_path=MODEL_PATH):
+def _load_seg_model(device: Optional[str], seg_model_path: Path = MODEL_PATH) -> Any:
     global _SEG_MODEL
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -54,7 +55,7 @@ def _load_seg_model(device, seg_model_path=MODEL_PATH):
     return _SEG_MODEL
 
 
-def _bbox_from_line(line, im_w, im_h):
+def _bbox_from_line(line: Any, im_w: int, im_h: int) -> tuple[int, int, int, int]:
     if hasattr(line, "bbox") and line.bbox is not None:
         x0, y0, x1, y1 = map(int, line.bbox)
     elif hasattr(line, "boundary") and line.boundary:
@@ -83,14 +84,14 @@ def _bbox_from_line(line, im_w, im_h):
 
 
 def segment_lines_from_image(
-    img,
+    img: Image.Image | bytes | bytearray | memoryview,
     *,
-    device=None,
-    text_direction="horizontal-lr",
-    pad=0,
-    return_mode="pil",
-    seg_model_path=MODEL_PATH,
-):
+    device: Optional[str] = None,
+    text_direction: str = "horizontal-lr",
+    pad: int = 0,
+    return_mode: str = "pil",
+    seg_model_path: Path = MODEL_PATH,
+) -> list[dict[str, Any]]:
     im = _ensure_pil_image(img).convert("RGB")
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -147,7 +148,13 @@ def segment_lines_from_image(
     return results
 
 
-def segment(im, seg_model_path=MODEL_PATH, filter_warnings=False, debug=False, frontline=""):
+def segment(
+    im: Image.Image | bytes | bytearray | memoryview,
+    seg_model_path: Path = MODEL_PATH,
+    filter_warnings: bool = False,
+    debug: bool = False,
+    frontline: str = "",
+) -> list[dict[str, Any]]:
     if filter_warnings:
         silence_segmentation_logs()
 
@@ -164,7 +171,12 @@ def segment(im, seg_model_path=MODEL_PATH, filter_warnings=False, debug=False, f
     return lines
 
 
-def debug_save(im, lines, save_dir=SAVE_DIR, frontline=""):
+def debug_save(
+    im: Image.Image,
+    lines: list[dict[str, Any]],
+    save_dir: Path = SAVE_DIR,
+    frontline: str = "",
+) -> None:
     img_arr = np.array(im.convert("RGB"))
 
     logging.info(frontline + f"Found {len(lines)} lines:")

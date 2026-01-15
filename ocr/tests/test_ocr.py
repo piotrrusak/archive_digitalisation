@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -36,7 +37,7 @@ def _normalize_text(s: str) -> str:
     return " ".join((s or "").split()).strip().lower()
 
 
-def _collect_cases(data_dir: Path):
+def _collect_cases(data_dir: Path) -> list[Any]:
     if not data_dir.exists():
         return [pytest.param(None, None, marks=pytest.mark.skip(reason="DIR_PATH does not exist."))]
 
@@ -64,7 +65,7 @@ PARAMS = _collect_cases(DIR_PATH)
 
 
 @pytest.fixture(autouse=True)
-def reset_model_cache():
+def reset_model_cache() -> None:
     if hasattr(ocr_module, "_MODEL"):
         ocr_module._MODEL = None
     yield
@@ -73,7 +74,7 @@ def reset_model_cache():
 
 
 @pytest.mark.parametrize("png_path, gt_path", PARAMS)
-def test_ocr_quality_dynamic_threshold(png_path: Path, gt_path: Path, capsys):
+def test_ocr_quality_dynamic_threshold(png_path: Path, gt_path: Path, capsys: Any) -> None:
     if png_path is None or gt_path is None:
         pytest.skip("Invalid parameters for this test case.")
 

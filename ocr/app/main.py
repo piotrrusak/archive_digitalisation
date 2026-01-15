@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 import os
+from typing import Any, Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -38,7 +39,7 @@ class IncomingFile(BaseModel):
 
     @field_validator("content")
     @classmethod
-    def validate_base64(cls, v):
+    def validate_base64(cls, v: str) -> str:
         try:
             base64.b64decode(v, validate=True)
         except Exception as e:
@@ -46,7 +47,7 @@ class IncomingFile(BaseModel):
             raise ValueError(f"Invalid base64 content: {e}") from e
         return v
 
-def strip_content(data):
+def strip_content(data: Any) -> Any:
     try:
         if "content" in data:
             data["content"] = "[SKIPPED]"
@@ -55,7 +56,7 @@ def strip_content(data):
         data = "[NON-JSON BODY]"
     return data
 
-def find_correct_backend_url(auth_header, format_id):
+def find_correct_backend_url(auth_header: Optional[str], format_id: int) -> Optional[str]:
     global BACKEND_URL
     if BACKEND_URL is None :
         try:
@@ -72,7 +73,7 @@ def find_correct_backend_url(auth_header, format_id):
     return BACKEND_URL
 
 @app.get("/health")
-def health():
+def health() -> dict[str, str]:
     try:
         _ = get_model_list()
         return {"status": "ok"}
@@ -80,7 +81,7 @@ def health():
         return {"status": "error", "detail": str(e)}
 
 @app.post("/ocr/process")
-async def handle_file(payload: IncomingFile, request: Request):
+async def handle_file(payload: IncomingFile, request: Request) -> dict[str, Any]:
     
     raw = await request.body()
 
@@ -156,7 +157,7 @@ async def handle_file(payload: IncomingFile, request: Request):
 
 
 @app.get("/ocr/available_models")
-def available_models():
+def available_models() -> list[dict[str, Any]]:
     try:
         return [{k: v for k, v in model.items() if k != "handle"} for model in get_model_list()]
     except Exception as e:

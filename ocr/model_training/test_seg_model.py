@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
+from typing import Any, Iterator
 
 import numpy as np
 from PIL import Image
@@ -39,13 +40,17 @@ def load_module_from_path(path: Path) -> ModuleType:
     return module
 
 
-def load_dataset(json_path: Path = JSON_PATH):
+def load_dataset(json_path: Path = JSON_PATH) -> list[dict[str, Any]]:
     with json_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
     return data
 
 
-def segmentation_metric(gt_lines, pred_lines, image):
+def segmentation_metric(
+    gt_lines: list[dict[str, Any]],
+    pred_lines: list[dict[str, Any]],
+    image: Image.Image,
+) -> float:
     h, w = image.size[1], image.size[0]
     gt_mask = np.zeros((h, w), dtype=np.uint8)
     pred_mask = np.zeros((h, w), dtype=np.uint8)
@@ -108,8 +113,8 @@ def test_seg_model(
     handler_path: Path,
     max_pages: int | None = None,
     concurrently: bool = False,
-    dataset=None,
-) :
+    dataset: list[dict[str, Any]] | None = None,
+) -> Iterator[tuple[float, float] | None]:
     handler_module = load_module_from_path(handler_path)
     _load_seg_model_in_handler(handler_module, model_path)
     segment_func = _get_segment_function(handler_module)
@@ -157,7 +162,13 @@ def test_seg_model(
 
 
 
-def _run_seg_model_in_process(model_path, handler_path, max_pages, queue, model_name) :
+def _run_seg_model_in_process(
+    model_path: Path,
+    handler_path: Path,
+    max_pages: int | None,
+    queue: mp.Queue,
+    model_name: str,
+) -> None:
     for payload in test_seg_model(model_path, handler_path, max_pages, concurrently=True) :
         queue.put((model_name, payload))
     queue.put((model_name, None))
@@ -165,10 +176,10 @@ def _run_seg_model_in_process(model_path, handler_path, max_pages, queue, model_
 
 
 def test_seg_models_concurrently(
-    model_specs,
+    model_specs: list[tuple[Path, Path]],
     pages_per_model: int | None = None,
     one_line: bool = True,
-) :
+) -> None:
     global SAVED_DATA
     normalized = [(Path(m), Path(h)) for (m, h) in model_specs]
     normalized.sort(key=lambda p: len(p[0].name), reverse=True)

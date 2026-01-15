@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -15,7 +16,7 @@ JSON_PATH = os.path.join(os.path.join(SCRIPT_DIR, "input"), "dataset.json")
 DOWNSCALE_FACTOR = 1
 
 
-def handle_record(item):
+def handle_record(item: dict[str, Any]) -> int:
     filepath = os.path.join(SCRIPT_DIR, item["filepath"])
 
     img_arr = np.array(Image.open(filepath))
@@ -48,7 +49,7 @@ def handle_record(item):
     return 0
 
 
-def main():
+def main() -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     ds = json.loads(Path(JSON_PATH).read_text(encoding="utf-8"))
     for item in ds:

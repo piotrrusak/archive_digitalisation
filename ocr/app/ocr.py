@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import logging
 from pathlib import Path
+from typing import Any, Callable
 
 from PIL import Image
 
@@ -33,7 +34,7 @@ OUT_DIR = Path(__file__).resolve().parent / ".." / "temp"
 INVERT_THRESHOLD = 0.3
 
 
-def get_model_list():
+def get_model_list() -> list[dict[str, Any]]:
     global MODEL_LIST
     if MODEL_LIST is not None:
         return MODEL_LIST
@@ -64,7 +65,7 @@ def get_model_list():
     return models
 
 
-def get_model_handler(id, debug=False, debug_indent=0):
+def get_model_handler(id: int, debug: bool = False, debug_indent: int = 0) -> Callable[..., str]:
     global MODEL_LIST
     if debug:
         logging.debug(get_frontline(debug_indent) + f"Retrieving handler for model ID: {id}")
@@ -87,7 +88,14 @@ def get_model_handler(id, debug=False, debug_indent=0):
     return default_handler
 
 
-def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=False, debug_indent=0):
+def run_ocr(
+    png_bytes: bytes,
+    model_id: int,
+    image_visibility: bool = False,
+    one_liner: bool = False,
+    debug: bool = False,
+    debug_indent: int = 0,
+) -> tuple[bytes, bytes]:
     if debug:
         logging.debug(get_frontline(debug_indent) + f"Starting OCR with model ID: {model_id}")
     im = Image.open(io.BytesIO(png_bytes))
@@ -153,7 +161,13 @@ def run_ocr(png_bytes, model_id, image_visibility=False, one_liner=False, debug=
     return pdf_bytes, docx_bytes
 
 
-def test_ocr(test_image_path, model_id=1, one_liner=False, debug=True, debug_indent=0):
+def test_ocr(
+    test_image_path: Path,
+    model_id: int = 1,
+    one_liner: bool = False,
+    debug: bool = True,
+    debug_indent: int = 0,
+) -> None:
     if debug:
         logging.debug(get_frontline(debug_indent) + f"Testing OCR on image: {test_image_path}")
     png_bytes = test_image_path.read_bytes()

@@ -1,11 +1,18 @@
 import base64
+from typing import Any, Optional
 
 import requests
 
 API_BASE = "/backend/api/v1"
 
 
-def get_format(backend_url, auth_token, format_name=None, format_id=None, timeout=10):
+def get_format(
+    backend_url: str,
+    auth_token: Optional[str],
+    format_name: Optional[str] = None,
+    format_id: Optional[int] = None,
+    timeout: int = 10,
+) -> Optional[dict[str, Any]]:
     url = f"{backend_url.rstrip('/')}{API_BASE}/formats"
     headers = {}
     if auth_token:
@@ -29,15 +36,15 @@ def get_format(backend_url, auth_token, format_name=None, format_id=None, timeou
 
 
 def send_file(
-    backend_url,
-    auth_token,
-    owner_id,
-    format_id,
-    generation,
-    content_bytes,
-    primary_file_id=None,
-    timeout=15,
-):
+    backend_url: str,
+    auth_token: str,
+    owner_id: int,
+    format_id: int,
+    generation: int,
+    content_bytes: bytes,
+    primary_file_id: Optional[int] = None,
+    timeout: int = 15,
+) -> dict[str, Any]:
     if not backend_url:
         raise ValueError("backend_url is required")
 

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
+from typing import Any, Iterator
 
 from PIL import Image
 from rapidfuzz.distance import Levenshtein
@@ -42,23 +43,23 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_FILE = SCRIPT_DIR / "test_results" / "ocr_test_results.json"
 SAVED_DATA = {}
 
-def normalize_text(text):
+def normalize_text(text: str) -> str:
     return " ".join((text or "").split()).strip()
 
 
-def load_dataset(json_path: Path = JSON_PATH):
+def load_dataset(json_path: Path = JSON_PATH) -> list[dict[str, Any]]:
     with JSON_PATH.open("r", encoding="utf-8") as f:
         dataset_info = json.load(f)
     return dataset_info
 
 
 def test_model(
-    model_path = MODEL_PATH,
-    model_handler = MODEL_HANDLER_PATH,
-    tests = 100,
-    concurrently = False,
-    dataset_info = None,
-) :
+    model_path: Path = MODEL_PATH,
+    model_handler: Path = MODEL_HANDLER_PATH,
+    tests: int = 100,
+    concurrently: bool = False,
+    dataset_info: list[dict[str, Any]] | None = None,
+) -> Iterator[tuple[float, float] | None]:
     module = load_module_from_path(model_handler)
     module.load(model_path)
     handle_func = module.handle
@@ -119,7 +120,13 @@ def test_model(
 
 
 
-def _run_model_in_process(model_path, model_handler, tests, queue, model_name) :
+def _run_model_in_process(
+    model_path: Path,
+    model_handler: Path,
+    tests: int,
+    queue: mp.Queue,
+    model_name: str,
+) -> None:
     for payload in test_model(
         model_path,
         model_handler,
@@ -131,7 +138,9 @@ def _run_model_in_process(model_path, model_handler, tests, queue, model_name) :
 
 
 
-def test_models_concurrently(model_paths, tests_per_model=2, one_line=True):
+def test_models_concurrently(
+    model_paths: list[tuple[Path, Path]], tests_per_model: int | None = 2, one_line: bool = True
+) -> None:
     global SAVED_DATA
     SAVED_DATA = { mp[0].name : [] for mp in model_paths }
 
