@@ -6,6 +6,7 @@ from llama_cpp import Llama
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 
+
 class Model(ABC):
     def __init__(self, filename: str, n_gpu_layers: int) -> None:
         self.llm = Llama(

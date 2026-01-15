@@ -1,5 +1,5 @@
 import base64
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -8,11 +8,11 @@ API_BASE = "/backend/api/v1"
 
 def get_format(
     backend_url: str,
-    auth_token: Optional[str],
-    format_name: Optional[str] = None,
-    format_id: Optional[int] = None,
+    auth_token: str | None,
+    format_name: str | None = None,
+    format_id: int | None = None,
     timeout: int = 10,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     url = f"{backend_url.rstrip('/')}{API_BASE}/formats"
     headers = {}
     if auth_token:
@@ -42,7 +42,7 @@ def send_file(
     format_id: int,
     generation: int,
     content_bytes: bytes,
-    primary_file_id: Optional[int] = None,
+    primary_file_id: int | None = None,
     timeout: int = 15,
 ) -> dict[str, Any]:
     if not backend_url:

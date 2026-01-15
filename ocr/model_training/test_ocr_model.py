@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import multiprocessing as mp
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Iterator
+from typing import Any
 
 from PIL import Image
 from rapidfuzz.distance import Levenshtein
@@ -43,6 +43,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 OUT_FILE = SCRIPT_DIR / "test_results" / "ocr_test_results.json"
 SAVED_DATA = {}
 
+
 def normalize_text(text: str) -> str:
     return " ".join((text or "").split()).strip()
 
@@ -64,24 +65,24 @@ def test_model(
     module.load(model_path)
     handle_func = module.handle
 
-    if dataset_info is None :
+    if dataset_info is None:
         dataset_info = load_dataset(JSON_PATH)
 
     counter = 0
     score = 0.0
     log_length = 0
 
-    if not concurrently :
+    if not concurrently:
         input(f"Press Enter to start testing model {model_path.name}...")
         print(f"Testing model {model_path.name} (Ctrl+C to stop)")
 
-    for item in dataset_info :
+    for item in dataset_info:
         img = Image.open(Path(__file__).resolve().parent / item["filepath"])
 
-        if "aug" in item["name"] :
+        if "aug" in item["name"]:
             continue
 
-        for line in item["lines"] :
+        for line in item["lines"]:
             line_img = img.crop((line["bbox"][0], line["bbox"][1], line["bbox"][2], line["bbox"][3]))
 
             result = handle_func(line_img, filter_warnings=True)
@@ -98,26 +99,25 @@ def test_model(
             log = f"   Test {counter + 1}, current model score: {running_avg:.4f}"
             log_length = max(log_length, len(log))
 
-            if not concurrently :
+            if not concurrently:
                 print(log + " " * max((log_length - len(log), 0)), end="\r")
-            else :
+            else:
                 yield (model_numerical_result, running_avg)
 
             counter += 1
 
-            if counter >= tests :
+            if counter >= tests:
                 break
 
-        if counter >= tests :
+        if counter >= tests:
             break
 
-    if not concurrently :
+    if not concurrently:
         print(" " * log_length, end="\r")
         print(f"After {counter} tests")
         print(log)
-    else :
+    else:
         yield None
-
 
 
 def _run_model_in_process(
@@ -132,17 +132,16 @@ def _run_model_in_process(
         model_handler,
         tests,
         concurrently=True,
-    ) :
+    ):
         queue.put((model_name, payload))
     queue.put((model_name, None))
-
 
 
 def test_models_concurrently(
     model_paths: list[tuple[Path, Path]], tests_per_model: int | None = 2, one_line: bool = True
 ) -> None:
     global SAVED_DATA
-    SAVED_DATA = { mp[0].name : [] for mp in model_paths }
+    SAVED_DATA = {mp[0].name: [] for mp in model_paths}
 
     model_paths.sort(key=lambda p: len(p[0].name), reverse=True)
     column_length = len(model_paths[0][0].name) if model_paths else 10
@@ -173,12 +172,7 @@ def test_models_concurrently(
     for (model_path, handler), queue in zip(model_paths, queues, strict=False):
         p = mp.Process(
             target=_run_model_in_process,
-            args=(model_path,
-                  handler,
-                  tests_per_model,
-                  queue,
-                  model_path.name
-                  ),
+            args=(model_path, handler, tests_per_model, queue, model_path.name),
         )
         p.start()
         processes.append(p)
@@ -196,10 +190,10 @@ def test_models_concurrently(
 
             msg_model, payload = queue.get()
 
-            if payload is None :
+            if payload is None:
                 finished[i] = True
                 row.append(prev_results[i])
-            else :
+            else:
                 model_numerical_result, running_avg = payload
                 SAVED_DATA[msg_model].append(model_numerical_result)
 
@@ -228,7 +222,6 @@ def test_models_concurrently(
         json.dump(SAVED_DATA, f, indent=2, ensure_ascii=False)
 
 
-
 if __name__ == "__main__":
     test_models_concurrently(
         [
@@ -236,8 +229,11 @@ if __name__ == "__main__":
             (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "en_best.mlmodel", MODEL_HANDLER_PATH),
             (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "kraken.mlmodel", MODEL_HANDLER_PATH),
             (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best.mlmodel", MODEL_HANDLER_PATH),
-            (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best_ketos.mlmodel", MODEL_HANDLER_PATH),
+            (
+                Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best_ketos.mlmodel",
+                MODEL_HANDLER_PATH,
+            ),
         ],
-        tests_per_model=float('inf'),
+        tests_per_model=float("inf"),
         one_line=True,
     )

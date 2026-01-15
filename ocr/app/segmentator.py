@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import torch
@@ -40,7 +40,7 @@ def _ensure_pil_image(img: Image.Image | bytes | bytearray | memoryview) -> Imag
     raise TypeError("img must be a PIL.Image.Image or bytes")
 
 
-def _load_seg_model(device: Optional[str], seg_model_path: Path = MODEL_PATH) -> Any:
+def _load_seg_model(device: str | None, seg_model_path: Path = MODEL_PATH) -> Any:
     global _SEG_MODEL
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -86,7 +86,7 @@ def _bbox_from_line(line: Any, im_w: int, im_h: int) -> tuple[int, int, int, int
 def segment_lines_from_image(
     img: Image.Image | bytes | bytearray | memoryview,
     *,
-    device: Optional[str] = None,
+    device: str | None = None,
     text_direction: str = "horizontal-lr",
     pad: int = 0,
     return_mode: str = "pil",
@@ -247,9 +247,9 @@ def debug_save(
 
 if __name__ == "__main__":
     from run import setup_logging
+
     setup_logging()
 
-    
     print(getattr(vgsl.TorchVGSLModel.load_model(str(MODEL_PATH)).nn, "model_type", None))
     IMAGE_PATH = SCRIPT_DIR / ".." / "model_training" / "data" / "0000.png"
 
@@ -273,8 +273,6 @@ if __name__ == "__main__":
 
     print(im.size)
     # # scale down image if too large
-    
-
 
     # scale_factor = 50 / max(im.width, im.height)
     # new_width = int(im.width * scale_factor)

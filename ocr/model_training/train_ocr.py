@@ -6,8 +6,8 @@ import random
 import re
 import shutil
 import subprocess
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from utils.memory_info import main as print_memory_info
 
@@ -67,7 +67,9 @@ def collect_xml_files(data_dir: Path) -> list[Path]:
     return [Path(p) for p in xml_paths]
 
 
-def train_val_split(xml_files: Iterable[Path], seed: int = SEED, val_ratio: float = VAL_RATIO) -> tuple[list[Path], list[Path]]:
+def train_val_split(
+    xml_files: Iterable[Path], seed: int = SEED, val_ratio: float = VAL_RATIO
+) -> tuple[list[Path], list[Path]]:
     xml_files = list(xml_files)
     random.seed(seed)
     random.shuffle(xml_files)

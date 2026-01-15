@@ -1,7 +1,8 @@
 import io
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import fitz
 from docx import Document
@@ -108,9 +109,11 @@ def insert_text_at_bbox(
 def pdf_to_bytes(pdf_doc: fitz.Document) -> bytes:
     return pdf_doc.write()
 
+
 def save_docx_to_path(docx_bytes: bytes, output_path: Path) -> None:
     with open(output_path, "wb") as f:
         f.write(docx_bytes)
+
 
 def pdf_to_docx_bytes(pdf_doc: fitz.Document) -> bytes:
     pdf_bytes = pdf_to_bytes(pdf_doc)
@@ -119,14 +122,15 @@ def pdf_to_docx_bytes(pdf_doc: fitz.Document) -> bytes:
     text = extract_text(io.BytesIO(pdf_bytes), laparams=laparams)
 
     doc = Document()
-    for line in text.splitlines() :
-        if line.strip() == "" :
+    for line in text.splitlines():
+        if line.strip() == "":
             continue
         doc.add_paragraph(line)
 
     buf = io.BytesIO()
     doc.save(buf)
     return buf.getvalue()
+
 
 def convert_to_png_bytes(
     input_bytes: bytes,
@@ -155,8 +159,9 @@ def convert_to_png_bytes(
 
     elif input_format["format"] in ["jpeg", "jpg", "tiff", "bmp", "gif"]:
         if debug:
-            logging.debug(get_frontline(debug_indent) +
-                          f"Converting image format '{input_format['format']}' to PNG using PIL")
+            logging.debug(
+                get_frontline(debug_indent) + f"Converting image format '{input_format['format']}' to PNG using PIL"
+            )
         im = Image.open(io.BytesIO(input_bytes))
         with io.BytesIO() as output:
             im.save(output, format="PNG")

@@ -2,24 +2,25 @@ from __future__ import annotations
 
 import io
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from PIL import Image
 
 try:
     from app.file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
     from app.module_loading import load_module_from_path
-    from app.segmentator import debug_save, segment
-    from app.utils import get_frontline
     from app.postprocessor import postprocess
+    from app.segmentator import segment
+    from app.utils import get_frontline
 except Exception:
     try:
         from file_converter import initialize_pdf_with_image, insert_text_at_bbox, pdf_to_bytes, pdf_to_docx_bytes
         from module_loading import load_module_from_path
-        from segmentator import debug_save, segment
-        from utils import get_frontline
         from postprocessor import postprocess
+        from segmentator import segment
+        from utils import get_frontline
     except Exception as e:
         raise ImportError("Failed to import necessary modules. Ensure the package structure is correct.") from e
 
@@ -95,6 +96,7 @@ def run_ocr(
     one_liner: bool = False,
     debug: bool = False,
     debug_indent: int = 0,
+    use_postprocessing: bool = True,
 ) -> tuple[bytes, bytes]:
     if debug:
         logging.debug(get_frontline(debug_indent) + f"Starting OCR with model ID: {model_id}")
@@ -144,15 +146,15 @@ def run_ocr(
 
         lines_data.append({"text": line_txt, "bbox": item["bbox"]})
 
-    lines_txt = [item["text"] for item in lines_data]
-    
-    lines_txt = postprocess(lines_txt)
-    for i, item in enumerate(lines_data):
-        try :
-            item["text"] = lines_txt["lines"][i]
-        except Exception as e:
-            # print(f"Error updating text for line {i}: {e}")
-            logging.info(f"Line {i} wasn't postprocessed")
+
+    if use_postprocessing:
+        lines_txt = [item["text"] for item in lines_data]
+        lines_txt = postprocess(lines_txt)
+        for i, item in enumerate(lines_data):
+            try:
+                item["text"] = lines_txt["lines"][i]
+            except Exception:
+                logging.info(f"Line {i} wasn't postprocessed")
 
     for item in lines_data:
         insert_text_at_bbox(pdf_doc, item["text"], item["bbox"], visible_image=image_visibility)
@@ -172,6 +174,7 @@ def test_ocr(
     one_liner: bool = False,
     debug: bool = True,
     debug_indent: int = 0,
+    use_postprocessing: bool = True,
 ) -> None:
     if debug:
         logging.debug(get_frontline(debug_indent) + f"Testing OCR on image: {test_image_path}")
@@ -182,11 +185,13 @@ def test_ocr(
 if __name__ == "__main__":
     # test_ocr(Path(__file__).resolve().parent / "../model_training/data/0000.png", 1, True)
     from run import setup_logging
+
     setup_logging()
     test_ocr(
         Path(__file__).resolve().parent / "../model_training/data/0000.png",
         model_id=1,
         #  one_liner=True,
         debug=True,
+        use_postprocessing=False,
     )
     # get_model_list()

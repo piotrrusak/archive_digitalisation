@@ -1,7 +1,7 @@
 import json
+import subprocess
 import time
 from pathlib import Path
-import subprocess
 
 from augment_data import handle_record as augment_record
 from image_cropper import handle_record as crop_record
@@ -12,18 +12,17 @@ DATA_DIR = (SCRIPT_DIR / "data").resolve()
 JSON_PATH = (SCRIPT_DIR / "input" / "dataset.json").resolve()
 
 
-
 def clear_n_lines(number_of_lines: int) -> None:
     for i in range(number_of_lines):
         print("\033[F\033[K", end="")
-        time.sleep(((2*i)/(number_of_lines*(number_of_lines+1))) * 0.2)
+        time.sleep(((2 * i) / (number_of_lines * (number_of_lines + 1))) * 0.2)
 
 
 def main() -> None:
     start_time = time.time()
 
-    subprocess.run(["./load_backups.sh"], cwd = str(SCRIPT_DIR), check=True)
-    
+    subprocess.run(["./load_backups.sh"], cwd=str(SCRIPT_DIR), check=True)
+
     with open(JSON_PATH, encoding="utf-8") as f:
         original_data = json.load(f)
     original_data.sort(key=lambda x: int(x["name"]))
@@ -44,8 +43,8 @@ def main() -> None:
             lines_printed += 1
             with open(JSON_PATH, encoding="utf-8") as f:
                 json_data = json.load(f)
-        
-        try :
+
+        try:
             record = json_data[record_index]
         except IndexError:
             break

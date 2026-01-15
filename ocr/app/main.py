@@ -1,8 +1,7 @@
 import base64
-import json
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -47,6 +46,7 @@ class IncomingFile(BaseModel):
             raise ValueError(f"Invalid base64 content: {e}") from e
         return v
 
+
 def strip_content(data: Any) -> Any:
     try:
         if "content" in data:
@@ -56,9 +56,10 @@ def strip_content(data: Any) -> Any:
         data = "[NON-JSON BODY]"
     return data
 
-def find_correct_backend_url(auth_header: Optional[str], format_id: int) -> Optional[str]:
+
+def find_correct_backend_url(auth_header: str | None, format_id: int) -> str | None:
     global BACKEND_URL
-    if BACKEND_URL is None :
+    if BACKEND_URL is None:
         try:
             backend_base_url = os.getenv("BACKEND_BASE_URL_DOCKER")
             get_format(backend_base_url, auth_header, format_id=format_id)
@@ -72,6 +73,7 @@ def find_correct_backend_url(auth_header: Optional[str], format_id: int) -> Opti
                 logging.critical("Failed to find backend URL: %s", e)
     return BACKEND_URL
 
+
 @app.get("/health")
 def health() -> dict[str, str]:
     try:
@@ -80,13 +82,13 @@ def health() -> dict[str, str]:
     except Exception as e:
         return {"status": "error", "detail": str(e)}
 
+
 @app.post("/ocr/process")
 async def handle_file(payload: IncomingFile, request: Request) -> dict[str, Any]:
-    
-    raw = await request.body()
+    await request.body()
 
     # logging.info("Full request (content skipped): %s\n", strip_content(json.loads(raw)))
-    
+
     # logging.info(
     #     "Received file: id=%s, ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
     #     payload.id,
@@ -134,7 +136,6 @@ async def handle_file(payload: IncomingFile, request: Request) -> dict[str, Any]
     )
 
     logging.info("Sent OCR result back to backend, got response: %s", strip_content(result))
-
 
     out_docx_format = get_format(backend_base_url, auth_header, format_name="docx")
     if not out_docx_format:

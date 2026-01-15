@@ -55,9 +55,7 @@ def make_page_xml(image_path: str, img_w: int, img_h: int, lines: list[dict[str,
     return etree.tostring(root, pretty_print=True, xml_declaration=True, encoding="UTF-8")
 
 
-def save_line_crops(
-    base_out: Path, name: str, img: Image.Image, lines: list[dict[str, Any]]
-) -> None:
+def save_line_crops(base_out: Path, name: str, img: Image.Image, lines: list[dict[str, Any]]) -> None:
     out_dir = base_out / name
     out_dir.mkdir(parents=True, exist_ok=True)
     for i, ln in enumerate(lines):

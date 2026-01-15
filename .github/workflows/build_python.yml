@@ -57,7 +57,7 @@ jobs:
 
       - name: Run tests
         working-directory: ${{ inputs.directory }}
-        run: pytest --maxfail=3 --disable-warnings --tb=short
+        run: pytest tests --maxfail=3 --disable-warnings --tb=short
 
       - name: Save pip cache
         if: ${{ !cancelled() }}

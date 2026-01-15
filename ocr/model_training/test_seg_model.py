@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 import multiprocessing as mp
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Iterator
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -26,6 +26,7 @@ JSON_PATH = SCRIPT_DIR / "input" / "dataset.json"
 
 OUT_FILE = SCRIPT_DIR / "test_results" / "segmentation_test_results_new.json"
 SAVED_DATA = {}
+
 
 def load_module_from_path(path: Path) -> ModuleType:
     unique_name = f"_seg_model_{path.stem}_{abs(hash(path.as_posix()))}"
@@ -119,10 +120,10 @@ def test_seg_model(
     _load_seg_model_in_handler(handler_module, model_path)
     segment_func = _get_segment_function(handler_module)
 
-    if dataset is None :
+    if dataset is None:
         dataset = load_dataset(JSON_PATH)
 
-    if not concurrently :
+    if not concurrently:
         input(f"Press Enter to start testing segmentator {model_path.name}...")
         print(f"Testing segmentator {model_path.name} (Ctrl+C to stop)")
 
@@ -130,7 +131,7 @@ def test_seg_model(
     page_count = 0
     log_length = 0
 
-    for item in dataset :
+    for item in dataset:
         img_path = SCRIPT_DIR / item["filepath"]
         image = Image.open(img_path).convert("RGB")
 
@@ -145,21 +146,20 @@ def test_seg_model(
         log = f"   Page {page_count}, current model score: {avg_score:.4f}"
         log_length = max(log_length, len(log))
 
-        if not concurrently :
+        if not concurrently:
             print(log + " " * max((log_length - len(log), 0)), end="\r")
-        else :
+        else:
             yield (page_score, avg_score)
 
-        if max_pages is not None and page_count >= max_pages :
+        if max_pages is not None and page_count >= max_pages:
             break
 
-    if not concurrently :
+    if not concurrently:
         print(" " * log_length, end="\r")
         print(f"After {page_count} pages")
         print(log)
-    else :
+    else:
         yield None
-
 
 
 def _run_seg_model_in_process(
@@ -169,10 +169,9 @@ def _run_seg_model_in_process(
     queue: mp.Queue,
     model_name: str,
 ) -> None:
-    for payload in test_seg_model(model_path, handler_path, max_pages, concurrently=True) :
+    for payload in test_seg_model(model_path, handler_path, max_pages, concurrently=True):
         queue.put((model_name, payload))
     queue.put((model_name, None))
-
 
 
 def test_seg_models_concurrently(
@@ -184,7 +183,7 @@ def test_seg_models_concurrently(
     normalized = [(Path(m), Path(h)) for (m, h) in model_specs]
     normalized.sort(key=lambda p: len(p[0].name), reverse=True)
 
-    SAVED_DATA = { model_path.name : [] for (model_path, _) in normalized }
+    SAVED_DATA = {model_path.name: [] for (model_path, _) in normalized}
 
     column_length = len(normalized[0][0].name) if normalized else 10
 
@@ -240,7 +239,6 @@ def test_seg_models_concurrently(
                 prev_results[i] = avg_score
                 row.append(avg_score)
 
-
         iteration += 1
         line = frontline
         for value in row:
@@ -263,6 +261,7 @@ def test_seg_models_concurrently(
     with OUT_FILE.open("w", encoding="utf-8") as f:
         json.dump(SAVED_DATA, f, indent=2, ensure_ascii=False)
 
+
 if __name__ == "__main__":
     SEG_HANDLER_PATH = SCRIPT_DIR / ".." / "app" / "segmentator.py"
 
@@ -273,6 +272,6 @@ if __name__ == "__main__":
             (SCRIPT_DIR / ".." / "models" / "seg_best_old.mlmodel", SEG_HANDLER_PATH),
             (SCRIPT_DIR / ".." / "models" / "blla.mlmodel", SEG_HANDLER_PATH),
         ],
-        pages_per_model=float('inf'),
+        pages_per_model=float("inf"),
         one_line=True,
     )

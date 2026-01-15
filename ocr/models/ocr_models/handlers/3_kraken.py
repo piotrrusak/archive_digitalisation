@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from kraken import binarization, containers, pageseg, rpred
 from kraken.lib.models import load_any
@@ -23,7 +23,7 @@ def load(model_path: Path = MODEL_PATH) -> Any:
 
 def handle(
     image: Image.Image,
-    seg_info: Optional[dict[str, Any]] = None,
+    seg_info: dict[str, Any] | None = None,
     debug: bool = False,
     frontline: str = "",
     filter_warnings: bool = False,

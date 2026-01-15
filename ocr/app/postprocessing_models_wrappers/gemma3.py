@@ -2,13 +2,14 @@ from typing import Any
 
 from llama_cpp.llama_grammar import LlamaGrammar, json_schema_to_gbnf
 
-try :
+try:
     from app.postprocessing_models_wrappers.model import Model
-except Exception :
-    try :
+except Exception:
+    try:
         from postprocessing_models_wrappers.model import Model
     except Exception as e:
         raise ImportError("Failed to import Model base class. Ensure the package structure is correct.") from e
+
 
 class Gemma3(Model):
     def __init__(self, n_gpu_layers: int = 10) -> None:
