@@ -85,18 +85,18 @@ async def handle_file(payload: IncomingFile, request: Request) -> dict[str, Any]
     
     raw = await request.body()
 
-    logging.debug("Full request (content skipped): %s\n", strip_content(json.loads(raw)))
+    # logging.info("Full request (content skipped): %s\n", strip_content(json.loads(raw)))
     
-    logging.debug(
-        "Received file: id=%s, ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
-        payload.id,
-        payload.ownerId,
-        payload.formatId,
-        payload.generation,
-        payload.primaryFileId,
-        payload.processingModelId,
-        len(payload.content),
-    )
+    # logging.info(
+    #     "Received file: id=%s, ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
+    #     payload.id,
+    #     payload.ownerId,
+    #     payload.formatId,
+    #     payload.generation,
+    #     payload.primaryFileId,
+    #     payload.processingModelId,
+    #     len(payload.content),
+    # )
 
     auth_header = request.headers.get("authorization")
 

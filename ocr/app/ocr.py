@@ -123,7 +123,7 @@ def run_ocr(
     ocr_handler = get_model_handler(model_id, debug=debug, debug_indent=debug_indent + 1)
     lines_data: list[str] = []
 
-    pdf_path = OUT_DIR / "ocr_overlay.pdf"
+    # pdf_path = OUT_DIR / "ocr_overlay.pdf"
     if debug:
         logging.debug(
             get_frontline(debug_indent) + f"Initializing PDF document with image visibility set to: {image_visibility}"
@@ -147,10 +147,7 @@ def run_ocr(
     lines_txt = [item["text"] for item in lines_data]
     
     lines_txt = postprocess(lines_txt)
-    print(lines_txt)
-    print(type(lines_txt))
     for i, item in enumerate(lines_data):
-        print(i, item)
         try :
             item["text"] = lines_txt["lines"][i]
         except Exception as e:
