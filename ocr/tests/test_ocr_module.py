@@ -1,6 +1,4 @@
 import io
-from collections.abc import Callable
-from typing import Any
 
 import pytest
 from PIL import Image
