@@ -13,11 +13,11 @@ class Model(ABC):
             n_ctx=2048,
             n_threads=32,
             n_gpu_layers=n_gpu_layers,
-            n_batch=512,
+            n_batch=64,
             use_mmap=True,
             use_mlock=False,
             chat_format="gemma",
-            verbose=False,
+            verbose=True,
             stream=False,
         )
 

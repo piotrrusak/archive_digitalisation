@@ -108,9 +108,9 @@ def run_ocr(
             logging.debug(get_frontline(debug_indent) + f"Inverting image (dark ratio: {dark_ratio:.2f})")
         im = Image.eval(im, lambda x: 255 - x)
 
-    if debug:
-        OUT_DIR.mkdir(parents=True, exist_ok=True)
-        (OUT_DIR / "debug_input.png").write_bytes(png_bytes)
+    # if debug:
+    #     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    #     (OUT_DIR / "debug_input.png").write_bytes(png_bytes)
 
     if not one_liner:
         lines = segment(im, debug=debug, frontline=get_frontline(debug_indent + 1))
@@ -144,10 +144,18 @@ def run_ocr(
 
         lines_data.append({"text": line_txt, "bbox": item["bbox"]})
 
-    # lines_txt = [item["text"] for item in lines_data]
-    # lines_txt = postprocess(lines_txt)
-    # for i, item in enumerate(lines_data):
-    #     item["text"] = lines_txt[i]
+    lines_txt = [item["text"] for item in lines_data]
+    
+    lines_txt = postprocess(lines_txt)
+    print(lines_txt)
+    print(type(lines_txt))
+    for i, item in enumerate(lines_data):
+        print(i, item)
+        try :
+            item["text"] = lines_txt["lines"][i]
+        except Exception as e:
+            # print(f"Error updating text for line {i}: {e}")
+            logging.info(f"Line {i} wasn't postprocessed")
 
     for item in lines_data:
         insert_text_at_bbox(pdf_doc, item["text"], item["bbox"], visible_image=image_visibility)
@@ -179,7 +187,7 @@ if __name__ == "__main__":
     from run import setup_logging
     setup_logging()
     test_ocr(
-        Path(__file__).resolve().parent / "../model_training/data/output.png",
+        Path(__file__).resolve().parent / "../model_training/data/0000.png",
         model_id=1,
         #  one_liner=True,
         debug=True,
