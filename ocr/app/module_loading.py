@@ -4,6 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
+from types import ModuleType
 
 
 @dataclass(frozen=True)
@@ -14,7 +15,7 @@ class ModelSpec:
     handle: Callable
 
 
-def load_module_from_path(path):
+def load_module_from_path(path: Path) -> ModuleType:
     unique_name = f"_ocr_model_{path.stem}_{abs(hash(path.as_posix()))}"
     spec = spec_from_file_location(unique_name, path)
 

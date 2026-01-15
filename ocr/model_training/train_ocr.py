@@ -6,6 +6,7 @@ import random
 import re
 import shutil
 import subprocess
+from collections.abc import Iterable
 from pathlib import Path
 
 from utils.memory_info import main as print_memory_info
@@ -35,12 +36,12 @@ DEVICE = "cuda:0"
 MIN_EPOCHS = max(MIN_EPOCHS, EARLY_STOPPING)
 
 
-def natural_epoch_sort_key(p):
+def natural_epoch_sort_key(p: Path) -> int:
     m = re.search(r"model_(\d+)\.mlmodel$", p.name)
     return int(m.group(1)) if m else -1
 
 
-def promote(run_dir, dest_path):
+def promote(run_dir: Path | str, dest_path: Path | str) -> Path:
     run_dir = Path(run_dir).resolve()
     dest_path = Path(dest_path).resolve()
     dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -58,7 +59,7 @@ def promote(run_dir, dest_path):
     return best_path
 
 
-def collect_xml_files(data_dir):
+def collect_xml_files(data_dir: Path) -> list[Path]:
     xml_paths = sorted(glob.glob(str(data_dir / "*.xml")))
     xml_paths = [p for p in xml_paths if "aug" not in Path(p).name]
     if not xml_paths:
@@ -66,7 +67,9 @@ def collect_xml_files(data_dir):
     return [Path(p) for p in xml_paths]
 
 
-def train_val_split(xml_files, seed=SEED, val_ratio=VAL_RATIO):
+def train_val_split(
+    xml_files: Iterable[Path], seed: int = SEED, val_ratio: float = VAL_RATIO
+) -> tuple[list[Path], list[Path]]:
     xml_files = list(xml_files)
     random.seed(seed)
     random.shuffle(xml_files)
@@ -81,7 +84,7 @@ def train_val_split(xml_files, seed=SEED, val_ratio=VAL_RATIO):
     return train_xml, val_xml
 
 
-def write_manifest(paths, dest):
+def write_manifest(paths: Iterable[Path], dest: Path) -> Path:
     dest = dest.resolve()
     dest.parent.mkdir(parents=True, exist_ok=True)
     with dest.open("w", encoding="utf-8") as f:
@@ -91,17 +94,17 @@ def write_manifest(paths, dest):
 
 
 def run_ketos_train(
-    data_dir=DATA_DIR,
-    out_root=OUT_DIR,
-    format_type=FORMAT_TYPE,
-    base_model=BASE_MODEL,
-    min_epochs=MIN_EPOCHS,
-    max_epochs=MAX_EPOCHS,
-    batch_size=BATCH_SIZE,
-    early_stopping=EARLY_STOPPING,
-    device=DEVICE,
-    val_ratio=VAL_RATIO,
-):
+    data_dir: Path = DATA_DIR,
+    out_root: Path = OUT_DIR,
+    format_type: str = FORMAT_TYPE,
+    base_model: Path | None = BASE_MODEL,
+    min_epochs: int = MIN_EPOCHS,
+    max_epochs: int = MAX_EPOCHS,
+    batch_size: int = BATCH_SIZE,
+    early_stopping: int = EARLY_STOPPING,
+    device: str = DEVICE,
+    val_ratio: float = VAL_RATIO,
+) -> Path:
     data_dir = Path(data_dir).resolve()
     out_root = Path(out_root).resolve()
 
@@ -165,7 +168,7 @@ def run_ketos_train(
     return run_dir
 
 
-def main():
+def main() -> None:
     print_memory_info()
 
     run_dir = run_ketos_train(

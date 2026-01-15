@@ -7,7 +7,7 @@ from train_segmentator import main as train_segmentator
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
-def main():
+def main() -> None:
     print("Loading backups...")
     subprocess.run(["./load_backups.sh"], cwd=SCRIPT_DIR)
     print("Preprocessing data...")

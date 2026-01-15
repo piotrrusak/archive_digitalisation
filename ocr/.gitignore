@@ -27,3 +27,9 @@ model_training/data_backup
 model_training/input_backup
 
 model_training/pipeline.sh
+
+model_training/test_results
+
+*.json
+
+models/postprocessing_models

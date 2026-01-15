@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 from lxml import etree
 from PIL import Image
@@ -15,7 +16,7 @@ PAGE_NS = "http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
 NSMAP = {None: PAGE_NS}
 
 
-def clamp_bbox(b, w, h):
+def clamp_bbox(b: list[int], w: int, h: int) -> tuple[int, int, int, int]:
     x0, y0, x1, y1 = b
     x0 = max(0, min(x0, w))
     x1 = max(0, min(x1, w))
@@ -28,7 +29,7 @@ def clamp_bbox(b, w, h):
     return x0, y0, x1, y1
 
 
-def make_page_xml(image_path, img_w, img_h, lines):
+def make_page_xml(image_path: str, img_w: int, img_h: int, lines: list[dict[str, Any]]) -> bytes:
     root = etree.Element("PcGts", nsmap=NSMAP)
     page = etree.SubElement(root, "Page", imageFilename=image_path, imageWidth=str(img_w), imageHeight=str(img_h))
     region = etree.SubElement(page, "TextRegion", id="r1")
@@ -46,7 +47,7 @@ def make_page_xml(image_path, img_w, img_h, lines):
         x0, y0, x1, y1 = ln["bbox"]
         tl = etree.SubElement(region, "TextLine", id=f"l{i:04d}")
         etree.SubElement(tl, "Coords", points=f"{x0},{y0} {x1},{y0} {x1},{y1} {x0},{y1}")
-        etree.SubElement(tl, "Baseline", points=f"{x0},{y1} {x1},{y1}")
+        etree.SubElement(tl, "Baseline", points=f"{x0},{(y0 + y1) / 2} {x1},{(y0 + y1) / 2}")
         if "text" in ln and ln["text"] is not None:
             te = etree.SubElement(tl, "TextEquiv")
             uni = etree.SubElement(te, "Unicode")
@@ -54,7 +55,7 @@ def make_page_xml(image_path, img_w, img_h, lines):
     return etree.tostring(root, pretty_print=True, xml_declaration=True, encoding="UTF-8")
 
 
-def save_line_crops(base_out, name, img, lines):
+def save_line_crops(base_out: Path, name: str, img: Image.Image, lines: list[dict[str, Any]]) -> None:
     out_dir = base_out / name
     out_dir.mkdir(parents=True, exist_ok=True)
     for i, ln in enumerate(lines):
@@ -66,7 +67,7 @@ def save_line_crops(base_out, name, img, lines):
         txt_path.write_text(ln.get("text", ""), encoding="utf-8")
 
 
-def handle_record(item):
+def handle_record(item: dict[str, Any]) -> int:
     rel_path = item["filepath"]
     img_path = (Path(DATA_DIR) / Path(rel_path).name).resolve()
     name = item.get("name") or Path(rel_path).stem
@@ -84,7 +85,7 @@ def handle_record(item):
     return 0
 
 
-def main():
+def main() -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     ds = json.loads(Path(JSON_PATH).read_text(encoding="utf-8"))
     for item in ds:

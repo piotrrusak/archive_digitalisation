@@ -1,6 +1,8 @@
 import json
 import os
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -12,7 +14,7 @@ JSON_DIR = os.path.join(SCRIPT_DIR, "input")
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
 
 
-def get_next(mask):
+def get_next(mask: list[int]) -> None:
     prev = -1
 
     for i in range(len(mask) - 1, -2, -1):
@@ -22,7 +24,7 @@ def get_next(mask):
         prev = mask.pop()
 
 
-def iterate_through_masks(n):
+def iterate_through_masks(n: int) -> Iterator[list[int]]:
     mask = []
     while len(mask) <= n:
         yield mask.copy()
@@ -30,14 +32,15 @@ def iterate_through_masks(n):
             break
         get_next(mask)
 
-def generate_maskset(n, num_of_masks=MASKS_PER_IMAGE):
+
+def generate_maskset(n: int, num_of_masks: int = MASKS_PER_IMAGE) -> list[list[int]]:
     masks = [(mask, i) for i, mask in enumerate(iterate_through_masks(n)) if 0 < len(mask) < n]
     maskset = []
-    for mask in masks :
+    for mask in masks:
         while len(maskset) <= (len(mask[0]) - 1):
             maskset.append([])
         maskset[len(mask[0]) - 1].append(mask)
-        
+
     out_maskset = []
     masks_per_length = max(num_of_masks // (n - 1), 1)
     for lenset in maskset:
@@ -46,20 +49,21 @@ def generate_maskset(n, num_of_masks=MASKS_PER_IMAGE):
             out_maskset.append(mask)
         if len(out_maskset) >= num_of_masks:
             break
-        
+
     out_maskset.sort(key=lambda x: x[1])
-    
+
     out_maskset = [mask[0] for mask in out_maskset]
-    
+
     return out_maskset
 
-def handle_record(record):
+
+def handle_record(record: dict[str, Any]) -> int:
     print(f"Augmenting record: {record['name']}")
     output = 1
     n = len(record["lines"])
     print(f" - {n} lines found.")
     output += 1
-    
+
     image_file = os.path.join(SCRIPT_DIR, record["filepath"])
     with Image.open(image_file) as im:
         im_arr = np.array(im)
@@ -67,7 +71,6 @@ def handle_record(record):
     mask_number = 0
 
     for mask in generate_maskset(n):
-
         print(f" - Creating augmented image with lines: {mask}")
         output += 1
         mask_number += 1
@@ -88,7 +91,6 @@ def handle_record(record):
         out_path = Path(DATA_DIR) / name
         out_im.save(out_path)
 
-
         # open json file and append new entry there
         json_path = Path(JSON_DIR) / "dataset.json"
         with json_path.open("r", encoding="utf-8") as f:
@@ -97,9 +99,10 @@ def handle_record(record):
         with json_path.open("w", encoding="utf-8") as f:
             json.dump(json_data, f, ensure_ascii=False, indent=4)
 
-    #return number of printed lines
+    # return number of printed lines
     return output
 
+
 if __name__ == "__main__":
-    #test
+    # test
     print(generate_maskset(17))

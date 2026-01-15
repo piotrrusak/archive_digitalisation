@@ -1,26 +1,33 @@
 import logging
 from pathlib import Path
+from typing import Any
 
 from kraken import binarization, containers, pageseg, rpred
 from kraken.lib.models import load_any
 from PIL import Image
 
 NAME = "Kraken OCR Model"
-DESCRIPTION = """Totally different Kraken model"""
+DESCRIPTION = """Kraken model - Accuracy ~ 83%"""
 
 MODEL = None
 
-MODEL_PATH = Path(__file__).resolve().parent / ".." / "ocr_best_submitted.mlmodel"
+MODEL_PATH = Path(__file__).resolve().parent / ".." / "ocr_best.mlmodel"
 TEXT_DIRECTION = "horizontal-lr"
 
 
-def load(model_path=MODEL_PATH):
+def load(model_path: Path = MODEL_PATH) -> Any:
     global MODEL
     MODEL = load_any(str(model_path), device="cpu")
     return MODEL
 
 
-def handle(image, seg_info=None, debug=False, frontline="", filter_warnings=False):
+def handle(
+    image: Image.Image,
+    seg_info: dict[str, Any] | None = None,
+    debug: bool = False,
+    frontline: str = "",
+    filter_warnings: bool = False,
+) -> str:
     global MODEL
     if MODEL is None:
         load()

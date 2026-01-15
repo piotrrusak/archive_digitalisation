@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 import multiprocessing as mp
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -23,6 +24,9 @@ class SegModelSpec:
 SCRIPT_DIR = Path(__file__).resolve().parent
 JSON_PATH = SCRIPT_DIR / "input" / "dataset.json"
 
+OUT_FILE = SCRIPT_DIR / "test_results" / "segmentation_test_results_new.json"
+SAVED_DATA = {}
+
 
 def load_module_from_path(path: Path) -> ModuleType:
     unique_name = f"_seg_model_{path.stem}_{abs(hash(path.as_posix()))}"
@@ -37,13 +41,17 @@ def load_module_from_path(path: Path) -> ModuleType:
     return module
 
 
-def load_dataset(json_path: Path = JSON_PATH):
+def load_dataset(json_path: Path = JSON_PATH) -> list[dict[str, Any]]:
     with json_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
     return data
 
 
-def segmentation_metric(gt_lines, pred_lines, image):
+def segmentation_metric(
+    gt_lines: list[dict[str, Any]],
+    pred_lines: list[dict[str, Any]],
+    image: Image.Image,
+) -> float:
     h, w = image.size[1], image.size[0]
     gt_mask = np.zeros((h, w), dtype=np.uint8)
     pred_mask = np.zeros((h, w), dtype=np.uint8)
@@ -102,8 +110,12 @@ def _load_seg_model_in_handler(handler_module: ModuleType, model_path: Path) -> 
 
 
 def test_seg_model(
-    model_path: Path, handler_path: Path, max_pages: int | None = None, concurrently: bool = False, dataset=None
-):
+    model_path: Path,
+    handler_path: Path,
+    max_pages: int | None = None,
+    concurrently: bool = False,
+    dataset: list[dict[str, Any]] | None = None,
+) -> Iterator[tuple[float, float] | None]:
     handler_module = load_module_from_path(handler_path)
     _load_seg_model_in_handler(handler_module, model_path)
     segment_func = _get_segment_function(handler_module)
@@ -124,7 +136,6 @@ def test_seg_model(
         image = Image.open(img_path).convert("RGB")
 
         pred_lines = segment_func(image, seg_model_path=model_path, filter_warnings=True)
-
         gt_lines = item["lines"]
 
         page_score = segmentation_metric(gt_lines, pred_lines, image)
@@ -138,7 +149,7 @@ def test_seg_model(
         if not concurrently:
             print(log + " " * max((log_length - len(log), 0)), end="\r")
         else:
-            yield avg_score
+            yield (page_score, avg_score)
 
         if max_pages is not None and page_count >= max_pages:
             break
@@ -151,19 +162,29 @@ def test_seg_model(
         yield None
 
 
-def _run_seg_model_in_process(model_path, handler_path, max_pages, queue):
-    for result in test_seg_model(model_path, handler_path, max_pages, concurrently=True):
-        queue.put(result)
-    queue.put(None)
+def _run_seg_model_in_process(
+    model_path: Path,
+    handler_path: Path,
+    max_pages: int | None,
+    queue: mp.Queue,
+    model_name: str,
+) -> None:
+    for payload in test_seg_model(model_path, handler_path, max_pages, concurrently=True):
+        queue.put((model_name, payload))
+    queue.put((model_name, None))
 
 
 def test_seg_models_concurrently(
-    model_specs,
+    model_specs: list[tuple[Path, Path]],
     pages_per_model: int | None = None,
     one_line: bool = True,
-):
+) -> None:
+    global SAVED_DATA
     normalized = [(Path(m), Path(h)) for (m, h) in model_specs]
     normalized.sort(key=lambda p: len(p[0].name), reverse=True)
+
+    SAVED_DATA = {model_path.name: [] for (model_path, _) in normalized}
+
     column_length = len(normalized[0][0].name) if normalized else 10
 
     dataset = load_dataset(JSON_PATH)
@@ -190,7 +211,7 @@ def test_seg_models_concurrently(
     for (model_path, handler_path), queue in zip(normalized, queues, strict=False):
         p = mp.Process(
             target=_run_seg_model_in_process,
-            args=(model_path, handler_path, pages_per_model, queue),
+            args=(model_path, handler_path, pages_per_model, queue, model_path.name),
         )
         p.start()
         processes.append(p)
@@ -206,13 +227,17 @@ def test_seg_models_concurrently(
                 row.append(prev_results[i])
                 continue
 
-            r = queue.get()
-            if r is None:
+            msg_model, payload = queue.get()
+
+            if payload is None:
                 finished[i] = True
                 row.append(prev_results[i])
             else:
-                prev_results[i] = r
-                row.append(r)
+                page_score, avg_score = payload
+                SAVED_DATA[msg_model].append(page_score)
+
+                prev_results[i] = avg_score
+                row.append(avg_score)
 
         iteration += 1
         line = frontline
@@ -232,6 +257,10 @@ def test_seg_models_concurrently(
     if one_line:
         print(line + f"| {iteration} / {pages_per_model + 1}")
 
+    OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with OUT_FILE.open("w", encoding="utf-8") as f:
+        json.dump(SAVED_DATA, f, indent=2, ensure_ascii=False)
+
 
 if __name__ == "__main__":
     SEG_HANDLER_PATH = SCRIPT_DIR / ".." / "app" / "segmentator.py"
@@ -240,7 +269,9 @@ if __name__ == "__main__":
         [
             (SCRIPT_DIR / ".." / "models" / "seg_best.mlmodel", SEG_HANDLER_PATH),
             (SCRIPT_DIR / ".." / "models" / "seg_best_submitted.mlmodel", SEG_HANDLER_PATH),
+            (SCRIPT_DIR / ".." / "models" / "seg_best_old.mlmodel", SEG_HANDLER_PATH),
+            (SCRIPT_DIR / ".." / "models" / "blla.mlmodel", SEG_HANDLER_PATH),
         ],
-        pages_per_model=1000,
+        pages_per_model=float("inf"),
         one_line=True,
     )

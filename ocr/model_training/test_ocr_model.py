@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 import multiprocessing as mp
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 from PIL import Image
 from rapidfuzz.distance import Levenshtein
@@ -33,32 +34,42 @@ def load_module_from_path(path: Path) -> ModuleType:
     return module
 
 
-MODEL_HANDLER_PATH = Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "handlers" / "kraken.py"
-MODEL_PATH = Path(__file__).resolve().parent / ".." / "models" / "ocr_best_ketos.mlmodel"
+MODEL_HANDLER_PATH = Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "handlers" / "0kraken.py"
+MODEL_PATH = Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best_submitted.mlmodel"
 JSON_PATH = Path(__file__).resolve().parent / "input" / "dataset.json"
 
+SCRIPT_DIR = Path(__file__).resolve().parent
 
-def normalize_text(text):
+OUT_FILE = SCRIPT_DIR / "test_results" / "ocr_test_results.json"
+SAVED_DATA = {}
+
+
+def normalize_text(text: str) -> str:
     return " ".join((text or "").split()).strip()
 
 
-def load_dataset(json_path: Path = JSON_PATH):
+def load_dataset(json_path: Path = JSON_PATH) -> list[dict[str, Any]]:
     with JSON_PATH.open("r", encoding="utf-8") as f:
         dataset_info = json.load(f)
     return dataset_info
 
 
 def test_model(
-    model_path=MODEL_PATH, model_handler=MODEL_HANDLER_PATH, tests=100, concurrently=False, dataset_info=None
-):
+    model_path: Path = MODEL_PATH,
+    model_handler: Path = MODEL_HANDLER_PATH,
+    tests: int = 100,
+    concurrently: bool = False,
+    dataset_info: list[dict[str, Any]] | None = None,
+) -> Iterator[tuple[float, float] | None]:
     module = load_module_from_path(model_handler)
     module.load(model_path)
     handle_func = module.handle
+
     if dataset_info is None:
         dataset_info = load_dataset(JSON_PATH)
 
     counter = 0
-    score = 0
+    score = 0.0
     log_length = 0
 
     if not concurrently:
@@ -67,6 +78,10 @@ def test_model(
 
     for item in dataset_info:
         img = Image.open(Path(__file__).resolve().parent / item["filepath"])
+
+        if "aug" in item["name"]:
+            continue
+
         for line in item["lines"]:
             line_img = img.crop((line["bbox"][0], line["bbox"][1], line["bbox"][2], line["bbox"][3]))
 
@@ -76,14 +91,18 @@ def test_model(
             got = normalize_text(result)
 
             lev_distance = float(Levenshtein.distance(expected, got))
-            score += 1 - (lev_distance / max(1, len(expected)))
+            model_numerical_result = 1 - (lev_distance / max(1, len(expected)))
 
-            log = f"   Test {counter + 1}, current model score: {score / (counter + 1):.4f}"
+            score += model_numerical_result
+            running_avg = score / (counter + 1)
+
+            log = f"   Test {counter + 1}, current model score: {running_avg:.4f}"
             log_length = max(log_length, len(log))
+
             if not concurrently:
                 print(log + " " * max((log_length - len(log), 0)), end="\r")
             else:
-                yield score / (counter + 1)
+                yield (model_numerical_result, running_avg)
 
             counter += 1
 
@@ -96,26 +115,43 @@ def test_model(
     if not concurrently:
         print(" " * log_length, end="\r")
         print(f"After {counter} tests")
-
         print(log)
     else:
         yield None
 
 
-def _run_model_in_process(model_path, model_handler, tests, queue):
-    for result in test_model(model_path, model_handler, tests, concurrently=True):
-        queue.put(result)
-    queue.put(None)
+def _run_model_in_process(
+    model_path: Path,
+    model_handler: Path,
+    tests: int,
+    queue: mp.Queue,
+    model_name: str,
+) -> None:
+    for payload in test_model(
+        model_path,
+        model_handler,
+        tests,
+        concurrently=True,
+    ):
+        queue.put((model_name, payload))
+    queue.put((model_name, None))
 
 
-def test_models_concurrently(model_paths, tests_per_model=2, one_line=True):
+def test_models_concurrently(
+    model_paths: list[tuple[Path, Path]], tests_per_model: int | None = 2, one_line: bool = True
+) -> None:
+    global SAVED_DATA
+    SAVED_DATA = {mp[0].name: [] for mp in model_paths}
+
     model_paths.sort(key=lambda p: len(p[0].name), reverse=True)
     column_length = len(model_paths[0][0].name) if model_paths else 10
 
     dataset_info = load_dataset(JSON_PATH)
-    lines_num = sum(len(record["lines"]) for record in dataset_info)
+    lines_num = sum(len(record["lines"]) for record in dataset_info if "aug" not in record["name"])
     if tests_per_model is None or tests_per_model > lines_num:
         tests_per_model = lines_num
+
+    print(f"Each model will be tested on {tests_per_model} lines.")
 
     print("Starting concurrent model tests...")
     frontline = " " * 6
@@ -134,7 +170,10 @@ def test_models_concurrently(model_paths, tests_per_model=2, one_line=True):
 
     processes = []
     for (model_path, handler), queue in zip(model_paths, queues, strict=False):
-        p = mp.Process(target=_run_model_in_process, args=(model_path, handler, tests_per_model, queue))
+        p = mp.Process(
+            target=_run_model_in_process,
+            args=(model_path, handler, tests_per_model, queue, model_path.name),
+        )
         p.start()
         processes.append(p)
 
@@ -149,13 +188,17 @@ def test_models_concurrently(model_paths, tests_per_model=2, one_line=True):
                 row.append(prev_results[i])
                 continue
 
-            r = queue.get()
-            if r is None:
+            msg_model, payload = queue.get()
+
+            if payload is None:
                 finished[i] = True
                 row.append(prev_results[i])
             else:
-                prev_results[i] = r
-                row.append(r)
+                model_numerical_result, running_avg = payload
+                SAVED_DATA[msg_model].append(model_numerical_result)
+
+                prev_results[i] = running_avg
+                row.append(running_avg)
 
         counter += 1
         line = frontline
@@ -172,16 +215,25 @@ def test_models_concurrently(model_paths, tests_per_model=2, one_line=True):
 
     for p in processes:
         p.join()
-    print(line + f"| {counter} / {tests_per_model + 1}")
+    if one_line:
+        print(line + f"| {counter} / {tests_per_model + 1}")
+    OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with OUT_FILE.open("w", encoding="utf-8") as f:
+        json.dump(SAVED_DATA, f, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
     test_models_concurrently(
         [
             (MODEL_PATH, MODEL_HANDLER_PATH),
-            (Path(__file__).resolve().parent / ".." / "models" / "en_best.mlmodel", MODEL_HANDLER_PATH),
+            (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "en_best.mlmodel", MODEL_HANDLER_PATH),
             (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "kraken.mlmodel", MODEL_HANDLER_PATH),
+            (Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best.mlmodel", MODEL_HANDLER_PATH),
+            (
+                Path(__file__).resolve().parent / ".." / "models" / "ocr_models" / "ocr_best_ketos.mlmodel",
+                MODEL_HANDLER_PATH,
+            ),
         ],
-        tests_per_model=1000,
+        tests_per_model=float("inf"),
         one_line=True,
     )

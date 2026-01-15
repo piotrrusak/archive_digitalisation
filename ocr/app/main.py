@@ -1,7 +1,7 @@
 import base64
-import json
 import logging
 import os
+from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -38,7 +38,7 @@ class IncomingFile(BaseModel):
 
     @field_validator("content")
     @classmethod
-    def validate_base64(cls, v):
+    def validate_base64(cls, v: str) -> str:
         try:
             base64.b64decode(v, validate=True)
         except Exception as e:
@@ -46,7 +46,8 @@ class IncomingFile(BaseModel):
             raise ValueError(f"Invalid base64 content: {e}") from e
         return v
 
-def strip_content(data):
+
+def strip_content(data: Any) -> Any:
     try:
         if "content" in data:
             data["content"] = "[SKIPPED]"
@@ -55,9 +56,10 @@ def strip_content(data):
         data = "[NON-JSON BODY]"
     return data
 
-def find_correct_backend_url(auth_header, format_id):
+
+def find_correct_backend_url(auth_header: str | None, format_id: int) -> str | None:
     global BACKEND_URL
-    if BACKEND_URL is None :
+    if BACKEND_URL is None:
         try:
             backend_base_url = os.getenv("BACKEND_BASE_URL_DOCKER")
             get_format(backend_base_url, auth_header, format_id=format_id)
@@ -71,31 +73,32 @@ def find_correct_backend_url(auth_header, format_id):
                 logging.critical("Failed to find backend URL: %s", e)
     return BACKEND_URL
 
+
 @app.get("/health")
-def health():
+def health() -> dict[str, str]:
     try:
         _ = get_model_list()
         return {"status": "ok"}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
 
-@app.post("/ocr/process")
-async def handle_file(payload: IncomingFile, request: Request):
-    
-    raw = await request.body()
 
-    logging.debug("Full request (content skipped): %s\n", strip_content(json.loads(raw)))
-    
-    logging.debug(
-        "Received file: id=%s, ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
-        payload.id,
-        payload.ownerId,
-        payload.formatId,
-        payload.generation,
-        payload.primaryFileId,
-        payload.processingModelId,
-        len(payload.content),
-    )
+@app.post("/ocr/process")
+async def handle_file(payload: IncomingFile, request: Request) -> dict[str, Any]:
+    await request.body()
+
+    # logging.info("Full request (content skipped): %s\n", strip_content(json.loads(raw)))
+
+    # logging.info(
+    #     "Received file: id=%s, ownerId=%s formatId=%s generation=%s primaryFileId=%s model_id=%s size_b64=%d",
+    #     payload.id,
+    #     payload.ownerId,
+    #     payload.formatId,
+    #     payload.generation,
+    #     payload.primaryFileId,
+    #     payload.processingModelId,
+    #     len(payload.content),
+    # )
 
     auth_header = request.headers.get("authorization")
 
@@ -134,7 +137,6 @@ async def handle_file(payload: IncomingFile, request: Request):
 
     logging.info("Sent OCR result back to backend, got response: %s", strip_content(result))
 
-
     out_docx_format = get_format(backend_base_url, auth_header, format_name="docx")
     if not out_docx_format:
         logging.critical("DOCX format not found in backend formats")
@@ -156,7 +158,7 @@ async def handle_file(payload: IncomingFile, request: Request):
 
 
 @app.get("/ocr/available_models")
-def available_models():
+def available_models() -> list[dict[str, Any]]:
     try:
         return [{k: v for k, v in model.items() if k != "handle"} for model in get_model_list()]
     except Exception as e:
